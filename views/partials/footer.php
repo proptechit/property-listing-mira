@@ -1,4 +1,5 @@
 </main>
-<script src="/assets/js/api.js"></script>
+<script src="assets/js/api.js"></script>
 </body>
+
 </html>

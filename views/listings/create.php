@@ -78,14 +78,14 @@
     </div>
 </div>
 
-<script src="/assets/js/listings.js"></script>
+<script src="assets/js/listings.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    if (typeof loadFormOptions === 'function') {
-        loadFormOptions();
-    }
-    if (typeof setupCreateForm === 'function') {
-        setupCreateForm();
-    }
-});
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof loadFormOptions === 'function') {
+            loadFormOptions();
+        }
+        if (typeof setupCreateForm === 'function') {
+            setupCreateForm();
+        }
+    });
 </script>

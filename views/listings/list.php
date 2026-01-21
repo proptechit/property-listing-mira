@@ -28,7 +28,7 @@
     </div>
 </div>
 
-<script src="/assets/js/listings.js"></script>
+<script src="assets/js/listings.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         if (typeof loadListings === 'function') {

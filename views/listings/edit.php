@@ -89,19 +89,19 @@ if (!$id) {
 </div>
 
 <script>
-const listingId = <?php echo json_encode($id); ?>;
+    const listingId = <?php echo json_encode($id); ?>;
 </script>
-<script src="/assets/js/listings.js"></script>
+<script src="assets/js/listings.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    if (typeof loadFormOptions === 'function') {
-        loadFormOptions();
-    }
-    if (typeof loadListingForEdit === 'function') {
-        loadListingForEdit(listingId);
-    }
-    if (typeof setupEditForm === 'function') {
-        setupEditForm(listingId);
-    }
-});
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof loadFormOptions === 'function') {
+            loadFormOptions();
+        }
+        if (typeof loadListingForEdit === 'function') {
+            loadListingForEdit(listingId);
+        }
+        if (typeof setupEditForm === 'function') {
+            setupEditForm(listingId);
+        }
+    });
 </script>

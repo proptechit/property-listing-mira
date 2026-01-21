@@ -62,7 +62,7 @@
     </div>
 </div>
 
-<script src="/assets/js/locations.js"></script>
+<script src="assets/js/locations.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         if (typeof loadLocations === 'function') {

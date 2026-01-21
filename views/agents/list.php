@@ -20,11 +20,11 @@
     </div>
 </div>
 
-<script src="/assets/js/agents.js"></script>
+<script src="assets/js/agents.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    if (typeof loadAgents === 'function') {
-        loadAgents();
-    }
-});
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof loadAgents === 'function') {
+            loadAgents();
+        }
+    });
 </script>

@@ -20,11 +20,11 @@
     </div>
 </div>
 
-<script src="/assets/js/owners.js"></script>
+<script src="assets/js/owners.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    if (typeof loadOwners === 'function') {
-        loadOwners();
-    }
-});
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof loadOwners === 'function') {
+            loadOwners();
+        }
+    });
 </script>

@@ -23,11 +23,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/assets/js/reports.js"></script>
+<script src="assets/js/reports.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    if (typeof loadReports === 'function') {
-        loadReports();
-    }
-});
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof loadReports === 'function') {
+            loadReports();
+        }
+    });
 </script>
