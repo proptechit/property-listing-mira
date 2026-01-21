@@ -5,7 +5,7 @@ const pageSize = 50;
 async function loadAgents(page = 1) {
   try {
     currentPage = page;
-    const response = await api(`/?resource=agents?page=${page}`);
+    const response = await api(`/?resource=agents&page=${page}`);
     const data = response.data || [];
     const pagination = response.pagination || {};
     const tbody = document.getElementById("agentsList");

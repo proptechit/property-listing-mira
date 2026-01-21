@@ -24,19 +24,19 @@
                         </svg>
                     </button>
                     <div id="navDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                        <a href="?page=listings&action=list" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'listings') ? 'bg-blue-50 text-blue-600' : ''; ?>">
+                        <a href="&page=listings&action=list" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'listings') ? 'bg-blue-50 text-blue-600' : ''; ?>">
                             Listings
                         </a>
-                        <a href="?page=locations&action=list" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'locations') ? 'bg-blue-50 text-blue-600' : ''; ?>">
+                        <a href="&page=locations&action=list" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'locations') ? 'bg-blue-50 text-blue-600' : ''; ?>">
                             Locations
                         </a>
-                        <a href="?page=agents&action=list" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'agents') ? 'bg-blue-50 text-blue-600' : ''; ?>">
+                        <a href="&page=agents&action=list" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'agents') ? 'bg-blue-50 text-blue-600' : ''; ?>">
                             Agents
                         </a>
-                        <a href="?page=owners&action=list" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'owners') ? 'bg-blue-50 text-blue-600' : ''; ?>">
+                        <a href="&page=owners&action=list" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'owners') ? 'bg-blue-50 text-blue-600' : ''; ?>">
                             Owners
                         </a>
-                        <a href="?page=reports" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'reports') ? 'bg-blue-50 text-blue-600' : ''; ?>">
+                        <a href="&page=reports" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors <?php echo ($page === 'reports') ? 'bg-blue-50 text-blue-600' : ''; ?>">
                             Reports
                         </a>
                     </div>
@@ -44,19 +44,19 @@
             </div>
         </div>
     </nav>
-    
+
     <script>
         // Dropdown toggle functionality
         document.addEventListener('DOMContentLoaded', function() {
             const dropdownBtn = document.getElementById('navDropdownBtn');
             const dropdown = document.getElementById('navDropdown');
-            
+
             if (dropdownBtn && dropdown) {
                 dropdownBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     dropdown.classList.toggle('hidden');
                 });
-                
+
                 document.addEventListener('click', function(e) {
                     if (!dropdown.contains(e.target) && !dropdownBtn.contains(e.target)) {
                         dropdown.classList.add('hidden');

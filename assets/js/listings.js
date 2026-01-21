@@ -5,7 +5,7 @@ const pageSize = 50;
 async function loadListings(page = 1) {
   try {
     currentPage = page;
-    const response = await api(`/?resource=listings?page=${page}`);
+    const response = await api(`/?resource=listings&page=${page}`);
     const data = response.data || [];
     const pagination = response.pagination || {};
     const tbody = document.getElementById("listingsTable");
@@ -46,8 +46,8 @@ async function loadListings(page = 1) {
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <a href="?page=listings&action=view&id=${l.id}" class="text-blue-600 hover:text-blue-800 mr-3 transition-colors">View</a>
-            <a href="?page=listings&action=edit&id=${l.id}" class="text-blue-600 hover:text-blue-800 transition-colors">Edit</a>
+            <a href="&page=listings&action=view&id=${l.id}" class="text-blue-600 hover:text-blue-800 mr-3 transition-colors">View</a>
+            <a href="&page=listings&action=edit&id=${l.id}" class="text-blue-600 hover:text-blue-800 transition-colors">Edit</a>
           </td>
         </tr>
       `,
@@ -249,7 +249,7 @@ function setupCreateForm() {
       });
 
       alert("Listing created successfully!");
-      window.location.href = "?page=listings&action=list";
+      window.location.href = "&page=listings&action=list";
     } catch (error) {
       console.error("Error creating listing:", error);
       alert("Error creating listing. Please try again.");
@@ -281,7 +281,7 @@ function setupEditForm(id) {
       });
 
       alert("Listing updated successfully!");
-      window.location.href = "?page=listings&action=list";
+      window.location.href = "&page=listings&action=list";
     } catch (error) {
       console.error("Error updating listing:", error);
       alert("Error updating listing. Please try again.");

@@ -5,7 +5,7 @@ let currentPage = 1;
 async function loadLocations(page = 1) {
   try {
     currentPage = page;
-    const response = await api(`/?resource=locations?page=${page}`);
+    const response = await api(`/?resource=locations&page=${page}`);
     // Handle both old format (array) and new format (object with data property)
     const data = Array.isArray(response) ? response : response.data || [];
     const pagination = response.pagination || {};

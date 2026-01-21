@@ -5,7 +5,7 @@ const pageSize = 50;
 async function loadOwners(page = 1) {
   try {
     currentPage = page;
-    const response = await api(`/?resource=owners?page=${page}`);
+    const response = await api(`/?resource=owners&page=${page}`);
     const data = response.data || [];
     const pagination = response.pagination || {};
     const tbody = document.getElementById("ownersList");

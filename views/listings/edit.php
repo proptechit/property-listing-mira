@@ -8,7 +8,7 @@ if (!$id) {
 
 <div>
     <div class="mb-6">
-        <a href="?page=listings&action=list" class="text-blue-600 hover:text-blue-800 mb-4 inline-block text-sm font-medium transition-colors">
+        <a href="&page=listings&action=list" class="text-blue-600 hover:text-blue-800 mb-4 inline-block text-sm font-medium transition-colors">
             ← Back to Listings
         </a>
         <h1 class="text-2xl font-semibold text-gray-900">Edit Listing</h1>
@@ -79,7 +79,7 @@ if (!$id) {
                     class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                     Update Listing
                 </button>
-                <a href="?page=listings&action=list"
+                <a href="&page=listings&action=list"
                     class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg text-sm font-medium transition-colors">
                     Cancel
                 </a>
