@@ -1,5 +1,5 @@
 const API_BASE =
-  "https://crm.mira-international.com/local/property-listing/api";
+  "https://crm.mira-international.com/pub/property-listing/api";
 
 async function api(url, options = {}) {
   const config = {
