@@ -5,7 +5,7 @@ const pageSize = 50;
 async function loadOwners(page = 1) {
   try {
     currentPage = page;
-    const response = await api(`/owners?page=${page}`);
+    const response = await api(`/?resource=owners?page=${page}`);
     const data = response.data || [];
     const pagination = response.pagination || {};
     const tbody = document.getElementById("ownersList");
@@ -111,7 +111,7 @@ function escapeHtml(text) {
 // Pagination helper
 function renderPagination(container, pagination, loadFunction) {
   const { page = 1, total_pages = 1, total = 0, limit = 50 } = pagination;
-  
+
   // Always show pagination if we have items
   if (total <= 0) {
     container.innerHTML = "";
@@ -121,7 +121,7 @@ function renderPagination(container, pagination, loadFunction) {
   const maxVisible = 5;
   let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
   let endPage = Math.min(total_pages, startPage + maxVisible - 1);
-  
+
   if (endPage - startPage < maxVisible - 1) {
     startPage = Math.max(1, endPage - maxVisible + 1);
   }
@@ -192,12 +192,12 @@ function renderPagination(container, pagination, loadFunction) {
   `;
 
   container.innerHTML = html;
-  
+
   // Add event listeners to pagination buttons
-  container.querySelectorAll('[data-page]').forEach(button => {
-    button.addEventListener('click', (e) => {
+  container.querySelectorAll("[data-page]").forEach((button) => {
+    button.addEventListener("click", (e) => {
       e.preventDefault();
-      const targetPage = parseInt(button.getAttribute('data-page'));
+      const targetPage = parseInt(button.getAttribute("data-page"));
       if (targetPage && !button.disabled) {
         loadFunction(targetPage);
       }

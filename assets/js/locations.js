@@ -5,7 +5,7 @@ let currentPage = 1;
 async function loadLocations(page = 1) {
   try {
     currentPage = page;
-    const response = await api(`/locations?page=${page}`);
+    const response = await api(`/?resource=locations?page=${page}`);
     // Handle both old format (array) and new format (object with data property)
     const data = Array.isArray(response) ? response : response.data || [];
     const pagination = response.pagination || {};
@@ -70,7 +70,7 @@ function openLocationModal() {
 async function editLocation(id) {
   try {
     currentEditingId = id;
-    const data = await api(`/locations/${id}`);
+    const data = await api(`/?resource=locations/${id}`);
 
     document.getElementById("modalTitle").textContent = "Edit Location";
     document.getElementById("locationId").value = data.id || "";
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         if (id) {
           // Update existing location
-          await api(`/locations/${id}`, {
+          await api(`/?resource=locations/${id}`, {
             method: "PUT",
             body: JSON.stringify({
               name: data.name,

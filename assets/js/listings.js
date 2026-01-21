@@ -5,7 +5,7 @@ const pageSize = 50;
 async function loadListings(page = 1) {
   try {
     currentPage = page;
-    const response = await api(`/listings?page=${page}`);
+    const response = await api(`/?resource=listings?page=${page}`);
     const data = response.data || [];
     const pagination = response.pagination || {};
     const tbody = document.getElementById("listingsTable");
@@ -74,7 +74,7 @@ async function loadListings(page = 1) {
 // Load single listing details for view page
 async function loadListingDetails(id) {
   try {
-    const data = await api(`/listings/${id}`);
+    const data = await api(`/?resource=listings/${id}`);
     const container = document.getElementById("listingDetails");
 
     container.innerHTML = `
@@ -203,7 +203,7 @@ async function loadFormOptions() {
 // Load listing data for edit form
 async function loadListingForEdit(id) {
   try {
-    const data = await api(`/listings/${id}`);
+    const data = await api(`/?resource=listings/${id}`);
 
     document.getElementById("title").value = data.title || "";
     document.getElementById("description").value = data.description || "";
@@ -275,7 +275,7 @@ function setupEditForm(id) {
     data.owner_id = parseInt(data.owner_id);
 
     try {
-      await api(`/listings/${id}`, {
+      await api(`/?resource=listings/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       });
