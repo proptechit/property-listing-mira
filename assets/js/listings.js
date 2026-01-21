@@ -46,8 +46,8 @@ async function loadListings(page = 1) {
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <a href="&page=listings&action=view&id=${l.id}" class="text-blue-600 hover:text-blue-800 mr-3 transition-colors">View</a>
-            <a href="&page=listings&action=edit&id=${l.id}" class="text-blue-600 hover:text-blue-800 transition-colors">Edit</a>
+            <a href="?page=listings&action=view&id=${l.id}" class="text-blue-600 hover:text-blue-800 mr-3 transition-colors">View</a>
+            <a href="?page=listings&action=edit&id=${l.id}" class="text-blue-600 hover:text-blue-800 transition-colors">Edit</a>
           </td>
         </tr>
       `,

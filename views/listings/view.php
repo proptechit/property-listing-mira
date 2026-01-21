@@ -8,12 +8,12 @@ if (!$id) {
 
 <div>
     <div class="mb-6">
-        <a href="&page=listings&action=list" class="text-blue-600 hover:text-blue-800 mb-4 inline-block text-sm font-medium transition-colors">
+        <a href="?page=listings&action=list" class="text-blue-600 hover:text-blue-800 mb-4 inline-block text-sm font-medium transition-colors">
             ← Back to Listings
         </a>
         <div class="flex justify-between items-center">
             <h1 class="text-2xl font-semibold text-gray-900">Listing Details</h1>
-            <a href="&page=listings&action=edit&id=<?php echo htmlspecialchars($id); ?>"
+            <a href="?page=listings&action=edit&id=<?php echo htmlspecialchars($id); ?>"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                 Edit Listing
             </a>
