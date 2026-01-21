@@ -1,35 +1,37 @@
 <?php
 require 'config.php';
 
+header('Content-Type: application/json');
+
 $method = $_SERVER['REQUEST_METHOD'];
-$path   = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uri    = explode('/', trim($path, '/'));
 
-// path-based
-$resourceFromPath = $uri[1] ?? null;
-$id               = $uri[2] ?? null;
+// ONLY use query-based routing
+$resource = $_GET['resource'] ?? null;
+$id       = $_GET['id'] ?? null;
 
-// query-based
-$resourceFromQuery = $_GET['resource'] ?? null;
-
-// decide final resource
-$resource = $resourceFromPath ?: $resourceFromQuery;
+if (!$resource) {
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'Missing resource parameter'
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
 
 switch ($resource) {
     case 'listings':
-        require 'controllers/listings.php';
+        require __DIR__ . '/controllers/listings.php';
         break;
 
     case 'agents':
-        require 'controllers/agents.php';
+        require __DIR__ . '/controllers/agents.php';
         break;
 
     case 'owners':
-        require 'controllers/owners.php';
+        require __DIR__ . '/controllers/owners.php';
         break;
 
     case 'locations':
-        require 'controllers/locations.php';
+        require __DIR__ . '/controllers/locations.php';
         break;
 
     default:
@@ -38,4 +40,5 @@ switch ($resource) {
             'error'     => 'Invalid endpoint',
             'requested' => $resource
         ], JSON_PRETTY_PRINT);
+        break;
 }
