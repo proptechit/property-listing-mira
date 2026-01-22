@@ -13,6 +13,7 @@ return [
     'description_en'  => 'ufCrm5_1752508408',
     'description_ar'  => 'ufCrm5_1752508464',
 
+    'reference'       => 'ufCrm5_1752571265', // Listing reference number
     'price'           => 'ufCrm5_1754555234', // Price in AED
     'price_type'      => 'ufCrm5_1752569908', // sale / yearly / monthly etc
     'status'          => 'stageId',
