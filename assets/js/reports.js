@@ -5,7 +5,7 @@ let priceChart = null;
 // Load reports data and render charts
 async function loadReports() {
   try {
-    const data = await api('/reports/listings-count');
+    const data = await api('/?resource=reports/listings-count');
     
     // Render status chart
     renderStatusChart(data.status || {});
@@ -20,7 +20,7 @@ async function loadReports() {
     
     // Try to load from listings if reports endpoint doesn't exist
     try {
-      const listings = await api('/listings');
+      const listings = await api('/?resource=listings');
       const processedData = processListingsData(listings);
       renderStatusChart(processedData.status);
       renderLocationChart(processedData.locations);

@@ -143,9 +143,9 @@ async function loadListingDetails(id) {
 async function loadFormOptions() {
   try {
     const [locationsRes, agentsRes, ownersRes] = await Promise.all([
-      api("/locations").catch(() => ({ data: [] })),
-      api("/agents").catch(() => ({ data: [] })),
-      api("/owners").catch(() => ({ data: [] })),
+      api("/?resource=locations").catch(() => ({ data: [] })),
+      api("/?resource=agents").catch(() => ({ data: [] })),
+      api("/?resource=owners").catch(() => ({ data: [] })),
     ]);
 
     // Handle both old format (array) and new format (object with data property)
@@ -243,7 +243,7 @@ function setupCreateForm() {
     data.owner_id = parseInt(data.owner_id);
 
     try {
-      await api("/listings", {
+      await api("/?resource=listings", {
         method: "POST",
         body: JSON.stringify(data),
       });

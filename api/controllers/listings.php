@@ -9,8 +9,8 @@ $map = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
 
 /**
- * GET /api/listings
- * GET /api/listings/{id}
+ * GET /api/?resource=listings
+ * GET /api/?resource=listings/{id}
  */
 if ($method === 'GET') {
 
@@ -66,7 +66,7 @@ if ($method === 'GET') {
 }
 
 /**
- * POST /api/listings
+ * POST /api/?resource=listings
  */
 if ($method === 'POST') {
 
@@ -99,7 +99,7 @@ if ($method === 'POST') {
 }
 
 /**
- * PUT /api/listings/{id}
+ * PUT /api/?resource=listings&id={id}
  */
 if ($method === 'PUT') {
 
@@ -135,7 +135,7 @@ if ($method === 'PUT') {
 }
 
 /**
- * DELETE /api/listings/{id}
+ * DELETE /api/?resource=listings&id={id}
  */
 if ($method === 'DELETE') {
 

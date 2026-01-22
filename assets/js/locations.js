@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("Location updated successfully!");
         } else {
           // Create new location
-          await api("/locations", {
+          await api("/?resource=locations", {
             method: "POST",
             body: JSON.stringify({
               name: data.name,
