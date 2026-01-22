@@ -4,6 +4,8 @@ require 'helpers/response.php';
 require 'helpers/request.php';
 require 'helpers/bitrix.php';
 require 'helpers/transform.php';
+require 'helpers/location-cache.php';
+require 'helpers/user-cache.php';
 
 $map = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
@@ -53,6 +55,54 @@ if ($method === 'GET') {
         fn($item) => fromBitrixFields($item, $map, $enums),
         $items
     );
+
+    $locationIds = [];
+    $userIds = [];
+
+    foreach ($output as $item) {
+        if (!empty($item['location'])) {
+            $locationIds[] = $item['location'];
+        }
+
+        if (!empty($item['listing_agent'])) {
+            $userIds[] = $item['listing_agent'];
+        }
+
+        if (!empty($item['listing_owner'])) {
+            $userIds[] = $item['listing_owner'];
+        }
+    }
+
+    $locationIds = array_values(array_unique($locationIds));
+    $userIds = array_values(array_unique($userIds));
+
+    $locationCache = getLocationCache();
+    $userCache = getUserCache();
+
+    $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
+    $missingUserIds = array_diff($userIds, array_keys($userCache));
+
+
+    fetchLocationsByIds($missingLocationIds, $locationCache);
+    fetchUsersByIds($missingUserIds, $userCache);
+
+    saveLocationCache($locationCache);
+    saveUserCache($userCache);
+
+    foreach ($output as &$item) {
+        if (!empty($item['location']) && isset($locationCache[$item['location']])) {
+            $item['location'] = $locationCache[$item['location']];
+        }
+
+        if (!empty($item['listing_agent']) && isset($userCache[$item['listing_agent']])) {
+            $item['listing_agent'] = $userCache[$item['listing_agent']];
+        }
+
+        if (!empty($item['listing_owner']) && isset($userCache[$item['listing_owner']])) {
+            $item['listing_owner'] = $userCache[$item['listing_owner']];
+        }
+    }
+    unset($item);
 
     jsonResponse([
         'data' => $output,

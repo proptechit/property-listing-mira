@@ -10,13 +10,16 @@ $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $limit = 50; // Bitrix default limit
 $start = ($page - 1) * $limit;
 
-// Fetch all users (Bitrix user.get doesn't support pagination directly)
-// Don't pass limit - use Bitrix default of 50
-$res = bitrixRequest('user.get', [
-    'filter' => ['ACTIVE' => 'Y'],
+$params = [
     'start' => $start,
     'select' => array_values($map)
-]);
+];
+
+if (!empty($_GET['id'])) {
+    $params['ID'] = $_GET['id'];
+}
+
+$res = bitrixRequest('user.get', $params);
 
 $users = $res['result'] ?? [];
 $total = $res['total'] ?? count($users);

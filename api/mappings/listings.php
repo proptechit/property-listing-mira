@@ -37,6 +37,7 @@ return [
     | Location & structure
     |--------------------------------------------------------------------------
     */
+    'location'        => 'parentId1056',
     'emirate'          => 'ufCrm5_1752509816',
     'floor_number'     => 'ufCrm5_1752508720',
     'unit_number'      => 'ufCrm5_1752571865',
@@ -111,5 +112,6 @@ return [
     | Ownership
     |--------------------------------------------------------------------------
     */
+    'listing_agent'  => 'assignedById',
     'listing_owner'     => 'ufCrm5_1766132923'
 ];
