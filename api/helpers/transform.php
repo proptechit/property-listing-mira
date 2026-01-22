@@ -6,7 +6,7 @@ function toBitrixFields(array $input, array $map, array $enums = []): array
 
     foreach ($input as $key => $value) {
 
-        if (!isset($map[$key])) {
+        if (!isset($map[$key]) || $map[$key] === null || $map[$key] === '') {
             continue;
         }
 
@@ -15,7 +15,6 @@ function toBitrixFields(array $input, array $map, array $enums = []): array
         // enum mapping (label → ID)
         if (isset($enums[$key])) {
 
-            // multiple enum
             if (is_array($value)) {
                 $out[$bitrixField] = array_map(
                     fn($v) => $enums[$key][$v] ?? $v,
@@ -34,7 +33,14 @@ function toBitrixFields(array $input, array $map, array $enums = []): array
 
 function fromBitrixFields(array $item, array $map, array $enums = []): array
 {
-    $reverse = array_flip($map);
+    // build reverse map safely
+    $reverse = [];
+    foreach ($map as $frontend => $bitrix) {
+        if ($bitrix !== null && $bitrix !== '') {
+            $reverse[$bitrix] = $frontend;
+        }
+    }
+
     $out = [];
 
     foreach ($item as $key => $value) {
@@ -74,7 +80,11 @@ function mapFilters(array $query, array $map): array
     $out = [];
 
     foreach ($query as $key => $value) {
-        if (isset($map[$key])) {
+        if (
+            isset($map[$key]) &&
+            $map[$key] !== null &&
+            $map[$key] !== ''
+        ) {
             $out[$map[$key]] = $value;
         }
     }
