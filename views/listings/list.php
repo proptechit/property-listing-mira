@@ -113,6 +113,23 @@
                     </div>
 
                     <div>
+                        <label class="text-xs font-semibold text-slate-500">Agent</label>
+                        <select id="f_agent"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Any</option>
+
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-slate-500">Owner</label>
+                        <select id="f_owner"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Any</option>
+
+                        </select>
+                    </div>
+                    <div>
                         <label class="text-xs font-semibold text-slate-500">Type</label>
                         <input id="f_type" type="text"
                             class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
@@ -171,23 +188,25 @@
 
     <!-- filters drawer ends -->
 
-<!-- table list starts -->
+    <!-- table list starts -->
     <div class="w-full overflow-x-auto rounded-lg border border-gray-200 bg-white">
-        <table class="w-full min-w-[1100px] table-auto border-collapse text-sm">
+        <table class="w-full min-w-[1100px] table-auto border-collapse text-md">
             <thead class="sticky top-0 z-10 bg-gray-50">
                 <tr class="bg-slate-50/50 border-b border-slate-100">
-                    <th class="px-6 py-4 text-xs font-bold uppercase text-slate-400 tracking-wider text-center">Title</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase text-slate-400 tracking-wider">Type</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase text-slate-400 tracking-wider">Specifications</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase text-slate-400 tracking-wider">Location</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase text-slate-400 tracking-wider text-right">Price (AED)</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase text-slate-400 tracking-wider">Status</th>
-                    <th class="px-6 py-4 text-xs font-bold uppercase text-slate-400 tracking-wider">Actions</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-center">Title</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Type</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Specifications</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Location</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-right">Price (AED)</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Agent</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Owner</th>
+                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody id="listingsTable" class="bg-white divide-y divide-gray-200">
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+                    <td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading...</td>
                 </tr>
             </tbody>
         </table>

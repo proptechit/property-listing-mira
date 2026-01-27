@@ -1,6 +1,9 @@
 let currentPage = 1;
 const pageSize = 50;
 
+const agentMap = {}; // Store agent ID-to-name mapping
+const ownerMap = {}; // Store owner ID-to-name mapping
+
 const state = {
   searchTerm: "",
   filters: {
@@ -10,6 +13,8 @@ const state = {
     maxPrice: "",
     location: "",
     status: "",
+    agent: "",
+    owner: "",
     type: "",
     bedrooms: "",
     bathrooms: "",
@@ -68,6 +73,8 @@ function buildQueryParams(page, searchTerm, filters) {
     maxPrice: "max_price",
     location: "location",
     status: "status",
+    agent: "listing_agent",
+    owner: "listing_owner",
     type: "property_type",
     bedrooms: "bedrooms_min",
     bathrooms: "bathrooms_min",
@@ -91,6 +98,8 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   const title = normStr(listing?.title);
   const location = normStr(listing?.location?.name || listing?.location);
   const status = normStr(listing?.status);
+  const agent = normStr(listing?.listing_agent);
+  const owner = normStr(listing?.listing_owner);
   const type = normStr(listing?.property_type_pf || listing?.property_type);
   const bedrooms = toNum(listing?.bedrooms);
   const bathrooms = toNum(listing?.bathrooms);
@@ -104,6 +113,8 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
       location,
       status,
       type,
+      agent,
+      owner,
       String(price ?? ""),
       String(size ?? ""),
       String(bedrooms ?? ""),
@@ -119,6 +130,18 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   if (f.location && !location.includes(normStr(f.location))) return false;
 
   if (f.status && normStr(f.status) !== status) return false;
+
+  // For agent, convert ID to name if it's stored as ID
+  if (f.agent) {
+    const agentFilter = agentMap[f.agent] ? normStr(agentMap[f.agent]) : normStr(f.agent);
+    if (!agent.includes(agentFilter)) return false;
+  }
+
+  // For owner, convert ID to name if it's stored as ID
+  if (f.owner) {
+    const ownerFilter = ownerMap[f.owner] ? normStr(ownerMap[f.owner]) : normStr(f.owner);
+    if (!owner.includes(ownerFilter)) return false;
+  }
 
   if (f.type && !type.includes(normStr(f.type))) return false;
 
@@ -155,6 +178,14 @@ function getActiveChips(filters, searchTerm) {
   push("location", "Location", filters.location);
   push("status", "Status", filters.status);
   push("type", "Type", filters.type);
+
+  // For agent, display name from agentMap if available, otherwise show ID
+  const agentValue = filters.agent && agentMap[filters.agent] ? agentMap[filters.agent] : filters.agent;
+  push("agent", "Agent", agentValue);
+
+  // For owner, display name from ownerMap if available, otherwise show ID
+  const ownerValue = filters.owner && ownerMap[filters.owner] ? ownerMap[filters.owner] : filters.owner;
+  push("owner", "Owner", ownerValue);
 
   push("minPrice", "Min Price", filters.minPrice);
   push("maxPrice", "Max Price", filters.maxPrice);
@@ -223,6 +254,8 @@ function syncFiltersToUI() {
   set("#f_maxPrice", state.filters.maxPrice);
   set("#f_location", state.filters.location);
   set("#f_status", state.filters.status);
+  set("#f_agent", state.filters.agent);
+  set("#f_owner", state.filters.owner);
   set("#f_type", state.filters.type);
   set("#f_bedrooms", state.filters.bedrooms);
   set("#f_bathrooms", state.filters.bathrooms);
@@ -240,6 +273,8 @@ function readFiltersFromUI() {
     maxPrice: get("#f_maxPrice"),
     location: get("#f_location"),
     status: get("#f_status"),
+    agent: get("#f_agent"),
+    owner: get("#f_owner"),
     type: get("#f_type"),
     bedrooms: get("#f_bedrooms"),
     bathrooms: get("#f_bathrooms"),
@@ -293,6 +328,12 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
     const pagination = response?.pagination || {};
 
     if (!Array.isArray(data)) data = [];
+    
+    // Debug: Log first listing to check owner data
+    if (data.length > 0) {
+      console.log('Sample listing data:', data[0]);
+      console.log('Owner field value:', data[0].listing_owner);
+    }
 
     const apiDoesNotSupportFilters =
       query.includes("min_price") ||
@@ -302,6 +343,8 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
       query.includes("min_size") ||
       query.includes("max_size") ||
       query.includes("status") ||
+      query.includes("agent") ||
+      query.includes("owner") ||
       query.includes("property_type") ||
       query.includes("reference") ||
       query.includes("title") ||
@@ -349,15 +392,15 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                 />
               </div>
               <div>
-                <div class="text-sm font-bold text-slate-800">${escapeHtml(l.title || "")}</div>
-                <div class="text-xs text-slate-500">${escapeHtml(l.reference || "")}</div>
+                <div class="text-lg font-bold text-slate-800">${escapeHtml(l.title || "")}</div>
+                <div class="text-sm text-slate-500">${escapeHtml(l.reference || "")}</div>
               </div>
             </div>
           </td>
 
           <td class="px-6 py-4 text-sm font-medium">
             <div class="text-sm text-gray-500">
-              <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[11px] font-bold uppercase">
+              <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full  font-bold uppercase">
                 ${escapeHtml(l.property_type_pf || l.property_type || "")}
               </span>
             </div>
@@ -365,14 +408,14 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
 
           <td class="px-6 py-4 text-sm font-medium">
             <div class="flex gap-2 text-slate-600">
-              <span class="text-xs flex items-center gap-1"><i class="fa-solid fa-bed text-slate-400"></i> ${escapeHtml(l.bedrooms ?? "")}</span>
-              <span class="text-xs flex items-center gap-1"><i class="fa-solid fa-bath text-slate-400"></i> ${escapeHtml(l.bathrooms ?? "")}</span>
-              <span class="text-xs flex items-center gap-1"><i class="fa-solid fa-ruler-combined text-slate-400"></i> ${escapeHtml((l.size ?? "") + (l.size ? " sqft" : ""))}</span>
+              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bed text-slate-400"></i> ${escapeHtml(l.bedrooms ?? "")}</span>
+              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bath text-slate-400"></i> ${escapeHtml(l.bathrooms ?? "")}</span>
+              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-ruler-combined text-slate-400"></i> ${escapeHtml((l.size ?? "") + (l.size ? " sqft" : ""))}</span>
             </div>
           </td>
 
           <td class="px-6 py-4 text-sm font-medium">
-            <div class="text-sm text-gray-500 capitalize">${escapeHtml(l.location?.name || l.location || "")}</div>
+            <div class="text-md text-gray-500 capitalize">${escapeHtml(l.location?.name || l.location || "")}</div>
           </td>
 
           <td class="px-6 py-4 text-sm font-medium text-right">
@@ -380,7 +423,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
           </td>
 
           <td class="px-6 py-4 text-sm font-medium">
-            <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            <span class="px-2.5 py-1 inline-flex text-sm px-3 py-1 rounded-full  font-bold uppercase ${
               l.status === "available"
                 ? "bg-blue-100 text-blue-800"
                 : l.status === "sold"
@@ -389,6 +432,16 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             }">
               ${escapeHtml(l.status || "")}
             </span>
+          </td>
+
+
+          <td class="px-6 py-4 text-sm font-medium text-right">
+            <div class="text-sm font-bold text-slate-700"> ${escapeHtml(l.listing_agent || "")}</div>
+          </td>
+
+
+          <td class="px-6 py-4 text-sm font-medium text-right">
+            <div class="text-sm font-bold text-slate-700"> ${escapeHtml(l.listing_owner || "")}</div>
           </td>
 
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -410,27 +463,27 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                 role="menu"
               >
                 <a href="?page=listings&action=view&id=${l.id}"
-                   class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                   class="block px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
                    role="menuitem">View</a>
 
                 <a href="?page=listings&action=edit&id=${l.id}"
-                   class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                   class="block px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
                    role="menuitem">Edit</a>
 
                 <button type="button"
-                  class="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                  class="block w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
                   data-action="publish"
                   data-id="${l.id}"
                   role="menuitem">Publish</button>
 
                 <button type="button"
-                  class="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                  class="block w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
                   data-action="unpublish"
                   data-id="${l.id}"
                   role="menuitem">Unpublish</button>
 
                 <button type="button"
-                  class="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                  class="block w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
                   data-action="download_pdf"
                   data-id="${l.id}"
                   role="menuitem">Download PDF</button>
@@ -438,7 +491,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                 <div class="my-1 h-px bg-gray-100"></div>
 
                 <button type="button"
-                  class="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                  class="block w-full px-4 py-2 text-left text-md text-red-600 hover:bg-red-50"
                   data-action="delete"
                   data-id="${l.id}"
                   role="menuitem">Delete</button>
@@ -655,6 +708,8 @@ function wireFilters() {
         maxPrice: "",
         location: "",
         status: "",
+        agent: "",
+        owner: "",
         type: "",
         bedrooms: "",
         bathrooms: "",
@@ -689,6 +744,8 @@ function wireFilters() {
         maxPrice: "",
         location: "",
         status: "",
+        agent: "",
+        owner: "",
         type: "",
         bedrooms: "",
         bathrooms: "",
@@ -703,8 +760,64 @@ function wireFilters() {
   }
 }
 
+async function loadAgentsDropdown() {
+  try {
+    const response = await api('/?resource=agents&page=1');
+    const agents = response.data || [];
+    const agentSelect = qs('#f_agent');
+    
+    if (!agentSelect) return;
+    
+    // Clear existing options except "Any"
+    agentSelect.innerHTML = '<option value="">Any</option>';
+    
+    // Add agent options and populate agentMap
+    agents.forEach(agent => {
+      const fullName = [agent.name, agent.last_name].filter(Boolean).join(' ') || 'Unknown';
+      const option = document.createElement('option');
+      option.value = agent.id; // Use ID as value for API filtering
+      option.textContent = fullName; // Display name to user
+      agentSelect.appendChild(option);
+      
+      // Store ID-to-name mapping for chip display
+      agentMap[agent.id] = fullName;
+    });
+  } catch (err) {
+    console.error('Failed to load agents:', err);
+  }
+}
+
+async function loadOwnersDropdown() {
+  try {
+    const response = await api('/?resource=owners&page=1');
+    const owners = response.data || [];
+    const ownerSelect = qs('#f_owner');
+    
+    if (!ownerSelect) return;
+    
+    // Clear existing options except "Any"
+    ownerSelect.innerHTML = '<option value="">Any</option>';
+    
+    // Add owner options and populate ownerMap
+    owners.forEach(owner => {
+      const fullName = [owner.name, owner.last_name].filter(Boolean).join(' ') || 'Unknown';
+      const option = document.createElement('option');
+      option.value = owner.id; // Use ID as value for API filtering
+      option.textContent = fullName; // Display name to user
+      ownerSelect.appendChild(option);
+      
+      // Store ID-to-name mapping for chip display
+      ownerMap[owner.id] = fullName;
+    });
+  } catch (err) {
+    console.error('Failed to load owners:', err);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   wireSearch();
   wireFilters();
+  loadAgentsDropdown();
+  loadOwnersDropdown();
   loadListings(1, state.searchTerm, state.filters);
 });
