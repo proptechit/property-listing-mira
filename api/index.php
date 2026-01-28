@@ -64,6 +64,10 @@ switch ($resource) {
         require __DIR__ . '/controllers/locations.php';
         break;
 
+    case 'reports':
+        require __DIR__ . '/controllers/reports.php';
+        break;
+
     default:
         http_response_code(404);
         echo json_encode([
