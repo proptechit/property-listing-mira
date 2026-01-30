@@ -1,6 +1,11 @@
-// const API_BASE =
-//   "https://crm.mira-international.com/pub/property-listing/api";
-const API_BASE = "https://crm.mira-international.com/pub/property-listing/api";
+let API_BASE;
+
+if (ENV === "production") {
+  API_BASE = "https://crm.mira-international.com/pub/property-listing/api";
+} else {
+  API_BASE = "http://localhost:3000/api";
+}
+
 async function api(url, options = {}) {
   const config = {
     headers: { "Content-Type": "application/json" },

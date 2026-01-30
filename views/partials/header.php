@@ -13,6 +13,7 @@
 <script>
     const USER_ID = parseInt(atob(localStorage.getItem('user_id')));
     const IS_ADMIN = atob(localStorage.getItem('is_admin')) === '1';
+    const ENV = atob(localStorage.getItem('env'));
 </script>
 
 <body class="bg-gray-50">

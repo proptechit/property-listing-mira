@@ -1,7 +1,11 @@
 <?php
-function bitrixRequest($method, $params = [])
+function bitrixRequest($method, $params = [], $customUrl = null)
 {
-    $url = BITRIX_WEBHOOK . $method;
+    if ($customUrl) {
+        $url = $customUrl;
+    } else {
+        $url = BITRIX_WEBHOOK . $method;
+    }
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [

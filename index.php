@@ -23,6 +23,7 @@ if (!$USER_ID) {
 echo "<script>
     localStorage.setItem('user_id', btoa('{$USER_ID}'));
     localStorage.setItem('is_admin', btoa('" . (in_array($USER_ID, $ADMIN_IDS) ? '1' : '0') . "'));
+    localStorage.setItem('env', btoa('" . $ENV . "'));
 </script>";
 
 $page   = $_GET['page'] ?? 'listings';

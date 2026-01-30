@@ -19,7 +19,7 @@ if (!empty($_GET['id'])) {
     $params['ID'] = $_GET['id'];
 }
 
-$res = bitrixRequest('user.get', $params);
+$res = bitrixRequest(null, $params, $CUSTOM_USERS_API . "?is_agent=1");
 
 $users = $res['result'] ?? [];
 $total = $res['total'] ?? count($users);
