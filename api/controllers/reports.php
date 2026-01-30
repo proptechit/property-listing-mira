@@ -3,97 +3,77 @@
 require 'helpers/response.php';
 require 'helpers/bitrix.php';
 
-$map = require 'mappings/listings.php';
+$map   = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
 
-$start = 0;
-
-/* Counters */
-$totalListings              = 0;
-$startListings              = 0;
-$pendingApprovalListings    = 0;
-$draftListings              = 0;
-$publishedListings          = 0;
-$residentialListings        = 0;
-$commercialListings         = 0;
-$saleListings               = 0;
-$rentListings               = 0;
-
-
-$rentalTypes = [
-    $enums['price_type']['yearly'],
-    $enums['price_type']['monthly'],
-    $enums['price_type']['weekly'],
-    $enums['price_type']['daily'],
-];
-
-do {
+/**
+ * Get count of listings using Bitrix filter
+ */
+function getCount(array $filter = []): int
+{
     $res = bitrixRequest('crm.item.list', [
         'entityTypeId' => LISTINGS_ENTITY_ID,
-        'select'       => [$map['status'], $map['category'], $map['price_type'], 'id'],
-        'start'        => $start,
+        'filter'       => $filter,
+        'select'       => ['id'],
+        'start'        => 0,
     ]);
 
-    if (
-        !isset($res['result']['items']) ||
-        !is_array($res['result']['items']) ||
-        empty($res['result']['items'])
-    ) {
-        break;
-    }
+    return (int) ($res['total'] ?? 0);
+}
 
-    foreach ($res['result']['items'] as $item) {
-        $totalListings++;
+/* Rental price typespes */
+$rentalTypes = [
+    (string) $enums['price_type']['yearly'],
+    (string) $enums['price_type']['monthly'],
+    (string) $enums['price_type']['weekly'],
+    (string) $enums['price_type']['daily'],
+];
 
-        $status = $item[$map['status']] ?? null;
-        $type   = $item[$map['category']] ?? null;
+/* Counts */
+$totalListings = getCount();
 
-        if ($status == $enums['status']['Start']) {
-            $startListings++;
-        }
+$startListings = getCount([
+    $map['status'] => $enums['status']['Start'],
+]);
 
-        if ($status == $enums['status']['Pending Approval']) {
-            $pendingApprovalListings++;
-        }
+$pendingApprovalListings = getCount([
+    $map['status'] => $enums['status']['Pending Approval'],
+]);
 
-        if ($status == $enums['status']['Draft at Property Finder']) {
-            $draftListings++;
-        }
+$draftListings = getCount([
+    $map['status'] => $enums['status']['Draft at Property Finder'],
+]);
 
-        if ($status == $enums['status']['Published']) {
-            $publishedListings++;
-        }
+$publishedListings = getCount([
+    $map['status'] => $enums['status']['Published'],
+]);
 
-        if ($type == $enums['category']['residential']) {
-            $residentialListings++;
-        }
+$residentialListings = getCount([
+    $map['category'] => $enums['category']['residential'],
+]);
 
-        if ($type == $enums['category']['commercial']) {
-            $commercialListings++;
-        }
+$commercialListings = getCount([
+    $map['category'] => $enums['category']['commercial'],
+]);
 
-        if ($item[$map['price_type']] == $enums['price_type']['sale']) {
-            $saleListings++;
-        }
+$saleListings = getCount([
+    $map['price_type'] => (string) $enums['price_type']['sale'],
+]);
 
-        if (in_array((string) ($item[$map['price_type']] ?? ''), $rentalTypes, true)) {
-            $rentListings++;
-        }
-    }
-
-    $start = $res['next'] ?? null;
-} while ($start !== null);
+$rentListings = getCount([
+    $map['price_type'] => $rentalTypes,
+]);
 
 jsonResponse([
     'data' => [
-        'total_listings'        => $totalListings,
-        'start_listings'        => $startListings,
-        'pending_approval_listings' => $pendingApprovalListings,
-        'draft_listings'        => $draftListings,
-        'published_listings'    => $publishedListings,
-        'residential_listings'  => $residentialListings,
-        'commercial_listings'   => $commercialListings,
-        'sale_listings'         => $saleListings,
-        'rent_listings'         => $rentListings,
+        'total_listings'             => $totalListings,
+        'start_listings'             => $startListings,
+        'pending_approval_listings'  => $pendingApprovalListings,
+        'draft_listings'             => $draftListings,
+        'published_listings'         => $publishedListings,
+        'residential_listings'       => $residentialListings,
+        'commercial_listings'        => $commercialListings,
+        'sale_listings'              => $saleListings,
+        'rent_listings'              => $rentListings,
     ],
 ]);
