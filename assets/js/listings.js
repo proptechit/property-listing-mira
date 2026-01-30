@@ -133,13 +133,17 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
 
   // For agent, convert ID to name if it's stored as ID
   if (f.agent) {
-    const agentFilter = agentMap[f.agent] ? normStr(agentMap[f.agent]) : normStr(f.agent);
+    const agentFilter = agentMap[f.agent]
+      ? normStr(agentMap[f.agent])
+      : normStr(f.agent);
     if (!agent.includes(agentFilter)) return false;
   }
 
   // For owner, convert ID to name if it's stored as ID
   if (f.owner) {
-    const ownerFilter = ownerMap[f.owner] ? normStr(ownerMap[f.owner]) : normStr(f.owner);
+    const ownerFilter = ownerMap[f.owner]
+      ? normStr(ownerMap[f.owner])
+      : normStr(f.owner);
     if (!owner.includes(ownerFilter)) return false;
   }
 
@@ -180,11 +184,17 @@ function getActiveChips(filters, searchTerm) {
   push("type", "Type", filters.type);
 
   // For agent, display name from agentMap if available, otherwise show ID
-  const agentValue = filters.agent && agentMap[filters.agent] ? agentMap[filters.agent] : filters.agent;
+  const agentValue =
+    filters.agent && agentMap[filters.agent]
+      ? agentMap[filters.agent]
+      : filters.agent;
   push("agent", "Agent", agentValue);
 
   // For owner, display name from ownerMap if available, otherwise show ID
-  const ownerValue = filters.owner && ownerMap[filters.owner] ? ownerMap[filters.owner] : filters.owner;
+  const ownerValue =
+    filters.owner && ownerMap[filters.owner]
+      ? ownerMap[filters.owner]
+      : filters.owner;
   push("owner", "Owner", ownerValue);
 
   push("minPrice", "Min Price", filters.minPrice);
@@ -328,12 +338,6 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
     const pagination = response?.pagination || {};
 
     if (!Array.isArray(data)) data = [];
-    
-    // Debug: Log first listing to check owner data
-    if (data.length > 0) {
-      console.log('Sample listing data:', data[0]);
-      console.log('Owner field value:', data[0].listing_owner);
-    }
 
     const apiDoesNotSupportFilters =
       query.includes("min_price") ||
@@ -467,26 +471,26 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                    role="menuitem">View</a>
 
                 <a href="?page=listings&action=edit&id=${l.id}"
-                   class="block px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
+                   class="${IS_ADMIN == false ? "hidden" : "block"} px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
                    role="menuitem">Edit</a>
 
                 <button type="button"
-                  class="block w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
+                  class="${IS_ADMIN == false || l.status == "Published" ? "hidden" : "block"} w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
                   data-action="publish"
                   data-id="${l.id}"
                   role="menuitem">Publish</button>
 
                 <button type="button"
-                  class="block w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
+                  class="${IS_ADMIN == false || l.status == "Unpublished" ? "hidden" : "block"} w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
                   data-action="unpublish"
                   data-id="${l.id}"
                   role="menuitem">Unpublish</button>
 
-                <button type="button"
-                  class="block w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
-                  data-action="download_pdf"
-                  data-id="${l.id}"
-                  role="menuitem">Download PDF</button>
+                <a href="https://crm.mira-international.com/local/listing-brochure/?id=${l.id}&user_id=${USER_ID}"
+                   class="block px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
+                   role="menuitem"
+                   target="_blank"
+                   >Download PDF</a>
 
                 <div class="my-1 h-px bg-gray-100"></div>
 
@@ -762,55 +766,57 @@ function wireFilters() {
 
 async function loadAgentsDropdown() {
   try {
-    const response = await api('/?resource=agents&page=1');
+    const response = await api("/?resource=agents&page=1");
     const agents = response.data || [];
-    const agentSelect = qs('#f_agent');
-    
+    const agentSelect = qs("#f_agent");
+
     if (!agentSelect) return;
-    
+
     // Clear existing options except "Any"
     agentSelect.innerHTML = '<option value="">Any</option>';
-    
+
     // Add agent options and populate agentMap
-    agents.forEach(agent => {
-      const fullName = [agent.name, agent.last_name].filter(Boolean).join(' ') || 'Unknown';
-      const option = document.createElement('option');
+    agents.forEach((agent) => {
+      const fullName =
+        [agent.name, agent.last_name].filter(Boolean).join(" ") || "Unknown";
+      const option = document.createElement("option");
       option.value = agent.id; // Use ID as value for API filtering
       option.textContent = fullName; // Display name to user
       agentSelect.appendChild(option);
-      
+
       // Store ID-to-name mapping for chip display
       agentMap[agent.id] = fullName;
     });
   } catch (err) {
-    console.error('Failed to load agents:', err);
+    console.error("Failed to load agents:", err);
   }
 }
 
 async function loadOwnersDropdown() {
   try {
-    const response = await api('/?resource=owners&page=1');
+    const response = await api("/?resource=owners&page=1");
     const owners = response.data || [];
-    const ownerSelect = qs('#f_owner');
-    
+    const ownerSelect = qs("#f_owner");
+
     if (!ownerSelect) return;
-    
+
     // Clear existing options except "Any"
     ownerSelect.innerHTML = '<option value="">Any</option>';
-    
+
     // Add owner options and populate ownerMap
-    owners.forEach(owner => {
-      const fullName = [owner.name, owner.last_name].filter(Boolean).join(' ') || 'Unknown';
-      const option = document.createElement('option');
+    owners.forEach((owner) => {
+      const fullName =
+        [owner.name, owner.last_name].filter(Boolean).join(" ") || "Unknown";
+      const option = document.createElement("option");
       option.value = owner.id; // Use ID as value for API filtering
       option.textContent = fullName; // Display name to user
       ownerSelect.appendChild(option);
-      
+
       // Store ID-to-name mapping for chip display
       ownerMap[owner.id] = fullName;
     });
   } catch (err) {
-    console.error('Failed to load owners:', err);
+    console.error("Failed to load owners:", err);
   }
 }
 
