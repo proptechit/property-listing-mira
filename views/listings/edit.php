@@ -34,12 +34,22 @@ if (!$id) {
                 <i class="fa-solid fa-briefcase text-slate-400"></i>
             </div>
 
-            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Reference</label>
+                    <div class="mt-1 relative">
+                        <input type="text" name="reference"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g. REF-1021">
+                        <i class="fa-solid fa-hashtag absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Listing Agent <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
                         <select name="listing_agent" id="agentSelect" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select Agent</option>
                         </select>
                         <i class="fa-solid fa-user-tie absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
@@ -383,18 +393,6 @@ if (!$id) {
                     <textarea name="description_en" rows="8" required
                         class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Write a detailed description..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-md font-semibold text-slate-500">Reference</label>
-                        <div class="mt-1 relative">
-                            <input type="text" name="reference"
-                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g. REF-1021">
-                            <i class="fa-solid fa-hashtag absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>

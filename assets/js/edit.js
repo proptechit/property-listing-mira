@@ -11,8 +11,6 @@ async function loadListingForEdit(listingId) {
       method: "GET",
     });
 
-    console.log(response);
-
     if (!response) {
       throw new Error("Failed to load listing");
     }
