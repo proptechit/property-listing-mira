@@ -27,9 +27,52 @@ if ($method === 'GET') {
             jsonResponse(['error' => 'Not found'], 404);
         }
 
-        jsonResponse(
-            fromBitrixFields($res['result']['item'], $map, $enums)
-        );
+        $item = fromBitrixFields($res['result']['item'], $map, $enums);
+
+        // Hydrate location + agent + owner (same behavior as list endpoint)
+        $locationIds = [];
+        $userIds = [];
+
+        if (!empty($item['location'])) {
+            $locationIds[] = $item['location'];
+        }
+
+        if (!empty($item['listing_agent'])) {
+            $userIds[] = $item['listing_agent'];
+        }
+
+        if (!empty($item['listing_owner'])) {
+            $userIds[] = $item['listing_owner'];
+        }
+
+        $locationIds = array_values(array_unique($locationIds));
+        $userIds = array_values(array_unique($userIds));
+
+        $locationCache = getLocationCache();
+        $userCache = getUserCache();
+
+        $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
+        $missingUserIds = array_diff($userIds, array_keys($userCache));
+
+        fetchLocationsByIds($missingLocationIds, $locationCache);
+        fetchUsersByIds($missingUserIds, $userCache);
+
+        saveLocationCache($locationCache);
+        saveUserCache($userCache);
+
+        if (!empty($item['location']) && isset($locationCache[$item['location']])) {
+            $item['location'] = $locationCache[$item['location']];
+        }
+
+        if (!empty($item['listing_agent']) && isset($userCache[$item['listing_agent']])) {
+            $item['listing_agent'] = $userCache[$item['listing_agent']];
+        }
+
+        if (!empty($item['listing_owner']) && isset($userCache[$item['listing_owner']])) {
+            $item['listing_owner'] = $userCache[$item['listing_owner']];
+        }
+
+        jsonResponse($item);
     }
 
     // list items
