@@ -9,7 +9,7 @@
 
     <div class="flex flex-col lg:flex-row justify-between  gap-6 mb-8">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800">Property Listing</h1>
+            <h1 class="text-2xl font-bold text-slate-800">Listings</h1>
 
         </div>
 
