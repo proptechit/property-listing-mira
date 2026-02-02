@@ -36,6 +36,19 @@
             </div>
 
             <div class="h-6 w-[1px] bg-slate-200 mx-1"></div>
+            <!-- View Toggle -->
+            <div class="flex items-center gap-2">
+                <button id="viewListBtn" type="button"
+                    class="px-3 py-2 text-md font-semibold rounded-xl transition bg-blue-600 text-white shadow-md shadow-blue-100 flex items-center gap-2"
+                    aria-pressed="true">
+                    <i class="fa-solid fa-list"></i> List
+                </button>
+                <button id="viewGridBtn" type="button"
+                    class="px-3 py-2 text-md font-semibold rounded-xl transition bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-2"
+                    aria-pressed="false">
+                    <i class="fa-solid fa-border-all"></i> Grid
+                </button>
+            </div>
             <div class="flex items-center gap-2">
                 <button id="openFiltersBtn"
                     class="px-4 py-2 text-md font-semibold text-slate-600 hover:bg-slate-50 rounded-xl transition flex items-center gap-2">
@@ -208,31 +221,40 @@
 
     <!-- filters drawer ends -->
 
-    <!-- table list starts -->
-    <div class="w-full overflow-x-auto rounded-lg border border-gray-200 bg-white">
-        <table class="w-full min-w-[1100px] table-auto border-collapse text-md">
-            <thead class="sticky top-0 z-10 bg-gray-50">
-                <tr class="bg-slate-50/50 border-b border-slate-100">
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-center">Title</th>
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Type</th>
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Specifications</th>
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Location</th>
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-right">Price (AED)</th>
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Status</th>
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Agent</th>
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Owner</th>
-                    <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="listingsTable" class="bg-white divide-y divide-gray-200">
-                <tr>
-                    <td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading...</td>
-                </tr>
-            </tbody>
-        </table>
-        <div id="listingsPagination"></div>
+    <!-- listings view container -->
+    <div class="w-full rounded-lg border border-gray-200 bg-white overflow-hidden">
+        <!-- list view -->
+        <div id="listingsListView" class="w-full overflow-x-auto">
+            <table class="w-full min-w-[1100px] table-auto border-collapse text-md">
+                <thead class="sticky top-0 z-10 bg-gray-50">
+                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-center">Title</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Type</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Specifications</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Location</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-right">Price (AED)</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Status</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Agent</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Owner</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="listingsTable" class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- grid view -->
+        <div id="listingsGridView" class="hidden p-4">
+            <div id="listingsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+        </div>
+
+        <div id="listingsPagination" class="border-t border-gray-200"></div>
     </div>
-    <!-- table list ends -->
+    <!-- listings view container ends -->
 </div>
 
 <script src="assets/js/listings.js"></script>

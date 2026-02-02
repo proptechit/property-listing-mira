@@ -6,6 +6,7 @@ const ownerMap = {}; // Store owner ID-to-name mapping
 
 const state = {
   searchTerm: "",
+  viewMode: "list", // 'list' | 'grid'
   filters: {
     reference: "",
     title: "",
@@ -39,11 +40,109 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function prettyLabel(v) {
+  return String(v ?? "")
+    .trim()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
 function formatPrice(price) {
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(price || 0));
+}
+
+function setViewMode(mode) {
+  const m = mode === "grid" ? "grid" : "list";
+  state.viewMode = m;
+  try {
+    localStorage.setItem("listings_view_mode", m);
+  } catch (_) {}
+
+  const listWrap = qs("#listingsListView");
+  const gridWrap = qs("#listingsGridView");
+  const listBtn = qs("#viewListBtn");
+  const gridBtn = qs("#viewGridBtn");
+
+  if (listWrap) listWrap.classList.toggle("hidden", m !== "list");
+  if (gridWrap) gridWrap.classList.toggle("hidden", m !== "grid");
+
+  const activeCls =
+    "bg-blue-600 text-white shadow-md shadow-blue-100";
+  const inactiveCls =
+    "bg-slate-100 text-slate-600 hover:bg-slate-200";
+
+  if (listBtn) {
+    listBtn.classList.remove(...inactiveCls.split(" "));
+    listBtn.classList.remove(...activeCls.split(" "));
+    listBtn.classList.add(...(m === "list" ? activeCls : inactiveCls).split(" "));
+    listBtn.setAttribute("aria-pressed", String(m === "list"));
+  }
+  if (gridBtn) {
+    gridBtn.classList.remove(...inactiveCls.split(" "));
+    gridBtn.classList.remove(...activeCls.split(" "));
+    gridBtn.classList.add(...(m === "grid" ? activeCls : inactiveCls).split(" "));
+    gridBtn.setAttribute("aria-pressed", String(m === "grid"));
+  }
+}
+
+function wireViewToggle() {
+  const listBtn = qs("#viewListBtn");
+  const gridBtn = qs("#viewGridBtn");
+
+  // restore
+  let saved = "list";
+  try {
+    saved = localStorage.getItem("listings_view_mode") || "list";
+  } catch (_) {}
+  setViewMode(saved);
+
+  if (listBtn) {
+    listBtn.addEventListener("click", () => {
+      setViewMode("list");
+      loadListings(1, state.searchTerm, state.filters);
+    });
+  }
+  if (gridBtn) {
+    gridBtn.addEventListener("click", () => {
+      setViewMode("grid");
+      loadListings(1, state.searchTerm, state.filters);
+    });
+  }
+}
+
+function navigateToListing(id) {
+  if (!id) return;
+  window.location.href = `?page=listings&action=view&id=${encodeURIComponent(
+    String(id),
+  )}`;
+}
+
+function wireListingClicks() {
+  const tbody = qs("#listingsTable");
+  if (tbody) {
+    tbody.addEventListener("click", (e) => {
+      if (e.target.closest("a,button,[data-menu],[data-menu-btn],[data-menu-panel]")) {
+        return;
+      }
+      const tr = e.target.closest("tr[data-row-id]");
+      if (!tr) return;
+      navigateToListing(tr.getAttribute("data-row-id"));
+    });
+  }
+
+  const grid = qs("#listingsGrid");
+  if (grid) {
+    grid.addEventListener("click", (e) => {
+      if (e.target.closest("a,button")) return;
+      const card = e.target.closest("[data-card-id]");
+      if (!card) return;
+      navigateToListing(card.getAttribute("data-card-id"));
+    });
+  }
 }
 
 function toNum(v) {
@@ -314,13 +413,36 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
     currentPage = page;
 
     const tbody = qs("#listingsTable");
+    const grid = qs("#listingsGrid");
     const paginationContainer = qs("#listingsPagination");
 
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+          <td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading...</td>
         </tr>
+      `;
+    }
+    if (grid) {
+      grid.innerHTML = `
+        <div class="col-span-full">
+          <div class="animate-pulse grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            ${Array.from({ length: 8 })
+              .map(
+                () => `
+              <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                <div class="h-40 bg-slate-200"></div>
+                <div class="p-4">
+                  <div class="h-4 bg-slate-200 rounded w-3/4 mb-3"></div>
+                  <div class="h-3 bg-slate-200 rounded w-1/2 mb-4"></div>
+                  <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+                </div>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        </div>
       `;
     }
 
@@ -363,29 +485,39 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
     }
 
     if (!data.length) {
+      const emptyHtml = `
+        <div class="flex flex-col items-center justify-center py-12">
+          <i class="fa-solid fa-magnifying-glass text-slate-300 text-4xl mb-4"></i>
+          <p class="text-gray-500 font-medium">No properties match "${escapeHtml(
+            searchTerm,
+          )}"</p>
+          <p class="text-gray-400 text-sm">Try adjusting your keywords or filters</p>
+        </div>
+      `;
+
       if (tbody) {
         tbody.innerHTML = `
-          <tr class="hover:bg-blue-50/30 transition-colors group cursor-pointer">
-            <td colspan="7" class="px-6 py-12 text-center">
-              <div class="flex flex-col items-center justify-center">
-                <i class="fa-solid fa-magnifying-glass text-slate-300 text-4xl mb-4"></i>
-                <p class="text-gray-500 font-medium">No properties match "${escapeHtml(searchTerm)}"</p>
-                <p class="text-gray-400 text-sm">Try adjusting your keywords or filters</p>
-              </div>
-            </td>
+          <tr>
+            <td colspan="9" class="px-6 py-4 text-center">${emptyHtml}</td>
           </tr>
         `;
+      }
+      if (grid) {
+        grid.innerHTML = `<div class="col-span-full">${emptyHtml}</div>`;
       }
       if (paginationContainer) paginationContainer.innerHTML = "";
       renderChips();
       return;
     }
 
-    if (tbody) {
+    const renderTable = () => {
+      if (!tbody) return;
       tbody.innerHTML = data
         .map(
           (l) => `
-        <tr class="hover:bg-blue-50/30 transition-colors group cursor-pointer">
+        <tr class="hover:bg-blue-50/30 transition-colors group cursor-pointer" data-row-id="${escapeHtml(
+          String(l.id || ""),
+        )}">
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="flex items-center gap-4">
               <div class="w-24 h-24 rounded-xl bg-slate-100 overflow-hidden shrink-0">
@@ -507,6 +639,83 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
       `,
         )
         .join("");
+    };
+
+    const renderGrid = () => {
+      if (!grid) return;
+      grid.innerHTML = data
+        .map((l) => {
+          const img = l?.images?.[0]?.urlMachine || "/img/placeholder.png";
+          const type = l.property_type_pf || l.property_type || l.property_type_bayut || "";
+          const location = l.location?.name || l.location || "";
+          const beds = l.bedrooms ?? "";
+          const baths = l.bathrooms ?? "";
+          const size = l.size ?? "";
+          const price = formatPrice(l.price || 0);
+          const status = l.status ? prettyLabel(l.status) : "";
+
+          return `
+            <div class="group rounded-2xl border border-slate-200 bg-white overflow-hidden hover:shadow-md hover:shadow-blue-50 transition cursor-pointer" data-card-id="${escapeHtml(
+              String(l.id || ""),
+            )}">
+              <div class="relative bg-slate-100">
+                <img src="${escapeHtml(
+                  img,
+                )}" class="w-full h-44 object-cover" alt="${escapeHtml(
+            l.title || "Listing image",
+          )}" loading="lazy">
+                ${
+                  status
+                    ? `<div class="absolute top-3 left-3"><span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase bg-blue-50 text-blue-700">${escapeHtml(
+                        status,
+                      )}</span></div>`
+                    : ""
+                }
+              </div>
+
+              <div class="p-4">
+                <div class="text-md font-bold text-slate-800 line-clamp-2">${escapeHtml(
+                  l.title || "",
+                )}</div>
+                <div class="text-sm text-slate-500 mt-1 flex items-center justify-between gap-2">
+                  <span class="truncate">${escapeHtml(location)}</span>
+                  <span class="font-extrabold text-slate-800">AED ${escapeHtml(
+                    price,
+                  )}</span>
+                </div>
+
+                <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
+                  ${
+                    type
+                      ? `<span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold uppercase">${escapeHtml(
+                          type,
+                        )}</span>`
+                      : ""
+                  }
+                  <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold"><i class="fa-solid fa-bed text-slate-400 mr-1"></i>${escapeHtml(
+                    String(beds),
+                  )}</span>
+                  <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold"><i class="fa-solid fa-bath text-slate-400 mr-1"></i>${escapeHtml(
+                    String(baths),
+                  )}</span>
+                  <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold"><i class="fa-solid fa-ruler-combined text-slate-400 mr-1"></i>${escapeHtml(
+                    String(size),
+                  )}${size ? " sqft" : ""}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    };
+
+    if (state.viewMode === "grid") {
+      renderGrid();
+      // keep table in sync for menu wiring/pagination, but hidden anyway
+      renderTable();
+    } else {
+      renderTable();
+      renderGrid();
     }
 
     if (paginationContainer && pagination?.total && pagination.total > 0) {
@@ -834,7 +1043,9 @@ async function loadOwnersDropdown() {
 document.addEventListener("DOMContentLoaded", () => {
   wireSearch();
   wireFilters();
+  wireViewToggle();
   loadAgentsDropdown();
   loadOwnersDropdown();
+  wireListingClicks();
   loadListings(1, state.searchTerm, state.filters);
 });
