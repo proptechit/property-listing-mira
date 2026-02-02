@@ -802,10 +802,10 @@ container.innerHTML = amenities
 // ============================================================================
 
 let imageGallery = []; // Store image data
+let draggedImageId = null; // Track dragged image
 
 function initializeImageManagement() {
   const addImageBtn = document.getElementById("addImageBtn");
-  const shuffleBtn = document.getElementById("shuffleImagesBtn");
   const imageInput = document.getElementById("imageInput");
   const imageGrid = document.getElementById("imagePreviewGrid");
 
@@ -814,13 +814,6 @@ function initializeImageManagement() {
   addImageBtn.addEventListener("click", () => {
     imageInput.click();
   });
-
-  if (shuffleBtn) {
-    shuffleBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      shuffleImages();
-    });
-  }
 
   imageInput.addEventListener("change", (e) => {
     const files = Array.from(e.target.files);
@@ -839,6 +832,8 @@ function initializeImageManagement() {
     });
     imageInput.value = ""; // Reset input
   });
+  
+  setupDragAndDrop();
 }
 
 function renderImageGallery() {
@@ -848,40 +843,34 @@ function renderImageGallery() {
   imageGrid.innerHTML = imageGallery
     .map((image, index) => {
       return `
-    <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-sm hover:shadow-md transition-shadow">
-      <img src="${image.src}" alt="${image.name}" class="w-full h-full object-cover">
+    <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-sm hover:shadow-md transition-shadow cursor-move" draggable="true" data-image-id="${image.id}">
+      <img src="${image.src}" alt="${image.name}" class="w-full h-full object-cover pointer-events-none select-none">
       
       <!-- Overlay with actions -->
-      <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+      <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 z-10">
         <div class="flex gap-2">
           ${
             index > 0
-              ? `<button type="button" class="move-up-btn" data-id="${image.id}"
-                class="p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg"
-                title="Move up">
+              ? `<button type="button" class="move-up-btn p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg" data-id="${image.id}" title="Move up">
                 <i class="fa-solid fa-arrow-up text-sm"></i>
               </button>`
               : ""
           }
           ${
             index < imageGallery.length - 1
-              ? `<button type="button" class="move-down-btn" data-id="${image.id}"
-                class="p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg"
-                title="Move down">
+              ? `<button type="button" class="move-down-btn p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg" data-id="${image.id}" title="Move down">
                 <i class="fa-solid fa-arrow-down text-sm"></i>
               </button>`
               : ""
           }
         </div>
-        <button type="button" class="remove-image-btn" data-id="${image.id}" 
-          class="p-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors shadow-lg"
-          title="Remove image">
+        <button type="button" class="remove-image-btn p-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors shadow-lg" data-id="${image.id}" title="Remove image">
           <i class="fa-solid fa-trash-can text-sm"></i>
         </button>
       </div>
       
       <!-- Index label -->
-      <div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs font-bold px-3 py-1.5 rounded-md">
+      <div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
         ${index + 1}
       </div>
     </div>
@@ -918,13 +907,83 @@ function renderImageGallery() {
 }
 
 function removeImage(id) {
-  imageGallery = imageGallery.filter((img) => img.id !== id);
+  if (!id) return;
+  imageGallery = imageGallery.filter((img) => img && img.id !== parseFloat(id));
   renderImageGallery();
 }
 
+function reorderImages(fromIndex, toIndex) {
+  if (fromIndex < 0 || fromIndex >= imageGallery.length || toIndex < 0 || toIndex >= imageGallery.length) return;
+  
+  const [movedImage] = imageGallery.splice(fromIndex, 1);
+  imageGallery.splice(toIndex, 0, movedImage);
+  renderImageGallery();
+}
+
+function setupDragAndDrop() {
+  const imageGrid = document.getElementById("imagePreviewGrid");
+  if (!imageGrid) return;
+
+  imageGrid.addEventListener("dragstart", (e) => {
+    if (e.target.closest("[data-image-id]")) {
+      const imageEl = e.target.closest("[data-image-id]");
+      draggedImageId = imageEl.getAttribute("data-image-id");
+      imageEl.classList.add("opacity-50");
+      e.dataTransfer.effectAllowed = "move";
+    }
+  });
+
+  imageGrid.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    
+    const imageEl = e.target.closest("[data-image-id]");
+    if (imageEl && draggedImageId !== imageEl.getAttribute("data-image-id")) {
+      imageEl.classList.add("ring-2", "ring-blue-500");
+    }
+  });
+
+  imageGrid.addEventListener("dragleave", (e) => {
+    const imageEl = e.target.closest("[data-image-id]");
+    if (imageEl) {
+      imageEl.classList.remove("ring-2", "ring-blue-500");
+    }
+  });
+
+  imageGrid.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const dropTarget = e.target.closest("[data-image-id]");
+    
+    if (dropTarget && draggedImageId) {
+      const targetId = dropTarget.getAttribute("data-image-id");
+      if (draggedImageId !== targetId) {
+        const fromIndex = imageGallery.findIndex((img) => img && img.id === parseFloat(draggedImageId));
+        const toIndex = imageGallery.findIndex((img) => img && img.id === parseFloat(targetId));
+        
+        if (fromIndex !== -1 && toIndex !== -1) {
+          reorderImages(fromIndex, toIndex);
+        }
+      }
+    }
+    
+    document.querySelectorAll("[data-image-id]").forEach((el) => {
+      el.classList.remove("opacity-50", "ring-2", "ring-blue-500");
+    });
+    draggedImageId = null;
+  });
+
+  imageGrid.addEventListener("dragend", () => {
+    document.querySelectorAll("[data-image-id]").forEach((el) => {
+      el.classList.remove("opacity-50", "ring-2", "ring-blue-500");
+    });
+    draggedImageId = null;
+  });
+}
+
 function moveImageUp(id) {
-  const index = imageGallery.findIndex((img) => img.id === id);
-  if (index > 0) {
+  if (!id) return;
+  const index = imageGallery.findIndex((img) => img && img.id === parseFloat(id));
+  if (index > 0 && index !== -1) {
     [imageGallery[index], imageGallery[index - 1]] = [
       imageGallery[index - 1],
       imageGallery[index],
@@ -934,8 +993,9 @@ function moveImageUp(id) {
 }
 
 function moveImageDown(id) {
-  const index = imageGallery.findIndex((img) => img.id === id);
-  if (index < imageGallery.length - 1) {
+  if (!id) return;
+  const index = imageGallery.findIndex((img) => img && img.id === parseFloat(id));
+  if (index !== -1 && index < imageGallery.length - 1) {
     [imageGallery[index], imageGallery[index + 1]] = [
       imageGallery[index + 1],
       imageGallery[index],
