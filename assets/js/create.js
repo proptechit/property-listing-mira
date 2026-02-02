@@ -832,7 +832,7 @@ function initializeImageManagement() {
     });
     imageInput.value = ""; // Reset input
   });
-  
+
   setupDragAndDrop();
 }
 
@@ -913,8 +913,14 @@ function removeImage(id) {
 }
 
 function reorderImages(fromIndex, toIndex) {
-  if (fromIndex < 0 || fromIndex >= imageGallery.length || toIndex < 0 || toIndex >= imageGallery.length) return;
-  
+  if (
+    fromIndex < 0 ||
+    fromIndex >= imageGallery.length ||
+    toIndex < 0 ||
+    toIndex >= imageGallery.length
+  )
+    return;
+
   const [movedImage] = imageGallery.splice(fromIndex, 1);
   imageGallery.splice(toIndex, 0, movedImage);
   renderImageGallery();
@@ -936,7 +942,7 @@ function setupDragAndDrop() {
   imageGrid.addEventListener("dragover", (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    
+
     const imageEl = e.target.closest("[data-image-id]");
     if (imageEl && draggedImageId !== imageEl.getAttribute("data-image-id")) {
       imageEl.classList.add("ring-2", "ring-blue-500");
@@ -953,19 +959,23 @@ function setupDragAndDrop() {
   imageGrid.addEventListener("drop", (e) => {
     e.preventDefault();
     const dropTarget = e.target.closest("[data-image-id]");
-    
+
     if (dropTarget && draggedImageId) {
       const targetId = dropTarget.getAttribute("data-image-id");
       if (draggedImageId !== targetId) {
-        const fromIndex = imageGallery.findIndex((img) => img && img.id === parseFloat(draggedImageId));
-        const toIndex = imageGallery.findIndex((img) => img && img.id === parseFloat(targetId));
-        
+        const fromIndex = imageGallery.findIndex(
+          (img) => img && img.id === parseFloat(draggedImageId),
+        );
+        const toIndex = imageGallery.findIndex(
+          (img) => img && img.id === parseFloat(targetId),
+        );
+
         if (fromIndex !== -1 && toIndex !== -1) {
           reorderImages(fromIndex, toIndex);
         }
       }
     }
-    
+
     document.querySelectorAll("[data-image-id]").forEach((el) => {
       el.classList.remove("opacity-50", "ring-2", "ring-blue-500");
     });
@@ -982,7 +992,9 @@ function setupDragAndDrop() {
 
 function moveImageUp(id) {
   if (!id) return;
-  const index = imageGallery.findIndex((img) => img && img.id === parseFloat(id));
+  const index = imageGallery.findIndex(
+    (img) => img && img.id === parseFloat(id),
+  );
   if (index > 0 && index !== -1) {
     [imageGallery[index], imageGallery[index - 1]] = [
       imageGallery[index - 1],
@@ -994,7 +1006,9 @@ function moveImageUp(id) {
 
 function moveImageDown(id) {
   if (!id) return;
-  const index = imageGallery.findIndex((img) => img && img.id === parseFloat(id));
+  const index = imageGallery.findIndex(
+    (img) => img && img.id === parseFloat(id),
+  );
   if (index !== -1 && index < imageGallery.length - 1) {
     [imageGallery[index], imageGallery[index + 1]] = [
       imageGallery[index + 1],
