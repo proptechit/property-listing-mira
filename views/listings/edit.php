@@ -22,7 +22,7 @@ if (!$id) {
     </div>
 
     <form id="editListingForm" class="space-y-6">
-        <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
+        <!-- <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>"> -->
 
         <!-- Management -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm">
@@ -38,7 +38,7 @@ if (!$id) {
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Listing Agent <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
-                        <select name="agent_id" id="agentSelect" required
+                        <select name="listing_agent" id="agentSelect" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <option value="">Select Agent</option>
                         </select>
@@ -49,7 +49,7 @@ if (!$id) {
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Listing Owner <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
-                        <select name="owner_id" id="ownerSelect" required
+                        <select name="listing_owner" id="ownerSelect" required
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Select Owner</option>
                         </select>
@@ -74,7 +74,7 @@ if (!$id) {
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Residential / Commercial</label>
                     <div class="mt-1 relative">
-                        <input type="hidden" name="property_category" id="propertyCategory" value="">
+                        <input type="hidden" name="category" id="propertyCategory" value="">
                         <button type="button" id="propertyCategoryBtn"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
                             <span id="propertyCategoryLabel" class="text-slate-400">Select Category</span>
@@ -92,7 +92,7 @@ if (!$id) {
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Property Type <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
-                        <input type="hidden" name="property_type" id="propertyType" value="">
+                        <input type="hidden" name="property_type_pf" id="propertyType" value="">
                         <button type="button" id="propertyTypeBtn"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
                             <span id="propertyTypeLabel" class="text-slate-400">Select Type</span>
@@ -198,7 +198,7 @@ if (!$id) {
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Permit Type</label>
                     <div class="mt-1 relative">
-                        <input type="hidden" name="permit_type" id="permitType" value="">
+                        <input type="hidden" name="compliance_type" id="permitType" value="">
                         <button type="button" id="permitTypeBtn"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
                             <span id="permitTypeLabel" class="text-slate-400">Select Permit Type</span>
@@ -215,7 +215,7 @@ if (!$id) {
                     <div class="mt-1 relative">
                         <input
                             type="text"
-                            name="permit_number"
+                            name="advertisement_number"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter permit number" />
                         <i class="fa-solid fa-hashtag absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
@@ -228,7 +228,7 @@ if (!$id) {
                     <div class="mt-1 relative">
                         <input
                             type="date"
-                            name="permit_issue_date"
+                            name="license_date"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                 </div>
@@ -249,7 +249,7 @@ if (!$id) {
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Amount Type <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
-                        <input type="hidden" name="amount_type" id="amountType" value="">
+                        <input type="hidden" name="price_type" id="amountType" value="">
                         <button type="button" id="amountTypeBtn"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
                             <span id="amountTypeLabel" class="text-slate-400">Select Amount Type</span>
@@ -326,7 +326,7 @@ if (!$id) {
 
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Description <span class="text-red-500">*</span></label>
-                    <textarea name="description" rows="8" required
+                    <textarea name="description_en" rows="8" required
                         class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Write a detailed description..."></textarea>
                 </div>
@@ -396,7 +396,7 @@ if (!$id) {
                 <div>
                     <label class="block text-md font-semibold text-slate-500">UAE Emirate</label>
                     <div class="mt-1 relative">
-                        <input type="hidden" name="uae_emirate" id="uaeEmirate" value="">
+                        <input type="hidden" name="emirate" id="uaeEmirate" value="">
                         <button type="button" id="uaeEmirateBtn"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
                             <span id="uaeEmirateLabel" class="text-slate-400">Select Emirate</span>

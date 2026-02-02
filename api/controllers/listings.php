@@ -223,6 +223,13 @@ if ($method === 'PUT') {
         ], 500);
     }
 
+    if (empty($res['result']['item'])) {
+        jsonResponse([
+            'error'   => 'Bitrix error',
+            'details' => $res
+        ], 500);
+    }
+
     jsonResponse(
         fromBitrixFields($res['result']['item'], $map, $enums)
     );

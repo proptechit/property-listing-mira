@@ -214,7 +214,7 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   const status = normStr(listing?.status);
   const agent = normStr(listing?.listing_agent);
   const owner = normStr(listing?.listing_owner);
-  const type = normStr(listing?.property_type_pf || listing?.property_type);
+  const type = normStr(listing?.property_type_pf);
   const bedrooms = toNum(listing?.bedrooms);
   const bathrooms = toNum(listing?.bathrooms);
   const size = toNum(listing?.size);

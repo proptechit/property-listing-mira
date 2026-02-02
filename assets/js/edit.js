@@ -26,7 +26,7 @@ async function loadListingForEdit(listingId) {
       "bedrooms",
       "bathrooms",
       "size",
-      "permit_number",
+      "advertisement_number",
       "reference",
       "cheques",
       "mortgage_years",
@@ -40,17 +40,17 @@ async function loadListingForEdit(listingId) {
     });
 
     // Handle description (could be description_en)
-    const descriptionInput = document.querySelector('[name="description"]');
+    const descriptionInput = document.querySelector('[name="description_en"]');
     if (descriptionInput) {
       const description = listing.description || listing.description_en || "";
       if (description) descriptionInput.value = description;
     }
 
     // Pre-fill date inputs
-    if (listing.permit_issue_date) {
-      const dateInput = document.querySelector('[name="permit_issue_date"]');
+    if (listing.license_date) {
+      const dateInput = document.querySelector('[name="license_date"]');
       if (dateInput) {
-        dateInput.value = listing.permit_issue_date;
+        dateInput.value = listing.license_date;
       }
     }
 
@@ -110,7 +110,7 @@ async function loadListingForEdit(listingId) {
       { id: "furnishingType", field: "furnishing_type" },
       { id: "finishingType", field: "finishing_type" },
       { id: "projectStatus", field: "project_status" },
-      { id: "permitType", field: "permit_type" },
+      { id: "permitType", field: "compliance_type" },
       { id: "amountType", field: "price_type" },
       { id: "paymentMethod", field: "payment_methods" },
       { id: "uaeEmirate", field: "emirate" },
@@ -166,5 +166,5 @@ function setupEditForm(listingId) {
   setupCreatePageUI();
   setupLocationSearch();
   initializeImageManagement();
-  attachFormSubmissionHandler();
+  attachFormSubmissionHandler(listingId);
 }

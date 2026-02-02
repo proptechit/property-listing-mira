@@ -1041,7 +1041,7 @@ function shuffleImages() {
 // FORM SUBMISSION HANDLER
 // ============================================================================
 
-function attachFormSubmissionHandler() {
+function attachFormSubmissionHandler(id) {
   const createForm = document.getElementById("createListingForm");
   const editForm = document.getElementById("editListingForm");
   const form = createForm || editForm;
@@ -1097,10 +1097,13 @@ function attachFormSubmissionHandler() {
       const method = isEdit ? "PUT" : "POST";
 
       // POST/PUT to API
-      const response = await api("/?resource=listings", {
-        method: method,
-        body: data,
-      });
+      const response = await api(
+        "/?resource=listings" + (isEdit ? `&id=${id}` : ""),
+        {
+          method: method,
+          body: data,
+        },
+      );
 
       // Success - redirect to listings
       if (response && response.id) {
