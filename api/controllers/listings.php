@@ -61,15 +61,24 @@ if ($method === 'GET') {
         saveUserCache($userCache);
 
         if (!empty($item['location']) && isset($locationCache[$item['location']])) {
-            $item['location'] = $locationCache[$item['location']];
+            $item['location'] = [
+                'id' => $item['location'],
+                'name' => $locationCache[$item['location']],
+            ];
         }
 
         if (!empty($item['listing_agent']) && isset($userCache[$item['listing_agent']])) {
-            $item['listing_agent'] = $userCache[$item['listing_agent']];
+            $item['listing_agent'] = [
+                'id' => $item['listing_agent'],
+                'name' => $userCache[$item['listing_agent']],
+            ];
         }
 
         if (!empty($item['listing_owner']) && isset($userCache[$item['listing_owner']])) {
-            $item['listing_owner'] = $userCache[$item['listing_owner']];
+            $item['listing_owner'] = [
+                'id' => $item['listing_owner'],
+                'name' => $userCache[$item['listing_owner']],
+            ];
         }
 
         jsonResponse($item);
@@ -135,15 +144,24 @@ if ($method === 'GET') {
 
     foreach ($output as &$item) {
         if (!empty($item['location']) && isset($locationCache[$item['location']])) {
-            $item['location'] = $locationCache[$item['location']];
+            $item['location'] = [
+                'id' => $item['location'],
+                'name' => $locationCache[$item['location']],
+            ];
         }
 
         if (!empty($item['listing_agent']) && isset($userCache[$item['listing_agent']])) {
-            $item['listing_agent'] = $userCache[$item['listing_agent']];
+            $item['listing_agent'] = [
+                'id' => $item['listing_agent'],
+                'name' => $userCache[$item['listing_agent']],
+            ];
         }
 
         if (!empty($item['listing_owner']) && isset($userCache[$item['listing_owner']])) {
-            $item['listing_owner'] = $userCache[$item['listing_owner']];
+            $item['listing_owner'] = [
+                'id' => $item['listing_owner'],
+                'name' => $userCache[$item['listing_owner']],
+            ];
         }
     }
     unset($item);

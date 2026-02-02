@@ -522,12 +522,12 @@ if (!$id) {
 <script src="assets/js/create.js"></script>
 <script src="assets/js/edit.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
         if (typeof loadFormOptions === 'function') {
-            loadFormOptions();
+            await loadFormOptions();
         }
         if (typeof loadListingForEdit === 'function') {
-            loadListingForEdit(listingId);
+            await loadListingForEdit(listingId);
         }
         if (typeof setupEditForm === 'function') {
             setupEditForm(listingId);

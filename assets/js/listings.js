@@ -167,9 +167,18 @@ function toNum(v) {
 }
 
 function normStr(v) {
+  if (v && typeof v === "object") {
+    v = v.name ?? v.id ?? "";
+  }
   return String(v ?? "")
     .trim()
     .toLowerCase();
+}
+
+function displayName(v) {
+  if (!v && v !== 0) return "";
+  if (typeof v === "object") return v.name ?? String(v.id ?? "");
+  return String(v);
 }
 
 function buildQueryParams(page, searchTerm, filters) {
@@ -590,12 +599,12 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
 
 
           <td class="px-6 py-4 text-sm font-medium text-right">
-            <div class="text-sm font-bold text-slate-700"> ${escapeHtml(l.listing_agent || "")}</div>
+            <div class="text-sm font-bold text-slate-700"> ${escapeHtml(displayName(l.listing_agent) || "")}</div>
           </td>
 
 
           <td class="px-6 py-4 text-sm font-medium text-right">
-            <div class="text-sm font-bold text-slate-700"> ${escapeHtml(l.listing_owner || "")}</div>
+            <div class="text-sm font-bold text-slate-700"> ${escapeHtml(displayName(l.listing_owner) || "")}</div>
           </td>
 
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

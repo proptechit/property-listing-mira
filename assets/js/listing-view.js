@@ -107,8 +107,16 @@ function renderListingDetails(container, listing) {
       ? listing.location
       : listing?.location?.name;
 
-  const agent = listing?.listing_agent || "-";
-  const owner = listing?.listing_owner || "-";
+  const agent = listing?.listing_agent
+    ? typeof listing.listing_agent === "object"
+      ? listing.listing_agent.name
+      : listing.listing_agent
+    : "-";
+  const owner = listing?.listing_owner
+    ? typeof listing.listing_owner === "object"
+      ? listing.listing_owner.name
+      : listing.listing_owner
+    : "-";
 
   const desc = listing?.description_en || listing?.description_ar || "";
 
