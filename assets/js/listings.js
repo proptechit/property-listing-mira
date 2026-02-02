@@ -1,6 +1,9 @@
 let currentPage = 1;
 const pageSize = 50;
 
+// Fallback placeholder when listings have no images
+const PLACEHOLDER_IMAGE = "https://placehold.co/600x400?text=No+Image";
+
 const agentMap = {}; // Store agent ID-to-name mapping
 const ownerMap = {}; // Store owner ID-to-name mapping
 
@@ -547,7 +550,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
               <div class="w-24 h-24 rounded-xl bg-slate-100 overflow-hidden shrink-0">
                 <img
                   class="h-24 w-24 rounded-md object-cover bg-gray-100"
-                  src="${l?.images?.[0]?.urlMachine || "/img/placeholder.png"}"
+                  src="${l?.images?.[0]?.urlMachine || PLACEHOLDER_IMAGE}"
                   alt="${escapeHtml(l.title || "Listing image")}"
                   loading="lazy"
                 />
@@ -671,7 +674,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
       if (!grid) return;
       grid.innerHTML = data
         .map((l) => {
-          const img = l?.images?.[0]?.urlMachine || "/img/placeholder.png";
+          const img = l?.images?.[0]?.urlMachine || PLACEHOLDER_IMAGE;
           const type =
             l.property_type_pf ||
             l.property_type ||

@@ -8,6 +8,9 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+// Fallback placeholder when listings have no images
+const PLACEHOLDER_IMAGE = "https://placehold.co/800x600?text=No+Image";
+
 function formatPrice(price) {
   const n = Number(price || 0);
   if (!Number.isFinite(n)) return "-";
@@ -82,7 +85,7 @@ function normalizeImages(images) {
 
 function renderListingDetails(container, listing) {
   const images = normalizeImages(listing?.images);
-  const mainImage = images[0] || "/img/placeholder.png";
+  const mainImage = images[0] || PLACEHOLDER_IMAGE;
   const otherImages = images.slice(1);
 
   const title = listing?.title || "Listing";
