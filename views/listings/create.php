@@ -410,11 +410,31 @@
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Location <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
-                        <select name="location_id" id="locationSelect" required
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Keep the select for native form validation; JS will populate a selected option -->
+                        <select name="location_id" id="locationSelect" required class="hidden">
                             <option value="">Select Location</option>
                         </select>
-                        <i class="fa-solid fa-map-pin absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+
+                        <!-- Searchable picker -->
+                        <div class="relative">
+                            <input
+                                id="locationSearchInput"
+                                type="text"
+                                autocomplete="off"
+                                placeholder="Search and select a location..."
+                                class="w-full rounded-xl bg-slate-50 border border-slate-200 pl-10 pr-10 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <i class="fa-solid fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                            <button id="clearLocationBtn" type="button"
+                                class="hidden absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-slate-200 text-slate-500">
+                                ✕
+                            </button>
+
+                            <div id="locationSearchMenu"
+                                class="absolute z-30 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                                <div class="p-3 text-md text-slate-500">Type at least 2 characters to search…</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

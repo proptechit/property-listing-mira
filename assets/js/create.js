@@ -92,6 +92,233 @@ function setupIconSelect({
   return { setValue };
 }
 
+// Fallback helpers (create page currently includes `assets/js/listings.js` first,
+// but we keep these to avoid hard coupling).
+if (typeof window.qs !== "function") {
+  window.qs = (sel) => document.querySelector(sel);
+}
+if (typeof window.escapeHtml !== "function") {
+  window.escapeHtml = (text) => {
+    const div = document.createElement("div");
+    div.textContent = text ?? "";
+    return div.innerHTML;
+  };
+}
+
+let locationSearchTimer;
+let locationActiveIndex = -1;
+let locationActiveItems = [];
+
+function closeLocationMenu() {
+  const menu = qs("#locationSearchMenu");
+  if (menu) menu.classList.add("hidden");
+  locationActiveIndex = -1;
+  locationActiveItems = [];
+}
+
+function setLocationSelection({ id, name, pfId } = {}) {
+  const select = qs("#locationSelect");
+  const input = qs("#locationSearchInput");
+  const clearBtn = qs("#clearLocationBtn");
+  const menu = qs("#locationSearchMenu");
+
+  if (!select || !input) return;
+
+  if (!id) {
+    // reset
+    select.value = "";
+    input.value = "";
+    input.dataset.selectedId = "";
+    input.dataset.selectedName = "";
+    if (clearBtn) clearBtn.classList.add("hidden");
+    if (menu) {
+      menu.innerHTML =
+        '<div class="p-3 text-md text-slate-500">Type at least 2 characters to search…</div>';
+    }
+    return;
+  }
+
+  // ensure selected option exists
+  const existing = select.querySelector(`option[value="${CSS.escape(String(id))}"]`);
+  if (!existing) {
+    const opt = document.createElement("option");
+    opt.value = String(id);
+    opt.textContent = String(name || pfId || id);
+    select.appendChild(opt);
+  }
+  select.value = String(id);
+
+  input.value = String(name || "");
+  input.dataset.selectedId = String(id);
+  input.dataset.selectedName = String(name || "");
+  if (clearBtn) clearBtn.classList.remove("hidden");
+}
+
+async function fetchLocationsForSearch(query) {
+  const q = String(query || "").trim();
+  if (q.length < 2) return [];
+  const res = await api(`/?resource=locations&q=${encodeURIComponent(q)}&page=1`);
+  const data = Array.isArray(res) ? res : res?.data || [];
+  return Array.isArray(data) ? data : [];
+}
+
+function renderLocationResults(results, query) {
+  const menu = qs("#locationSearchMenu");
+  if (!menu) return;
+
+  locationActiveItems = results;
+  locationActiveIndex = -1;
+
+  if (!query || String(query).trim().length < 2) {
+    menu.innerHTML =
+      '<div class="p-3 text-md text-slate-500">Type at least 2 characters to search…</div>';
+    menu.classList.remove("hidden");
+    return;
+  }
+
+  if (!results.length) {
+    menu.innerHTML =
+      '<div class="p-3 text-md text-slate-500">No locations found. Try a different keyword.</div>';
+    menu.classList.remove("hidden");
+    return;
+  }
+
+  menu.innerHTML = results
+    .slice(0, 12)
+    .map((loc, idx) => {
+      const name = loc?.name || "";
+      const pfId = loc?.location_id || "";
+      return `
+        <button type="button"
+          class="w-full px-4 py-3 text-left hover:bg-slate-50 transition flex items-center justify-between gap-3"
+          data-loc-item="1"
+          data-idx="${idx}"
+        >
+          <div class="min-w-0">
+            <div class="text-md font-semibold text-slate-800 truncate">${escapeHtml(
+              name,
+            )}</div>
+            ${
+              pfId
+                ? `<div class="text-xs text-slate-400 font-semibold">PF ID: ${escapeHtml(
+                    pfId,
+                  )}</div>`
+                : ""
+            }
+          </div>
+          <i class="fa-solid fa-arrow-right text-slate-300"></i>
+        </button>
+      `;
+    })
+    .join("");
+
+  menu.classList.remove("hidden");
+
+  menu.querySelectorAll("[data-loc-item]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.getAttribute("data-idx"));
+      const loc = results[idx];
+      if (!loc) return;
+      setLocationSelection({
+        id: loc.id,
+        name: loc.name,
+        pfId: loc.location_id,
+      });
+      closeLocationMenu();
+    });
+  });
+}
+
+function setupLocationSearch() {
+  const input = qs("#locationSearchInput");
+  const select = qs("#locationSelect");
+  const menu = qs("#locationSearchMenu");
+  const clearBtn = qs("#clearLocationBtn");
+
+  if (!input || !select || !menu) return;
+
+  // If select already has a value (e.g. browser back), reflect it
+  if (select.value) {
+    const opt = select.querySelector(`option[value="${CSS.escape(select.value)}"]`);
+    setLocationSelection({ id: select.value, name: opt?.textContent || "" });
+  }
+
+  input.addEventListener("input", () => {
+    const q = input.value || "";
+
+    // If user edits text after selecting, clear selection until they pick again
+    if (input.dataset.selectedId && q !== input.dataset.selectedName) {
+      select.value = "";
+      input.dataset.selectedId = "";
+      input.dataset.selectedName = "";
+      if (clearBtn) clearBtn.classList.add("hidden");
+    }
+
+    clearTimeout(locationSearchTimer);
+    locationSearchTimer = setTimeout(async () => {
+      try {
+        const results = await fetchLocationsForSearch(q);
+        renderLocationResults(results, q);
+      } catch (e) {
+        menu.innerHTML =
+          '<div class="p-3 text-md text-rose-600">Failed to search locations. Please try again.</div>';
+        menu.classList.remove("hidden");
+      }
+    }, 250);
+  });
+
+  input.addEventListener("focus", () => {
+    // show helper or last results
+    if (menu.classList.contains("hidden")) menu.classList.remove("hidden");
+  });
+
+  input.addEventListener("keydown", (e) => {
+    const open = !menu.classList.contains("hidden");
+    if (!open) return;
+
+    const items = Array.from(menu.querySelectorAll("[data-loc-item]"));
+    if (!items.length) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      locationActiveIndex = Math.min(items.length - 1, locationActiveIndex + 1);
+      items.forEach((el, i) =>
+        el.classList.toggle("bg-slate-50", i === locationActiveIndex),
+      );
+      items[locationActiveIndex]?.scrollIntoView({ block: "nearest" });
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      locationActiveIndex = Math.max(0, locationActiveIndex - 1);
+      items.forEach((el, i) =>
+        el.classList.toggle("bg-slate-50", i === locationActiveIndex),
+      );
+      items[locationActiveIndex]?.scrollIntoView({ block: "nearest" });
+    } else if (e.key === "Enter") {
+      if (locationActiveIndex >= 0) {
+        e.preventDefault();
+        items[locationActiveIndex].click();
+      }
+    } else if (e.key === "Escape") {
+      closeLocationMenu();
+    }
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      setLocationSelection();
+      input.focus();
+      closeLocationMenu();
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#locationSearchMenu") || e.target.closest("#locationSearchInput")) {
+      return;
+    }
+    closeLocationMenu();
+  });
+}
+
 function setupCreatePageUI() {
   setupIconSelect({
     hiddenInputId: "propertyCategory",
@@ -380,6 +607,16 @@ function setupCreatePageUI() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAllIconMenus();
   });
+}
+
+// Called by the page if present
+async function loadFormOptions() {
+  await Promise.allSettled([loadAgentsDropdown(), loadOwnersDropdown()]);
+}
+
+// Called by the page if present
+function setupCreateForm() {
+  setupLocationSearch();
 }
 
 async function loadAgentsDropdown() {
