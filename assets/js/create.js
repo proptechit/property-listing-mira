@@ -139,7 +139,9 @@ function setLocationSelection({ id, name, pfId } = {}) {
   }
 
   // ensure selected option exists
-  const existing = select.querySelector(`option[value="${CSS.escape(String(id))}"]`);
+  const existing = select.querySelector(
+    `option[value="${CSS.escape(String(id))}"]`,
+  );
   if (!existing) {
     const opt = document.createElement("option");
     opt.value = String(id);
@@ -157,7 +159,9 @@ function setLocationSelection({ id, name, pfId } = {}) {
 async function fetchLocationsForSearch(query) {
   const q = String(query || "").trim();
   if (q.length < 2) return [];
-  const res = await api(`/?resource=locations&q=${encodeURIComponent(q)}&page=1`);
+  const res = await api(
+    `/?resource=locations&q=${encodeURIComponent(q)}&page=1`,
+  );
   const data = Array.isArray(res) ? res : res?.data || [];
   return Array.isArray(data) ? data : [];
 }
@@ -239,7 +243,9 @@ function setupLocationSearch() {
 
   // If select already has a value (e.g. browser back), reflect it
   if (select.value) {
-    const opt = select.querySelector(`option[value="${CSS.escape(select.value)}"]`);
+    const opt = select.querySelector(
+      `option[value="${CSS.escape(select.value)}"]`,
+    );
     setLocationSelection({ id: select.value, name: opt?.textContent || "" });
   }
 
@@ -312,7 +318,10 @@ function setupLocationSearch() {
   }
 
   document.addEventListener("click", (e) => {
-    if (e.target.closest("#locationSearchMenu") || e.target.closest("#locationSearchInput")) {
+    if (
+      e.target.closest("#locationSearchMenu") ||
+      e.target.closest("#locationSearchInput")
+    ) {
       return;
     }
     closeLocationMenu();
@@ -617,6 +626,8 @@ async function loadFormOptions() {
 // Called by the page if present
 function setupCreateForm() {
   setupLocationSearch();
+  initializeImageManagement();
+  attachFormSubmissionHandler();
 }
 
 async function loadAgentsDropdown() {
@@ -785,3 +796,227 @@ container.innerHTML = amenities
   `,
   )
   .join("");
+
+// ============================================================================
+// IMAGE PREVIEW AND MANAGEMENT
+// ============================================================================
+
+let imageGallery = []; // Store image data
+
+function initializeImageManagement() {
+  const addImageBtn = document.getElementById("addImageBtn");
+  const imageInput = document.getElementById("imageInput");
+  const imageGrid = document.getElementById("imagePreviewGrid");
+
+  if (!addImageBtn || !imageInput || !imageGrid) return;
+
+  addImageBtn.addEventListener("click", () => {
+    imageInput.click();
+  });
+
+  imageInput.addEventListener("change", (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageData = {
+          id: Date.now() + Math.random(),
+          src: event.target.result,
+          name: file.name,
+        };
+        imageGallery.push(imageData);
+        renderImageGallery();
+      };
+      reader.readAsDataURL(file);
+    });
+    imageInput.value = ""; // Reset input
+  });
+}
+
+function renderImageGallery() {
+  const imageGrid = document.getElementById("imagePreviewGrid");
+  if (!imageGrid) return;
+
+  imageGrid.innerHTML = imageGallery
+    .map((image, index) => {
+      return `
+    <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square">
+      <img src="${image.src}" alt="${image.name}" class="w-full h-full object-cover">
+      
+      <!-- Overlay with actions -->
+      <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+        <button type="button" class="remove-image-btn" data-id="${image.id}" 
+          class="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
+          title="Remove image">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+        ${
+          index > 0
+            ? `
+          <button type="button" class="move-up-btn" data-id="${image.id}" 
+            class="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            title="Move up">
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+        `
+            : ""
+        }
+        ${
+          index < imageGallery.length - 1
+            ? `
+          <button type="button" class="move-down-btn" data-id="${image.id}" 
+            class="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            title="Move down">
+            <i class="fa-solid fa-arrow-down"></i>
+          </button>
+        `
+            : ""
+        }
+      </div>
+      
+      <!-- Index label -->
+      <div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs font-semibold px-2 py-1 rounded">
+        ${index + 1}
+      </div>
+    </div>
+  `;
+    })
+    .join("");
+
+  // Attach event listeners
+  document.querySelectorAll(".remove-image-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const id = btn.getAttribute("data-id");
+      removeImage(id);
+    });
+  });
+
+  document.querySelectorAll(".move-up-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const id = btn.getAttribute("data-id");
+      moveImageUp(id);
+    });
+  });
+
+  document.querySelectorAll(".move-down-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const id = btn.getAttribute("data-id");
+      moveImageDown(id);
+    });
+  });
+
+  updateImagesInput();
+}
+
+function removeImage(id) {
+  imageGallery = imageGallery.filter((img) => img.id !== id);
+  renderImageGallery();
+}
+
+function moveImageUp(id) {
+  const index = imageGallery.findIndex((img) => img.id === id);
+  if (index > 0) {
+    [imageGallery[index], imageGallery[index - 1]] = [
+      imageGallery[index - 1],
+      imageGallery[index],
+    ];
+    renderImageGallery();
+  }
+}
+
+function moveImageDown(id) {
+  const index = imageGallery.findIndex((img) => img.id === id);
+  if (index < imageGallery.length - 1) {
+    [imageGallery[index], imageGallery[index + 1]] = [
+      imageGallery[index + 1],
+      imageGallery[index],
+    ];
+    renderImageGallery();
+  }
+}
+
+function updateImagesInput() {
+  const imagesInput = document.getElementById("imagesInput");
+  if (!imagesInput) return;
+  imagesInput.value = JSON.stringify(imageGallery);
+}
+
+// ============================================================================
+// FORM SUBMISSION HANDLER
+// ============================================================================
+
+function attachFormSubmissionHandler() {
+  const form = document.getElementById("createListingForm");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
+    try {
+      // Gather form data
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+
+      // Parse amenities array
+      const amenities = formData.getAll("amenities[]");
+      if (amenities.length > 0) {
+        data.amenities = amenities;
+      }
+      delete data["amenities[]"];
+
+      // Parse image data
+      const imagesValue = data.images || "[]";
+      if (imagesValue) {
+        try {
+          data.images = JSON.parse(imagesValue);
+        } catch {
+          data.images = [];
+        }
+      } else {
+        data.images = [];
+      }
+
+      // Convert empty strings to null for cleaner API payload
+      Object.keys(data).forEach((key) => {
+        if (data[key] === "") {
+          data[key] = null;
+        }
+      });
+
+      // POST to API
+      const response = await api("/?resource=listings", {
+        method: "POST",
+        body: data,
+      });
+
+      // Success - redirect to listings
+      if (response && response.id) {
+        alert("Listing created successfully!");
+        window.location.href = "?page=listings&action=list";
+      } else {
+        throw new Error("Unexpected response from server");
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      alert("Error creating listing: " + (error.message || "Unknown error"));
+
+      // Restore button state
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML =
+          '<i class="fa-solid fa-floppy-disk"></i> Save Listing';
+      }
+    }
+  });
+}

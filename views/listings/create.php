@@ -422,8 +422,7 @@
                                 type="text"
                                 autocomplete="off"
                                 placeholder="Search and select a location..."
-                                class="w-full rounded-xl bg-slate-50 border border-slate-200 pl-10 pr-10 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                                class="w-full rounded-xl bg-slate-50 border border-slate-200 pl-10 pr-10 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
                             <i class="fa-solid fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                             <button id="clearLocationBtn" type="button"
                                 class="hidden absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-slate-200 text-slate-500">
@@ -445,22 +444,57 @@
             <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
                 <div>
                     <h2 class="text-md font-semibold text-slate-900">Photos and Videos</h2>
-                    <p class="text-md text-slate-500">Upload media files</p>
+                    <p class="text-md text-slate-500">Manage media content</p>
                 </div>
                 <i class="fa-solid fa-photo-film text-slate-400"></i>
             </div>
 
-            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-5 space-y-6">
+                <!-- Photos Section -->
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">Photos</label>
-                    <input type="file" name="photos[]" multiple accept="image/*"
-                        class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-2 file:text-md file:font-semibold file:text-slate-700 hover:file:bg-slate-300">
+                    <label class="block text-md font-semibold text-slate-900 mb-4">Photos</label>
+
+                    <!-- Image Input Area -->
+                    <div class="mb-4 p-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50">
+                        <div class="flex items-center justify-center flex-col gap-2">
+                            <input type="file" id="imageInput" multiple accept="image/*" class="hidden">
+                            <button type="button" id="addImageBtn"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-md transition-colors">
+                                <i class="fa-solid fa-plus"></i>
+                                Add Images
+                            </button>
+                            <p class="text-sm text-slate-500">Select images to add to the gallery</p>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview Grid -->
+                    <div id="imagePreviewGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <!-- Images will be dynamically added here -->
+                    </div>
+
+                    <!-- Hidden input to store image URLs -->
+                    <input type="hidden" name="images" id="imagesInput" value="">
                 </div>
 
-                <div>
-                    <label class="block text-md font-semibold text-slate-500">Videos</label>
-                    <input type="file" name="videos[]" multiple accept="video/*"
-                        class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-2 file:text-md file:font-semibold file:text-slate-700 hover:file:bg-slate-300">
+                <!-- Videos Section -->
+                <div class="pt-4 border-t border-slate-200">
+                    <label class="block text-md font-semibold text-slate-900 mb-4">Videos</label>
+
+                    <!-- Default Video -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Default Video Link</label>
+                        <input type="url" name="video" id="videoInput" placeholder="https://example.com/video.mp4"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-sm text-slate-500 mt-1">Enter a direct link to the video file or streaming URL</p>
+                    </div>
+
+                    <!-- 360 View Video -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">360 View Video Link</label>
+                        <input type="url" name="video_360" id="video360Input" placeholder="https://example.com/video-360.mp4"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-sm text-slate-500 mt-1">Enter a direct link to the 360-degree video</p>
+                    </div>
                 </div>
             </div>
         </section>
