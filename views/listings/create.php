@@ -518,9 +518,12 @@
 <script src="assets/js/listings.js"></script>
 <script src="assets/js/create.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        if (typeof loadFormOptions === "function") loadFormOptions();
-        if (typeof setupCreateForm === "function") setupCreateForm();
-        if (typeof setupCreatePageUI === "function") setupCreatePageUI();
+    document.addEventListener("DOMContentLoaded", async () => {
+        if (typeof loadFormOptions === "function") {
+            await loadFormOptions();
+        }
+        if (typeof setupCreateForm === "function") {
+            setupCreateForm();
+        }
     });
 </script>
