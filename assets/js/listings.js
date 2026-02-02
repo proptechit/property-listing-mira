@@ -55,6 +55,15 @@ function formatPrice(price) {
   }).format(Number(price || 0));
 }
 
+function formatPriceWithType(price, priceType) {
+  const base = `AED ${formatPrice(price || 0)}`;
+  const pt = String(priceType ?? "")
+    .trim()
+    .toLowerCase();
+  if (!pt || pt === "sale") return base;
+  return `${base} / ${prettyLabel(pt)}`;
+}
+
 function setViewMode(mode) {
   const m = mode === "grid" ? "grid" : "list";
   state.viewMode = m;
@@ -556,7 +565,9 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
           </td>
 
           <td class="px-6 py-4 text-sm font-medium text-right">
-            <div class="text-sm font-bold text-slate-700">${formatPrice(l.price || 0)}</div>
+            <div class="text-sm font-bold text-slate-700">${escapeHtml(
+              formatPriceWithType(l.price || 0, l.price_type),
+            )}</div>
           </td>
 
           <td class="px-6 py-4 text-sm font-medium">
@@ -651,7 +662,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
           const beds = l.bedrooms ?? "";
           const baths = l.bathrooms ?? "";
           const size = l.size ?? "";
-          const price = formatPrice(l.price || 0);
+          const price = formatPriceWithType(l.price || 0, l.price_type);
           const status = l.status ? prettyLabel(l.status) : "";
 
           return `
@@ -679,7 +690,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                 )}</div>
                 <div class="text-sm text-slate-500 mt-1 flex items-center justify-between gap-2">
                   <span class="truncate">${escapeHtml(location)}</span>
-                  <span class="font-extrabold text-slate-800">AED ${escapeHtml(
+                  <span class="font-extrabold text-slate-800">${escapeHtml(
                     price,
                   )}</span>
                 </div>
