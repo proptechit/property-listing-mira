@@ -253,7 +253,7 @@
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Payment Method</label>
                     <div class="mt-1 relative">
-                        <input type="hidden" name="payment_method" id="paymentMethod" value="">
+                        <input type="hidden" name="payment_methods" id="paymentMethod" value="">
                         <button type="button" id="paymentMethodBtn"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
                             <span id="paymentMethodLabel" class="text-slate-400">Select Payment Method</span>
@@ -411,7 +411,7 @@
                     <label class="block text-md font-semibold text-slate-500">Location <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
                         <!-- Keep the select for native form validation; JS will populate a selected option -->
-                        <select name="location_id" id="locationSelect" required class="hidden">
+                        <select name="location" id="locationSelect" required class="hidden">
                             <option value="">Select Location</option>
                         </select>
 

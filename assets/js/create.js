@@ -787,7 +787,7 @@ container.innerHTML = amenities
     <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
       <input
         type="checkbox"
-        name="amenities[]"
+        name="amenities_pf[]"
         value="${item.value}"
         class="rounded border-slate-300"
       />
@@ -1067,11 +1067,11 @@ function attachFormSubmissionHandler(id) {
       const data = Object.fromEntries(formData);
 
       // Parse amenities array
-      const amenities = formData.getAll("amenities[]");
+      const amenities = formData.getAll("amenities_pf[]");
       if (amenities.length > 0) {
-        data.amenities = amenities;
+        data.amenities_pf = amenities;
       }
-      delete data["amenities[]"];
+      delete data["amenities_pf[]"];
 
       // Parse image data
       const imagesValue = data.images || "[]";
