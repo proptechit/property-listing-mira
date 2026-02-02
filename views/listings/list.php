@@ -19,6 +19,22 @@
                 <input id="searchInput" type="text" placeholder="Search ID, Project..."
                     class="pl-9 pr-4 py-2 text-md bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none w-full">
             </div>
+
+            <!-- Status Filter -->
+            <div class="relative w-full sm:w-44">
+                <select id="statusFilter"
+                    class="w-full px-4 py-2 text-md bg-slate-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                    <option value="">All</option>
+                    <option value="Start">Start</option>
+                    <option value="Photographer Booking">Photographer Booking</option>
+                    <option value="Pending Approval">Pending Approval</option>
+                    <option value="Draft at Property Finder">Draft</option>
+                    <option value="Published">Published</option>
+                    <option value="Unpublished">Unpublished</option>
+                    <option value="Deleted from Property Finder">Deleted</option>
+                </select>
+            </div>
+
             <div class="h-6 w-[1px] bg-slate-200 mx-1"></div>
             <div class="flex items-center gap-2">
                 <button id="openFiltersBtn"
@@ -106,9 +122,13 @@
                         <select id="f_status"
                             class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Any</option>
-                            <option value="available">Available</option>
-                            <option value="sold">Sold</option>
-                            <option value="draft">Draft</option>
+                            <option value="Start">Start</option>
+                            <option value="Photographer Booking">Photographer Booking</option>
+                            <option value="Pending Approval">Pending Approval</option>
+                            <option value="Draft at Property Finder">Draft</option>
+                            <option value="Published">Published</option>
+                            <option value="Unpublished">Unpublished</option>
+                            <option value="Deleted from Property Finder">Deleted</option>
                         </select>
                     </div>
 

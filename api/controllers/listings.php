@@ -33,7 +33,7 @@ if ($method === 'GET') {
     }
 
     // list items
-    $filter = mapFilters($_GET, $map);
+    $filter = mapFilters($_GET, $map, $enums);
 
     // Pagination parameters - Bitrix default limit is 50
     $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;

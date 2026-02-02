@@ -264,6 +264,7 @@ function syncFiltersToUI() {
   set("#f_maxPrice", state.filters.maxPrice);
   set("#f_location", state.filters.location);
   set("#f_status", state.filters.status);
+  set("#statusFilter", state.filters.status);
   set("#f_agent", state.filters.agent);
   set("#f_owner", state.filters.owner);
   set("#f_type", state.filters.type);
@@ -697,11 +698,21 @@ function wireFilters() {
   const applyBtn = qs("#applyFiltersBtn");
   const resetBtn = qs("#resetFiltersBtn");
   const backdrop = qs("#filtersBackdrop");
+  const quickStatusFilter = qs("#statusFilter");
 
   if (openBtn) openBtn.addEventListener("click", openFiltersDrawer);
   if (closeBtn) closeBtn.addEventListener("click", closeFiltersDrawer);
   if (cancelBtn) cancelBtn.addEventListener("click", closeFiltersDrawer);
   if (backdrop) backdrop.addEventListener("click", closeFiltersDrawer);
+
+  // Wire up quick status filter
+  if (quickStatusFilter) {
+    quickStatusFilter.addEventListener("change", (e) => {
+      state.filters.status = e.target.value || "";
+      renderChips();
+      loadListings(1, state.searchTerm, state.filters);
+    });
+  }
 
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {

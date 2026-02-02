@@ -75,18 +75,28 @@ function fromBitrixFields(array $item, array $map, array $enums = []): array
     return $out;
 }
 
-function mapFilters(array $query, array $map): array
+function mapFilters(array $query, array $map, array $enums = []): array
 {
     $out = [];
 
     foreach ($query as $key => $value) {
+
         if (
-            isset($map[$key]) &&
-            $map[$key] !== null &&
-            $map[$key] !== ''
+            !isset($map[$key]) ||
+            $map[$key] === null ||
+            $map[$key] === '' ||
+            $value === '' ||
+            $value === null
         ) {
-            $out[$map[$key]] = $value;
+            continue;
         }
+
+        // If enum mapping exists, convert UI value → Bitrix value
+        if (isset($enums[$key]) && isset($enums[$key][$value])) {
+            $value = $enums[$key][$value];
+        }
+
+        $out[$map[$key]] = $value;
     }
 
     return $out;
