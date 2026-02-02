@@ -847,7 +847,7 @@ function renderImageGallery() {
       <img src="${image.src}" alt="${image.name}" class="w-full h-full object-cover pointer-events-none select-none">
       
       <!-- Overlay with actions -->
-      <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 z-10">
+      <div class="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 z-10">
         <div class="flex gap-2">
           ${
             index > 0
@@ -870,7 +870,7 @@ function renderImageGallery() {
       </div>
       
       <!-- Index label -->
-      <div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
+      <div class="absolute top-2 left-2  bg-opacity-70 text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
         ${index + 1}
       </div>
     </div>
