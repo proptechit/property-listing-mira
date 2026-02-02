@@ -625,6 +625,7 @@ async function loadFormOptions() {
 
 // Called by the page if present
 function setupCreateForm() {
+  setupCreatePageUI();
   setupLocationSearch();
   initializeImageManagement();
   attachFormSubmissionHandler();
@@ -1041,7 +1042,10 @@ function shuffleImages() {
 // ============================================================================
 
 function attachFormSubmissionHandler() {
-  const form = document.getElementById("createListingForm");
+  const createForm = document.getElementById("createListingForm");
+  const editForm = document.getElementById("editListingForm");
+  const form = createForm || editForm;
+
   if (!form) return;
 
   form.addEventListener("submit", async (e) => {
@@ -1051,8 +1055,10 @@ function attachFormSubmissionHandler() {
     const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML =
-        '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+      const isEdit = editForm !== null;
+      submitBtn.innerHTML = isEdit
+        ? '<i class="fa-solid fa-spinner fa-spin"></i> Updating...'
+        : '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     }
 
     try {
@@ -1086,28 +1092,41 @@ function attachFormSubmissionHandler() {
         }
       });
 
-      // POST to API
+      // Determine if it's create or edit
+      const isEdit = editForm !== null;
+      const method = isEdit ? "PUT" : "POST";
+
+      // POST/PUT to API
       const response = await api("/?resource=listings", {
-        method: "POST",
+        method: method,
         body: data,
       });
 
       // Success - redirect to listings
       if (response && response.id) {
-        alert("Listing created successfully!");
+        const message = isEdit
+          ? "Listing updated successfully!"
+          : "Listing created successfully!";
+        alert(message);
         window.location.href = "?page=listings&action=list";
       } else {
         throw new Error("Unexpected response from server");
       }
     } catch (error) {
       console.error("Form submission error:", error);
-      alert("Error creating listing: " + (error.message || "Unknown error"));
+      const isEdit = editForm !== null;
+      const action = isEdit ? "updating" : "creating";
+      alert(
+        "Error " + action + " listing: " + (error.message || "Unknown error"),
+      );
 
       // Restore button state
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.innerHTML =
-          '<i class="fa-solid fa-floppy-disk"></i> Save Listing';
+        const isEdit = editForm !== null;
+        submitBtn.innerHTML = isEdit
+          ? '<i class="fa-solid fa-floppy-disk"></i> Update Listing'
+          : '<i class="fa-solid fa-floppy-disk"></i> Save Listing';
       }
     }
   });
