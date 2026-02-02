@@ -44,7 +44,8 @@ if ($method === 'GET') {
         'entityTypeId' => LOCATIONS_ENTITY_ID,
         'filter'       => $filter,
         'select'       => array_values($map),
-        'start'        => $start
+        'start'        => $start,
+        'order'        => ['ID' => 'DESC'],
         // Don't pass limit - use Bitrix default of 50
     ]);
 
@@ -79,7 +80,7 @@ if ($method === 'POST') {
         ], 422);
     }
 
-    $res = bitrixRequest('crm.item.create', [
+    $res = bitrixRequest('crm.item.add', [
         'entityTypeId' => LOCATIONS_ENTITY_ID,
         'fields'       => $fields
     ]);
@@ -96,5 +97,42 @@ if ($method === 'POST') {
     jsonResponse(
         fromBitrixFields($item, $map),
         201
+    );
+}
+
+if ($method === 'PUT') {
+
+    if (!$id) {
+        jsonResponse(['error' => 'ID is required'], 400);
+    }
+
+    $input = getRequestBody();
+
+    $fields = toBitrixFields($input, $map);
+
+    if (empty($fields)) {
+        jsonResponse([
+            'error' => 'No valid fields provided'
+        ], 422);
+    }
+
+    $res = bitrixRequest('crm.item.update', [
+        'entityTypeId' => LOCATIONS_ENTITY_ID,
+        'id'           => $id,
+        'fields'       => $fields
+    ]);
+
+    if (!empty($res['error'])) {
+        jsonResponse([
+            'error'   => 'Bitrix error',
+            'details' => $res
+        ], 500);
+    }
+
+    $item = $res['result']['item'] ?? [];
+
+    jsonResponse(
+        fromBitrixFields($item, $map),
+        200
     );
 }

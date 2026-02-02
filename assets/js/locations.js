@@ -27,6 +27,9 @@ async function loadLocations(page = 1) {
         (loc) => `
         <tr class="hover:bg-gray-50 transition-colors">
           <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">${escapeHtml(loc.location_id || "")}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
             <div class="text-sm font-medium text-gray-900">${escapeHtml(loc.name || "")}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -70,11 +73,12 @@ function openLocationModal() {
 async function editLocation(id) {
   try {
     currentEditingId = id;
-    const data = await api(`/?resource=locations/${id}`);
+    const data = await api(`/?resource=locations&id=${id}`);
 
     document.getElementById("modalTitle").textContent = "Edit Location";
     document.getElementById("locationId").value = data.id || "";
     document.getElementById("locationName").value = data.name || "";
+    document.getElementById("locationPfId").value = data.location_id || "";
 
     const modal = document.getElementById("locationModal");
     modal.classList.remove("hidden");
@@ -110,13 +114,11 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         if (id) {
           // Update existing location
-          await api(`/?resource=locations/${id}`, {
+          await api(`/?resource=locations&id=${id}`, {
             method: "PUT",
             body: JSON.stringify({
               name: data.name,
-              city: data.city,
-              state: data.state,
-              country: data.country,
+              location_id: data.pf_id,
             }),
           });
           alert("Location updated successfully!");
@@ -126,9 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
             method: "POST",
             body: JSON.stringify({
               name: data.name,
-              city: data.city,
-              state: data.state,
-              country: data.country,
+              location_id: data.pf_id,
             }),
           });
           alert("Location created successfully!");

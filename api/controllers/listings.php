@@ -44,7 +44,8 @@ if ($method === 'GET') {
         'entityTypeId' => LISTINGS_ENTITY_ID,
         'filter'       => $filter,
         'select'       => array_values($map),
-        'start'        => $start
+        'start'        => $start,
+        'order'        => ['ID' => 'DESC'],
         // Don't pass limit - use Bitrix default of 50
     ]);
 
@@ -130,7 +131,7 @@ if ($method === 'POST') {
         ], 422);
     }
 
-    $res = bitrixRequest('crm.item.create', [
+    $res = bitrixRequest('crm.item.add', [
         'entityTypeId' => LISTINGS_ENTITY_ID,
         'fields'       => $fields
     ]);
