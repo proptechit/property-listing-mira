@@ -26,6 +26,10 @@ async function loadListingForEdit(listingId) {
       "bedrooms",
       "bathrooms",
       "size",
+      "floor_number",
+      "unit_number",
+      "plot_number",
+      "plot_size",
       "advertisement_number",
       "reference",
       "cheques",
@@ -114,6 +118,7 @@ async function loadListingForEdit(listingId) {
       { id: "amountType", field: "price_type" },
       { id: "paymentMethod", field: "payment_methods" },
       { id: "uaeEmirate", field: "emirate" },
+      { id: "purposeType", field: "purpose" },
     ];
 
     iconSelects.forEach(({ id, field }) => {

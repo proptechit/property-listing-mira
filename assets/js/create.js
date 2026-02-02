@@ -460,6 +460,22 @@ function setupCreatePageUI() {
   });
 
   setupIconSelect({
+    hiddenInputId: "purposeType",
+    btnId: "purposeTypeBtn",
+    labelId: "purposeTypeLabel",
+    menuId: "purposeTypeMenu",
+    placeholder: "Select Purpose",
+    options: [
+      { value: "buy", label: "Buy", icon: "fa-solid fa-bag-shopping" },
+      {
+        value: "rent",
+        label: "Rent",
+        icon: "fa-solid fa-hand-holding-dollar",
+      },
+    ],
+  });
+
+  setupIconSelect({
     hiddenInputId: "furnishingType",
     btnId: "furnishingTypeBtn",
     labelId: "furnishingTypeLabel",

@@ -105,6 +105,60 @@ if (!$id) {
                         </div>
                     </div>
                 </div>
+                <!-- Purpose -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Purpose <span class="text-red-500">*</span></label>
+                    <div class="mt-1 relative">
+                        <input type="hidden" name="purpose" id="purposeType" value="">
+                        <button type="button" id="purposeTypeBtn"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
+                            <span id="purposeTypeLabel" class="text-slate-400">Select Purpose</span>
+                            <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                        </button>
+                        <div id="purposeTypeMenu"
+                            class="absolute z-20 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"></div>
+                    </div>
+                </div>
+                <!-- Unit Number -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Unit Number</label>
+                    <div class="mt-1 relative">
+                        <input type="text" name="unit_number"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g. 1202">
+                        <i class="fa-solid fa-door-closed absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                <!-- Floor Number -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Floor Number</label>
+                    <div class="mt-1 relative">
+                        <input type="text" name="floor_number"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g. 12">
+                        <i class="fa-solid fa-layer-group absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                <!-- Plot Number -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Plot Number</label>
+                    <div class="mt-1 relative">
+                        <input type="text" name="plot_number"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g. 102">
+                        <i class="fa-solid fa-map absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                <!-- Plot Size -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Plot Size</label>
+                    <div class="mt-1 relative">
+                        <input type="number" name="plot_size" min="0"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0">
+                        <i class="fa-solid fa-ruler-horizontal absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
 
                 <div>
                     <label class="block text-md font-semibold text-slate-500">No. of Bedrooms</label>

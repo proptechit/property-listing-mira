@@ -9,5 +9,6 @@ return [
     'position' => 'WORK_POSITION',
     'photo'    => 'PERSONAL_PHOTO',
     'brn'   => 'UF_PFID',
-    'super_agent' => 'UF_PFSUPERAGENT'
+    'super_agent' => 'UF_PFSUPERAGENT',
+    'agent_code' => 'UF_USR_1770017892768'
 ];
