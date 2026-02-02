@@ -805,6 +805,7 @@ let imageGallery = []; // Store image data
 
 function initializeImageManagement() {
   const addImageBtn = document.getElementById("addImageBtn");
+  const shuffleBtn = document.getElementById("shuffleImagesBtn");
   const imageInput = document.getElementById("imageInput");
   const imageGrid = document.getElementById("imagePreviewGrid");
 
@@ -813,6 +814,13 @@ function initializeImageManagement() {
   addImageBtn.addEventListener("click", () => {
     imageInput.click();
   });
+
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      shuffleImages();
+    });
+  }
 
   imageInput.addEventListener("change", (e) => {
     const files = Array.from(e.target.files);
@@ -840,42 +848,40 @@ function renderImageGallery() {
   imageGrid.innerHTML = imageGallery
     .map((image, index) => {
       return `
-    <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square">
+    <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-sm hover:shadow-md transition-shadow">
       <img src="${image.src}" alt="${image.name}" class="w-full h-full object-cover">
       
       <!-- Overlay with actions -->
-      <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+      <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+        <div class="flex gap-2">
+          ${
+            index > 0
+              ? `<button type="button" class="move-up-btn" data-id="${image.id}"
+                class="p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg"
+                title="Move up">
+                <i class="fa-solid fa-arrow-up text-sm"></i>
+              </button>`
+              : ""
+          }
+          ${
+            index < imageGallery.length - 1
+              ? `<button type="button" class="move-down-btn" data-id="${image.id}"
+                class="p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg"
+                title="Move down">
+                <i class="fa-solid fa-arrow-down text-sm"></i>
+              </button>`
+              : ""
+          }
+        </div>
         <button type="button" class="remove-image-btn" data-id="${image.id}" 
-          class="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
+          class="p-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors shadow-lg"
           title="Remove image">
-          <i class="fa-solid fa-trash-can"></i>
+          <i class="fa-solid fa-trash-can text-sm"></i>
         </button>
-        ${
-          index > 0
-            ? `
-          <button type="button" class="move-up-btn" data-id="${image.id}" 
-            class="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            title="Move up">
-            <i class="fa-solid fa-arrow-up"></i>
-          </button>
-        `
-            : ""
-        }
-        ${
-          index < imageGallery.length - 1
-            ? `
-          <button type="button" class="move-down-btn" data-id="${image.id}" 
-            class="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            title="Move down">
-            <i class="fa-solid fa-arrow-down"></i>
-          </button>
-        `
-            : ""
-        }
       </div>
       
       <!-- Index label -->
-      <div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs font-semibold px-2 py-1 rounded">
+      <div class="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs font-bold px-3 py-1.5 rounded-md">
         ${index + 1}
       </div>
     </div>
@@ -942,6 +948,18 @@ function updateImagesInput() {
   const imagesInput = document.getElementById("imagesInput");
   if (!imagesInput) return;
   imagesInput.value = JSON.stringify(imageGallery);
+}
+
+function shuffleImages() {
+  if (imageGallery.length <= 1) return;
+
+  // Fisher-Yates shuffle algorithm
+  for (let i = imageGallery.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [imageGallery[i], imageGallery[j]] = [imageGallery[j], imageGallery[i]];
+  }
+
+  renderImageGallery();
 }
 
 // ============================================================================

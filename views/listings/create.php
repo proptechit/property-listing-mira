@@ -452,7 +452,14 @@
             <div class="p-5 space-y-6">
                 <!-- Photos Section -->
                 <div>
-                    <label class="block text-md font-semibold text-slate-900 mb-4">Photos</label>
+                    <div class="flex items-center justify-between mb-4">
+                        <label class="block text-md font-semibold text-slate-900">Photos</label>
+                        <button type="button" id="shuffleImagesBtn"
+                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors" title="Shuffle images">
+                            <i class="fa-solid fa-shuffle"></i>
+                            Shuffle
+                        </button>
+                    </div>
 
                     <!-- Image Input Area -->
                     <div class="mb-4 p-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50">
