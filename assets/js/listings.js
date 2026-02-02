@@ -79,21 +79,23 @@ function setViewMode(mode) {
   if (listWrap) listWrap.classList.toggle("hidden", m !== "list");
   if (gridWrap) gridWrap.classList.toggle("hidden", m !== "grid");
 
-  const activeCls =
-    "bg-blue-600 text-white shadow-md shadow-blue-100";
-  const inactiveCls =
-    "bg-slate-100 text-slate-600 hover:bg-slate-200";
+  const activeCls = "bg-blue-600 text-white shadow-md shadow-blue-100";
+  const inactiveCls = "bg-slate-100 text-slate-600 hover:bg-slate-200";
 
   if (listBtn) {
     listBtn.classList.remove(...inactiveCls.split(" "));
     listBtn.classList.remove(...activeCls.split(" "));
-    listBtn.classList.add(...(m === "list" ? activeCls : inactiveCls).split(" "));
+    listBtn.classList.add(
+      ...(m === "list" ? activeCls : inactiveCls).split(" "),
+    );
     listBtn.setAttribute("aria-pressed", String(m === "list"));
   }
   if (gridBtn) {
     gridBtn.classList.remove(...inactiveCls.split(" "));
     gridBtn.classList.remove(...activeCls.split(" "));
-    gridBtn.classList.add(...(m === "grid" ? activeCls : inactiveCls).split(" "));
+    gridBtn.classList.add(
+      ...(m === "grid" ? activeCls : inactiveCls).split(" "),
+    );
     gridBtn.setAttribute("aria-pressed", String(m === "grid"));
   }
 }
@@ -134,7 +136,11 @@ function wireListingClicks() {
   const tbody = qs("#listingsTable");
   if (tbody) {
     tbody.addEventListener("click", (e) => {
-      if (e.target.closest("a,button,[data-menu],[data-menu-btn],[data-menu-panel]")) {
+      if (
+        e.target.closest(
+          "a,button,[data-menu],[data-menu-btn],[data-menu-panel]",
+        )
+      ) {
         return;
       }
       const tr = e.target.closest("tr[data-row-id]");
@@ -657,7 +663,11 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
       grid.innerHTML = data
         .map((l) => {
           const img = l?.images?.[0]?.urlMachine || "/img/placeholder.png";
-          const type = l.property_type_pf || l.property_type || l.property_type_bayut || "";
+          const type =
+            l.property_type_pf ||
+            l.property_type ||
+            l.property_type_bayut ||
+            "";
           const location = l.location?.name || l.location || "";
           const beds = l.bedrooms ?? "";
           const baths = l.bathrooms ?? "";
@@ -673,8 +683,8 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                 <img src="${escapeHtml(
                   img,
                 )}" class="w-full h-44 object-cover" alt="${escapeHtml(
-            l.title || "Listing image",
-          )}" loading="lazy">
+                  l.title || "Listing image",
+                )}" loading="lazy">
                 ${
                   status
                     ? `<div class="absolute top-3 left-3"><span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase bg-blue-50 text-blue-700">${escapeHtml(
@@ -855,6 +865,83 @@ function closeAllMenus(exceptMenuEl = null) {
   });
 }
 
+// Action handlers for listings
+async function publishListing(id) {
+  if (!id) return;
+
+  if (!confirm("Are you sure you want to publish this listing?")) {
+    return;
+  }
+
+  try {
+    const response = await api(`/?resource=listings&id=${id}`, {
+      method: "PUT",
+      body: {
+        status: "Published",
+      },
+    });
+
+    if (response) {
+      alert("Listing published successfully!");
+      loadListings(currentPage, state.searchTerm, state.filters);
+    }
+  } catch (error) {
+    console.error("Publish error:", error);
+    alert("Error publishing listing: " + (error.message || "Unknown error"));
+  }
+}
+
+async function unpublishListing(id) {
+  if (!id) return;
+
+  if (!confirm("Are you sure you want to unpublish this listing?")) {
+    return;
+  }
+
+  try {
+    const response = await api(`/?resource=listings&id=${id}`, {
+      method: "PUT",
+      body: {
+        status: "Unpublished",
+      },
+    });
+
+    if (response) {
+      alert("Listing unpublished successfully!");
+      loadListings(currentPage, state.searchTerm, state.filters);
+    }
+  } catch (error) {
+    console.error("Unpublish error:", error);
+    alert("Error unpublishing listing: " + (error.message || "Unknown error"));
+  }
+}
+
+async function deleteListing(id) {
+  if (!id) return;
+
+  if (
+    !confirm(
+      "Are you sure you want to delete this listing? This action cannot be undone.",
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const response = await api(`/?resource=listings&id=${id}`, {
+      method: "DELETE",
+    });
+
+    if (response) {
+      alert("Listing deleted successfully!");
+      loadListings(currentPage, state.searchTerm, state.filters);
+    }
+  } catch (error) {
+    console.error("Delete error:", error);
+    alert("Error deleting listing: " + (error.message || "Unknown error"));
+  }
+}
+
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-menu-btn]");
   const menu = e.target.closest("[data-menu]");
@@ -866,10 +953,19 @@ document.addEventListener("click", (e) => {
 
     closeAllMenus();
 
-    if (action === "publish") return;
-    if (action === "unpublish") return;
+    if (action === "publish") {
+      publishListing(id);
+      return;
+    }
+    if (action === "unpublish") {
+      unpublishListing(id);
+      return;
+    }
     if (action === "download_pdf") return;
-    if (action === "delete") return;
+    if (action === "delete") {
+      deleteListing(id);
+      return;
+    }
     return;
   }
 
