@@ -145,10 +145,14 @@
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Finishing Type</label>
                     <div class="mt-1 relative">
-                        <input type="text" name="finishing_type"
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g. Standard / Luxury">
-                        <i class="fa-solid fa-paint-roller absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        <input type="hidden" name="finishing_type" id="finishingType" value="">
+                        <button type="button" id="finishingTypeBtn"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
+                            <span id="finishingTypeLabel" class="text-slate-400">Select Finishing</span>
+                            <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                        </button>
+                        <div id="finishingTypeMenu"
+                            class="absolute z-20 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"></div>
                     </div>
                 </div>
 
@@ -180,13 +184,42 @@
             </div>
 
             <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Permit Type -->
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Permit Type</label>
                     <div class="mt-1 relative">
-                        <input type="text" name="permit_type"
+                        <input type="hidden" name="permit_type" id="permitType" value="">
+                        <button type="button" id="permitTypeBtn"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
+                            <span id="permitTypeLabel" class="text-slate-400">Select Permit Type</span>
+                            <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                        </button>
+                        <div id="permitTypeMenu"
+                            class="absolute z-20 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"></div>
+                    </div>
+                </div>
+
+                <!-- Permit Number -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Permit Number</label>
+                    <div class="mt-1 relative">
+                        <input
+                            type="text"
+                            name="permit_number"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g. RERA / Municipality">
-                        <i class="fa-solid fa-stamp absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                            placeholder="Enter permit number" />
+                        <i class="fa-solid fa-hashtag absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- Permit Issue Date -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Permit Issue Date</label>
+                    <div class="mt-1 relative">
+                        <input
+                            type="date"
+                            name="permit_issue_date"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                 </div>
             </div>
@@ -251,7 +284,7 @@
                     </div>
                 </div>
 
-                <div>
+                <!-- <div>
                     <label class="block text-md font-semibold text-slate-500">Financial Status</label>
                     <div class="mt-1 relative">
                         <input type="text" name="financial_status"
@@ -259,7 +292,7 @@
                             placeholder="e.g. Clear / Mortgage / Pending">
                         <i class="fa-solid fa-circle-check absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
-                </div>
+                </div> -->
 
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Price (AED) <span class="text-red-500">*</span></label>
@@ -293,26 +326,12 @@
 
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Description <span class="text-red-500">*</span></label>
-                    <textarea name="description" rows="5" required
+                    <textarea name="description" rows="8" required
                         class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Write a detailed description..."></textarea>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-md font-semibold text-slate-500">Status</label>
-                        <div class="mt-1 relative">
-                            <select name="status"
-                                class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="available">Available</option>
-                                <option value="sold">Sold</option>
-                                <option value="pending">Pending</option>
-                                <option value="draft">Draft</option>
-                            </select>
-                            <i class="fa-solid fa-circle-dot absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                        </div>
-                    </div>
-
                     <div>
                         <label class="block text-md font-semibold text-slate-500">Reference</label>
                         <div class="mt-1 relative">
@@ -336,7 +355,7 @@
                 <i class="fa-solid fa-star text-slate-400"></i>
             </div>
 
-            <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3" id="amenitiesContainer">
                 <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
                     <input type="checkbox" name="amenities_kitchen" class="rounded border-slate-300">
                     <i class="fa-solid fa-kitchen-set text-slate-500"></i>
@@ -451,4 +470,3 @@
         if (typeof setupCreatePageUI === "function") setupCreatePageUI();
     });
 </script>
-
