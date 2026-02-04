@@ -84,6 +84,23 @@ async function loadListingForEdit(listingId) {
       }
     }
 
+    if (listing.photoshoot_required) {
+      const photoshootRequiredSelect =
+        document.getElementById("photoshootRequired");
+      if (photoshootRequiredSelect) {
+        const required = listing.photoshoot_required;
+        photoshootRequiredSelect.value = required;
+      }
+    }
+
+    if (listing.pocket_listing) {
+      const pocketListingSelect = document.getElementById("pocketListing");
+      if (pocketListingSelect) {
+        const required = listing.pocket_listing;
+        pocketListingSelect.value = required;
+      }
+    }
+
     if (listing.location_id) {
       const locationSelect = document.getElementById("locationSelect");
       if (locationSelect) {

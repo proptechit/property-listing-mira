@@ -349,8 +349,6 @@ function renderChips() {
 
   const chips = getActiveChips(state.filters, state.searchTerm);
 
-  console.log(chips);
-
   if (!chips.length) {
     activeChips.classList.add("hidden");
     chipsWrap.innerHTML = "";
@@ -448,8 +446,6 @@ function closeFiltersDrawer() {
 }
 
 async function loadListings(page = 1, searchTerm = "", filters = {}) {
-  console.log("loadListings", page, searchTerm, filters);
-
   try {
     currentPage = page;
 
@@ -1072,7 +1068,6 @@ function wireFilters() {
   // Wire up quick status filter
   if (quickStatusFilter) {
     quickStatusFilter.addEventListener("change", (e) => {
-      console.log(e.target.value);
       state.filters.status = e.target.value || "";
       renderChips();
       loadListings(1, state.searchTerm, state.filters);
@@ -1082,7 +1077,6 @@ function wireFilters() {
   // Wire up quick sale type filter
   if (quickSaleTypeFilter) {
     quickSaleTypeFilter.addEventListener("change", (e) => {
-      console.log(e.target.value);
       state.filters.purpose = e.target.value || "";
       renderChips();
       loadListings(1, state.searchTerm, state.filters);
