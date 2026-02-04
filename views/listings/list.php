@@ -35,6 +35,16 @@
                 </select>
             </div>
 
+            <!-- Sale Type Filter -->
+            <div class="relative w-full sm:w-44">
+                <select id="saleTypeFilter"
+                    class="w-full px-4 py-2 text-md bg-slate-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                    <option value="">All</option>
+                    <option value="buy">For Sale</option>
+                    <option value="rent">For Rent</option>
+                </select>
+            </div>
+
             <div class="h-6 w-[1px] bg-slate-200 mx-1"></div>
             <!-- View Toggle -->
             <div class="flex items-center gap-2">
@@ -230,6 +240,7 @@
                     <tr class="bg-slate-50/50 border-b border-slate-100">
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-center">Title</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Type</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Purpose</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Specifications</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Location</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-right">Price (AED)</th>

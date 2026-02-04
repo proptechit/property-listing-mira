@@ -17,6 +17,7 @@ const state = {
     maxPrice: "",
     location: "",
     status: "",
+    purpose: "",
     agent: "",
     owner: "",
     type: "",
@@ -199,6 +200,7 @@ function buildQueryParams(page, searchTerm, filters) {
     maxPrice: "max_price",
     location: "location",
     status: "status",
+    purpose: "purpose",
     agent: "listing_agent",
     owner: "listing_owner",
     type: "property_type",
@@ -224,6 +226,7 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   const title = normStr(listing?.title);
   const location = normStr(listing?.location?.name || listing?.location);
   const status = normStr(listing?.status);
+  const purpose = normStr(listing?.purpose);
   const agent = normStr(listing?.listing_agent);
   const owner = normStr(listing?.listing_owner);
   const type = normStr(listing?.property_type_pf);
@@ -238,6 +241,7 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
       title,
       location,
       status,
+      purpose,
       type,
       agent,
       owner,
@@ -256,6 +260,8 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   if (f.location && !location.includes(normStr(f.location))) return false;
 
   if (f.status && normStr(f.status) !== status) return false;
+
+  if (f.purpose && normStr(f.purpose) !== purpose) return false;
 
   // For agent, convert ID to name if it's stored as ID
   if (f.agent) {
@@ -307,6 +313,7 @@ function getActiveChips(filters, searchTerm) {
   push("title", "Title", filters.title);
   push("location", "Location", filters.location);
   push("status", "Status", filters.status);
+  push("purpose", "Purpose", filters.purpose);
   push("type", "Type", filters.type);
 
   // For agent, display name from agentMap if available, otherwise show ID
@@ -341,6 +348,8 @@ function renderChips() {
   if (!activeChips || !chipsWrap) return;
 
   const chips = getActiveChips(state.filters, state.searchTerm);
+
+  console.log(chips);
 
   if (!chips.length) {
     activeChips.classList.add("hidden");
@@ -390,10 +399,12 @@ function syncFiltersToUI() {
   set("#f_maxPrice", state.filters.maxPrice);
   set("#f_location", state.filters.location);
   set("#f_status", state.filters.status);
+  set("#f_purpose", state.filters.purpose);
   set("#statusFilter", state.filters.status);
-  set("#f_agent", state.filters.agent);
-  set("#f_owner", state.filters.owner);
-  set("#f_type", state.filters.type);
+  set("#saleTypeFilter", state.filters.purpose);
+  set("#f_agent", state.filters.listing_agent);
+  set("#f_owner", state.filters.listing_owner);
+  set("#f_type", state.filters.property_type_pf);
   set("#f_bedrooms", state.filters.bedrooms);
   set("#f_bathrooms", state.filters.bathrooms);
   set("#f_minSize", state.filters.minSize);
@@ -410,6 +421,7 @@ function readFiltersFromUI() {
     maxPrice: get("#f_maxPrice"),
     location: get("#f_location"),
     status: get("#f_status"),
+    purpose: get("#f_purpose"),
     agent: get("#f_agent"),
     owner: get("#f_owner"),
     type: get("#f_type"),
@@ -436,6 +448,8 @@ function closeFiltersDrawer() {
 }
 
 async function loadListings(page = 1, searchTerm = "", filters = {}) {
+  console.log("loadListings", page, searchTerm, filters);
+
   try {
     currentPage = page;
 
@@ -497,6 +511,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
       query.includes("min_size") ||
       query.includes("max_size") ||
       query.includes("status") ||
+      query.includes("purpose") ||
       query.includes("agent") ||
       query.includes("owner") ||
       query.includes("property_type") ||
@@ -571,9 +586,17 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
           </td>
 
           <td class="px-6 py-4 text-sm font-medium">
+            <div class="text-sm text-gray-500">
+              <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full  font-bold uppercase">
+                ${escapeHtml(l.purpose || "")}
+              </span>
+            </div>
+          </td>
+
+          <td class="px-6 py-4 text-sm font-medium">
             <div class="flex gap-2 text-slate-600">
-              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bed text-slate-400"></i> ${escapeHtml(l.bedrooms ?? "")}</span>
-              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bath text-slate-400"></i> ${escapeHtml(l.bathrooms ?? "")}</span>
+              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bed text-slate-400"></i> ${escapeHtml(l.bedrooms ?? "none")}</span>
+              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bath text-slate-400"></i> ${escapeHtml(l.bathrooms ?? "none")}</span>
               <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-ruler-combined text-slate-400"></i> ${escapeHtml((l.size ?? "") + (l.size ? " sqft" : ""))}</span>
             </div>
           </td>
@@ -590,13 +613,17 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
 
           <td class="px-6 py-4 text-sm font-medium">
             <span class="px-2.5 py-1 inline-flex text-sm px-3 py-1 rounded-full  font-bold uppercase ${
-              l.status === "available"
-                ? "bg-blue-100 text-blue-800"
-                : l.status === "sold"
-                  ? "bg-gray-100 text-gray-800"
-                  : "bg-yellow-100 text-yellow-800"
+              l.status === "Published"
+                ? "bg-green-100 text-green-800"
+                : l.status === "Unpublished"
+                  ? "bg-red-100 text-red-800"
+                  : l.status === "Draft Property Finder"
+                    ? "bg-blue-100 text-blue-800"
+                    : l.status === "Pocket Listing"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-gray-100 text-gray-800"
             }">
-              ${escapeHtml(l.status || "")}
+              ${escapeHtml(l.status == "Published" || l.status == "Unpublished" ? l.status : "Not Published" || "")}
             </span>
           </td>
 
@@ -680,9 +707,10 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             l.property_type ||
             l.property_type_bayut ||
             "";
+          const purpose = l.purpose ? l.purpose : "";
           const location = l.location?.name || l.location || "";
-          const beds = l.bedrooms ?? "";
-          const baths = l.bathrooms ?? "";
+          const beds = l.bedrooms ?? "none";
+          const baths = l.bathrooms ?? "none";
           const size = l.size ?? "";
           const price = formatPriceWithType(l.price || 0, l.price_type);
           const status = l.status ? prettyLabel(l.status) : "";
@@ -722,6 +750,13 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                     type
                       ? `<span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold uppercase">${escapeHtml(
                           type,
+                        )}</span>`
+                      : ""
+                  }
+                  ${
+                    purpose
+                      ? `<span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold uppercase">${escapeHtml(
+                          purpose,
                         )}</span>`
                       : ""
                   }
@@ -1027,6 +1062,7 @@ function wireFilters() {
   const resetBtn = qs("#resetFiltersBtn");
   const backdrop = qs("#filtersBackdrop");
   const quickStatusFilter = qs("#statusFilter");
+  const quickSaleTypeFilter = qs("#saleTypeFilter");
 
   if (openBtn) openBtn.addEventListener("click", openFiltersDrawer);
   if (closeBtn) closeBtn.addEventListener("click", closeFiltersDrawer);
@@ -1036,7 +1072,18 @@ function wireFilters() {
   // Wire up quick status filter
   if (quickStatusFilter) {
     quickStatusFilter.addEventListener("change", (e) => {
+      console.log(e.target.value);
       state.filters.status = e.target.value || "";
+      renderChips();
+      loadListings(1, state.searchTerm, state.filters);
+    });
+  }
+
+  // Wire up quick sale type filter
+  if (quickSaleTypeFilter) {
+    quickSaleTypeFilter.addEventListener("change", (e) => {
+      console.log(e.target.value);
+      state.filters.purpose = e.target.value || "";
       renderChips();
       loadListings(1, state.searchTerm, state.filters);
     });

@@ -409,6 +409,17 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | Pocket Listing?
+     | UF_CRM_7_1770201260
+     |--------------------------------------------------------------------------
+     */
+    'pocket_listing' => [
+        'Yes'  => '472',
+        'No' => '473',
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
      | Status (Stage)
      | stageId field uses statusType: "DYNAMIC_1052_STAGE_11"
      |--------------------------------------------------------------------------
@@ -417,6 +428,7 @@ return [
         'Start' => 'DT1052_11:NEW',
         'Photographer Booking'  => 'DT1052_11:PREPARATION',
         'Pending Approval'  => 'DT1052_11:CLIENT',
+        'Pocket Listing'  => 'DT1052_11:UC_BDKHAU',
         'Draft at Property Finder' => 'DT1052_11:UC_5FRJTE',
         'Published' => 'DT1052_11:SUCCESS',
         'Unpublished'  => 'DT1052_11:FAIL',
