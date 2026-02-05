@@ -144,7 +144,7 @@
                         <label class="text-md font-semibold text-slate-500">Status</label>
                         <select id="f_status"
                             class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Any</option>
+                            <option value="">Please select</option>
                             <option value="Start">Start</option>
                             <option value="Photographer Booking">Photographer Booking</option>
                             <option value="Pending Approval">Pending Approval</option>
@@ -159,7 +159,7 @@
                         <label class="text-md font-semibold text-slate-500">Agent</label>
                         <select id="f_agent"
                             class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Any</option>
+                            <option value="">Please select</option>
 
                         </select>
                     </div>
@@ -168,7 +168,7 @@
                         <label class="text-md font-semibold text-slate-500">Owner</label>
                         <select id="f_owner"
                             class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Any</option>
+                            <option value="">Please select</option>
 
                         </select>
                     </div>

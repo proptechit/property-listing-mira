@@ -8,7 +8,7 @@ if (!$id) {
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="editPageRoot">
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8" id="editPageRoot">
     <div class="mb-6">
         <a href="?page=listings&action=list"
             class="inline-flex items-center gap-2 text-md font-medium text-blue-600 hover:text-blue-800">
@@ -25,49 +25,7 @@ if (!$id) {
         <!-- <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>"> -->
 
         <!-- Management -->
-        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-                <div>
-                    <h2 class="text-md font-semibold text-slate-900">Management</h2>
-                    <p class="text-md text-slate-500">Agent and owner assignment</p>
-                </div>
-                <i class="fa-solid fa-briefcase text-slate-400"></i>
-            </div>
-
-            <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-md font-semibold text-slate-500">Reference</label>
-                    <div class="mt-1 relative">
-                        <input type="text" name="reference"
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g. REF-1021">
-                        <i class="fa-solid fa-hashtag absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-md font-semibold text-slate-500">Listing Agent <span class="text-red-500">*</span></label>
-                    <div class="mt-1 relative">
-                        <select name="listing_agent" id="agentSelect" required
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Select Agent</option>
-                        </select>
-                        <i class="fa-solid fa-user-tie absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-md font-semibold text-slate-500">Listing Owner <span class="text-red-500">*</span></label>
-                    <div class="mt-1 relative">
-                        <select name="listing_owner" id="ownerSelect" required
-                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Select Owner</option>
-                        </select>
-                        <i class="fa-solid fa-id-card absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <?php include_once(__DIR__ . '/../partials/sections/management.php'); ?>
 
         <!-- Specifications -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm">

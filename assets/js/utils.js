@@ -158,3 +158,41 @@ function fileToBase64(file) {
     reader.readAsDataURL(file);
   });
 }
+
+// Collapsible sections
+function initCollapsibleSections() {
+  document.querySelectorAll("[data-collapsible]").forEach((section) => {
+    const toggle = section.querySelector("[data-collapsible-toggle]");
+    const content = section.querySelector("[data-collapsible-content]");
+    const icon = section.querySelector("[data-collapsible-icon]");
+
+    if (!toggle || !content) return;
+
+    let open = section.dataset.open !== "false";
+
+    const setState = (state) => {
+      open = state;
+      content.style.maxHeight = open ? content.scrollHeight + "px" : "0px";
+      if (icon) {
+        icon.classList.toggle("-rotate-90", !open);
+      }
+    };
+
+    // initial state
+    setState(open);
+
+    toggle.addEventListener("click", () => {
+      setState(!open);
+    });
+
+    // keyboard accessibility
+    toggle.setAttribute("tabindex", "0");
+    toggle.setAttribute("role", "button");
+    toggle.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setState(!open);
+      }
+    });
+  });
+}

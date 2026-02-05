@@ -5,21 +5,72 @@ require 'helpers/transform.php';
 
 $map = require 'mappings/users.php';
 
-// Pagination parameters - Bitrix default limit is 50
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$limit = 50; // Bitrix default limit
+$page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = 50;
 $start = ($page - 1) * $limit;
 
-$params = [
-    'start' => $start,
-    'select' => array_values($map)
+$all = isset($_GET['all']) && $_GET['all'] === 'true';
+
+$paramsBase = [
+    'select' => array_values($map),
 ];
 
 if (!empty($_GET['id'])) {
-    $params['ID'] = $_GET['id'];
+    $paramsBase['ID'] = $_GET['id'];
 }
 
-$res = bitrixRequest(null, $params, $CUSTOM_USERS_API . "?is_agent=1");
+/**
+ * FETCH ALL USERS
+ */
+if ($all) {
+    $allUsers = [];
+    $currentStart = 0;
+
+    do {
+        $params = $paramsBase;
+        $params['start'] = $currentStart;
+
+        $res = bitrixRequest(
+            null,
+            $params,
+            $CUSTOM_USERS_API . "?is_agent=1"
+        );
+
+        $batch = $res['result'] ?? [];
+        $allUsers = array_merge($allUsers, $batch);
+
+        if (!isset($res['next'])) {
+            break;
+        }
+
+        $currentStart = $res['next'];
+    } while (true);
+
+    $users = array_map(
+        fn($u) => fromBitrixFields($u, $map),
+        $allUsers
+    );
+
+    jsonResponse([
+        'data' => $users,
+        'pagination' => [
+            'all' => true,
+            'total' => count($users),
+        ],
+    ]);
+}
+
+/**
+ * PAGINATED MODE
+ */
+$params = $paramsBase;
+$params['start'] = $start;
+
+$res = bitrixRequest(
+    null,
+    $params,
+    $CUSTOM_USERS_API . "?is_agent=1"
+);
 
 $users = $res['result'] ?? [];
 $total = $res['total'] ?? count($users);
@@ -35,6 +86,6 @@ jsonResponse([
         'page' => $page,
         'limit' => $limit,
         'total' => $total,
-        'total_pages' => ceil($total / $limit)
-    ]
+        'total_pages' => ceil($total / $limit),
+    ],
 ]);

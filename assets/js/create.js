@@ -649,14 +649,14 @@ function setupCreateForm() {
 
 async function loadAgentsDropdown() {
   try {
-    const response = await api("/?resource=agents&page=1");
+    const response = await api("/?resource=agents&all=true");
     const agents = response.data || [];
     const agentSelect = qs("#agentSelect");
 
     if (!agentSelect) return;
 
-    // Clear existing options except "Any"
-    agentSelect.innerHTML = '<option value="">Any</option>';
+    // Clear existing options except "Please select"
+    agentSelect.innerHTML = '<option value="">Please select</option>';
 
     // Add agent options and populate agentMap
     agents.forEach((agent) => {
@@ -677,14 +677,14 @@ async function loadAgentsDropdown() {
 
 async function loadOwnersDropdown() {
   try {
-    const response = await api("/?resource=owners&page=1");
+    const response = await api("/?resource=owners&all=true");
     const owners = response.data || [];
     const ownerSelect = qs("#ownerSelect");
 
     if (!ownerSelect) return;
 
-    // Clear existing options except "Any"
-    ownerSelect.innerHTML = '<option value="">Any</option>';
+    // Clear existing options except "Please select"
+    ownerSelect.innerHTML = '<option value="">Please select</option>';
 
     // Add owner options and populate ownerMap
     owners.forEach((owner) => {
