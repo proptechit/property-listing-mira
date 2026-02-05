@@ -221,7 +221,7 @@ function renderListingDetails(container, listing) {
                 ? buildDetailRowHtml(
                     "Brochure",
                     `<a class="text-blue-600 hover:text-blue-700 font-bold" target="_blank" href="${escapeHtml(
-                      listing.brochure_url,
+                      listing.brochure_url + "&user_id=" + USER_ID,
                     )}">Open</a>`,
                   )
                 : ""

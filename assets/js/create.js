@@ -466,9 +466,9 @@ function setupCreatePageUI() {
     menuId: "purposeTypeMenu",
     placeholder: "Select Purpose",
     options: [
-      { value: "buy", label: "Buy", icon: "fa-solid fa-bag-shopping" },
+      { value: "For Sale", label: "Buy", icon: "fa-solid fa-bag-shopping" },
       {
-        value: "rent",
+        value: "For Rent",
         label: "Rent",
         icon: "fa-solid fa-hand-holding-dollar",
       },

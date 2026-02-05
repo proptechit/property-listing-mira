@@ -573,7 +573,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             </div>
           </td>
 
-          <td class="px-6 py-4 text-sm font-medium">
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-sm text-gray-500">
               <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full  font-bold uppercase">
                 ${escapeHtml(l.property_type_pf || l.property_type || "")}
@@ -581,7 +581,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             </div>
           </td>
 
-          <td class="px-6 py-4 text-sm font-medium">
+          <td class="px-6 py-4 text-sm font-mediumn whitespace-nowrap">
             <div class="text-sm text-gray-500">
               <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full  font-bold uppercase">
                 ${escapeHtml(l.purpose || "")}
@@ -589,7 +589,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             </div>
           </td>
 
-          <td class="px-6 py-4 text-sm font-medium">
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="flex gap-2 text-slate-600">
               <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bed text-slate-400"></i> ${escapeHtml(l.bedrooms ?? "none")}</span>
               <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bath text-slate-400"></i> ${escapeHtml(l.bathrooms ?? "none")}</span>
@@ -597,17 +597,17 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             </div>
           </td>
 
-          <td class="px-6 py-4 text-sm font-medium">
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-md text-gray-500 capitalize">${escapeHtml(l.location?.name || l.location || "")}</div>
           </td>
 
-          <td class="px-6 py-4 text-sm font-medium text-right">
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-sm font-bold text-slate-700">${escapeHtml(
               formatPriceWithType(l.price || 0, l.price_type),
             )}</div>
           </td>
 
-          <td class="px-6 py-4 text-sm font-medium">
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <span class="px-2.5 py-1 inline-flex text-sm px-3 py-1 rounded-full  font-bold uppercase ${
               l.status === "Published"
                 ? "bg-green-100 text-green-800"
@@ -624,16 +624,16 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
           </td>
 
 
-          <td class="px-6 py-4 text-sm font-medium text-right">
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-sm font-bold text-slate-700"> ${escapeHtml(displayName(l.listing_agent) || "")}</div>
           </td>
 
 
-          <td class="px-6 py-4 text-sm font-medium text-right">
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-sm font-bold text-slate-700"> ${escapeHtml(displayName(l.listing_owner) || "")}</div>
           </td>
 
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
             <div class="relative inline-block text-left" data-menu>
               <button
                 type="button"
@@ -671,7 +671,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                   data-id="${l.id}"
                   role="menuitem">Unpublish</button>
 
-                <a href="https://crm.mira-international.com/local/listing-brochure/?id=${l.id}&user_id=${USER_ID}"
+                <a href="${l.brochure_url}&user_id=${USER_ID}"
                    class="block px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
                    role="menuitem"
                    target="_blank"

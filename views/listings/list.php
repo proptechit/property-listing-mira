@@ -40,8 +40,8 @@
                 <select id="saleTypeFilter"
                     class="w-full px-4 py-2 text-md bg-slate-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
                     <option value="">All</option>
-                    <option value="buy">For Sale</option>
-                    <option value="rent">For Rent</option>
+                    <option value="For Sale">For Sale</option>
+                    <option value="For Rent">For Rent</option>
                 </select>
             </div>
 
@@ -238,16 +238,16 @@
             <table class="w-full min-w-[1100px] table-auto border-collapse text-md">
                 <thead class="sticky top-0 z-10 bg-gray-50">
                     <tr class="bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-center">Title</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Type</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Purpose</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Specifications</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Location</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-right">Price (AED)</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Status</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Agent</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Owner</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider">Actions</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Title</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Type</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Purpose</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Specifications</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Location</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Price (AED)</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Status</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Agent</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Owner</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="listingsTable" class="bg-white divide-y divide-gray-200">
