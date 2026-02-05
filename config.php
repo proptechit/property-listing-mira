@@ -6,4 +6,4 @@ $ADMIN_IDS = [
     31  // Jezra Agao
 ];
 
-$ENV = 'development'; // change to 'production' in production environment
+$ENV = 'production';

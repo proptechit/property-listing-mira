@@ -2,15 +2,9 @@
 require __DIR__ . '/config.php';
 
 if ($ENV === 'production') {
-    ini_set('display_errors', 0);
-    error_reporting(0);
-
     require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php");
     $USER_ID = $USER->GetID();
 } else {
-    ini_set('display_errors', 1);
-    error_reporting(E_ALL);
-
     $USER_ID = 1;
 }
 
