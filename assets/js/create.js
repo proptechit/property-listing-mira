@@ -1067,16 +1067,6 @@ function attachFormSubmissionHandler(id) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Show loading state
-    const submitBtn = form.querySelector('button[type="submit"]');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      const isEdit = editForm !== null;
-      submitBtn.innerHTML = isEdit
-        ? '<i class="fa-solid fa-spinner fa-spin"></i> Updating...'
-        : '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-    }
-
     // Make sure description is more than 750 and less than 2000 characters
     const description = form.querySelector('textarea[name="description_en"]');
     if (description) {
@@ -1091,10 +1081,42 @@ function attachFormSubmissionHandler(id) {
       }
     }
 
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      const isEdit = editForm !== null;
+      submitBtn.innerHTML = isEdit
+        ? '<i class="fa-solid fa-spinner fa-spin"></i> Updating...'
+        : '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+
     try {
       // Gather form data
       const formData = new FormData(form);
       const data = Object.fromEntries(formData);
+
+      // convert documents
+      const docs = [
+        "title_deed",
+        "passport_copy",
+        "emirates_id",
+        "contract_a",
+        "listing_form",
+      ];
+
+      for (const key of docs) {
+        const file = formData.get(key);
+        if (!file) {
+          alert(`${key.replace("_", " ")} is required`);
+          return;
+        }
+
+        data[key] = {
+          name: file.name,
+          src: await fileToBase64(file),
+        };
+      }
 
       // Parse amenities array
       const amenities = formData.getAll("amenities_pf[]");

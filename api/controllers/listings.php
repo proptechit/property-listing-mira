@@ -13,13 +13,13 @@ require 'helpers/user-cache.php';
 $map = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
 
-function normalizeImages(array $images): array
+function normalizeFiles(array $files): array
 {
     $result = [];
 
-    foreach ($images as $image) {
-        $name = is_object($image) ? ($image->name ?? null) : ($image['name'] ?? null);
-        $src  = is_object($image) ? ($image->src ?? null)  : ($image['src'] ?? null);
+    foreach ($files as $file) {
+        $name = is_object($file) ? ($file->name ?? null) : ($file['name'] ?? null);
+        $src  = is_object($file) ? ($file->src ?? null)  : ($file['src'] ?? null);
 
         if (!$name || !$src) {
             continue;
@@ -226,7 +226,14 @@ if ($method === 'POST') {
     $input = getRequestBody();
 
     // reformat images
-    $input['images'] = normalizeImages($input['images']);
+    $input['images'] = normalizeFiles($input['images']);
+
+    // reformat documents
+    $input['title_deed'] = normalizeFiles([$input['title_deed']])[0];
+    $input['passport_copy'] = normalizeFiles([$input['passport_copy']])[0];
+    $input['emirates_id'] = normalizeFiles([$input['emirates_id']])[0];
+    $input['contract_a'] = normalizeFiles([$input['contract_a']])[0];
+    $input['listing_form'] = normalizeFiles([$input['listing_form']])[0];
 
     $fields = toBitrixFields($input, $map, $enums);
 
@@ -266,7 +273,14 @@ if ($method === 'PUT') {
     $input  = getRequestBody();
 
     // reformat images
-    $input['images'] = normalizeImages($input['images']);
+    $input['images'] = normalizeFiles($input['images']);
+
+    // reformat documents
+    $input['title_deed'] = normalizeFiles([$input['title_deed']])[0];
+    $input['passport_copy'] = normalizeFiles([$input['passport_copy']])[0];
+    $input['emirates_id'] = normalizeFiles([$input['emirates_id']])[0];
+    $input['contract_a'] = normalizeFiles([$input['contract_a']])[0];
+    $input['listing_form'] = normalizeFiles([$input['listing_form']])[0];
 
     $fields = toBitrixFields($input, $map, $enums);
 
