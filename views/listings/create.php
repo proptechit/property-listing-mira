@@ -238,7 +238,7 @@
         </section>
 
         <!-- Property Permit -->
-        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm" id="permitSection">
             <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
                 <div>
                     <h2 class="text-md font-semibold text-slate-900">Property Permit</h2>

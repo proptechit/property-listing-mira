@@ -71,3 +71,30 @@ document.addEventListener("DOMContentLoaded", () => {
     descriptionInput.scrollTop = descriptionInput.scrollHeight;
   });
 });
+
+// Hide permit section for non-admin
+document.addEventListener("DOMContentLoaded", () => {
+  const isAdmin = atob(localStorage.getItem("is_admin") || "0") === "1";
+
+  if (isAdmin) return;
+
+  // Hide permit section
+  const permitSection = document.getElementById("permitSection");
+  if (permitSection) {
+    permitSection.classList.add("hidden");
+  }
+
+  // Make permit fields non-mandatory
+  const permitFields = ["permitType", "advertisement_number", "license_date"];
+
+  permitFields.forEach((nameOrId) => {
+    const field =
+      document.getElementById(nameOrId) ||
+      document.querySelector(`[name="${nameOrId}"]`);
+
+    if (!field) return;
+
+    field.removeAttribute("required");
+    field.disabled = true;
+  });
+});
