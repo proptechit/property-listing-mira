@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require 'helpers/response.php';
 require 'helpers/request.php';
 require 'helpers/bitrix.php';
@@ -9,6 +12,44 @@ require 'helpers/user-cache.php';
 
 $map = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
+
+function normalizeImages(array $images): array
+{
+    $result = [];
+
+    foreach ($images as $image) {
+        $name = is_object($image) ? ($image->name ?? null) : ($image['name'] ?? null);
+        $src  = is_object($image) ? ($image->src ?? null)  : ($image['src'] ?? null);
+
+        if (!$name || !$src) {
+            continue;
+        }
+
+        // If already in format: ["name", "base64"]
+        if (is_array($src) && count($src) === 2) {
+            $result[] = [$src[0], cleanBase64($src[1])];
+            continue;
+        }
+
+        if (!is_string($src)) {
+            continue;
+        }
+
+        $result[] = [$name, cleanBase64($src)];
+    }
+
+    return $result;
+}
+
+function cleanBase64(string $src): string
+{
+    if (strpos($src, 'base64,') !== false) {
+        $src = substr($src, strpos($src, 'base64,') + 7);
+    }
+
+    return trim($src);
+}
+
 
 /**
  * GET /api/?resource=listings
@@ -184,6 +225,9 @@ if ($method === 'POST') {
 
     $input = getRequestBody();
 
+    // reformat images
+    $input['images'] = normalizeImages($input['images']);
+
     $fields = toBitrixFields($input, $map, $enums);
 
     if (empty($fields)) {
@@ -220,6 +264,10 @@ if ($method === 'PUT') {
     }
 
     $input  = getRequestBody();
+
+    // reformat images
+    $input['images'] = normalizeImages($input['images']);
+
     $fields = toBitrixFields($input, $map, $enums);
 
     if (empty($fields)) {
