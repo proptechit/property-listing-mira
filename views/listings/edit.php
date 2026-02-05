@@ -8,7 +8,7 @@ if (!$id) {
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="editPageRoot">
     <div class="mb-6">
         <a href="?page=listings&action=list"
             class="inline-flex items-center gap-2 text-md font-medium text-blue-600 hover:text-blue-800">
