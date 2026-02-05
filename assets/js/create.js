@@ -1077,6 +1077,20 @@ function attachFormSubmissionHandler(id) {
         : '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     }
 
+    // Make sure description is more than 750 and less than 2000 characters
+    const description = form.querySelector('textarea[name="description_en"]');
+    if (description) {
+      const descriptionValue = description.value;
+      if (descriptionValue.length < 750) {
+        alert("Description must be at least 750 characters.");
+        return;
+      }
+      if (descriptionValue.length > 2000) {
+        alert("Description must be less than 2000 characters.");
+        return;
+      }
+    }
+
     try {
       // Gather form data
       const formData = new FormData(form);

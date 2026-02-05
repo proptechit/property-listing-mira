@@ -175,6 +175,17 @@ async function loadListingForEdit(listingId) {
       renderImageGallery();
       updateImagesInput();
     }
+
+    // Trigger character counters after prefilling (TITLE + DESCRIPTION)
+    const titleInput = document.getElementById("titleInput");
+
+    if (titleInput) {
+      titleInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    if (descriptionInput) {
+      descriptionInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
   } catch (error) {
     console.error("Error loading listing:", error);
     alert("Error loading listing: " + (error.message || "Unknown error"));

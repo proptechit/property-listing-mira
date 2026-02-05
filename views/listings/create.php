@@ -383,16 +383,38 @@
             <div class="p-5 space-y-4">
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Title <span class="text-red-500">*</span></label>
-                    <input type="text" name="title" required
+                    <input
+                        type="text"
+                        name="title"
+                        id="titleInput"
+                        maxlength="50"
+                        required
                         class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="e.g. Marina View Apartment">
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        <span id="titleCount">0</span>/50 characters
+                        (<span id="titleRemaining">50</span> left)
+                    </p>
                 </div>
 
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Description <span class="text-red-500">*</span></label>
-                    <textarea name="description_en" rows="8" required
+                    <textarea
+                        name="description_en"
+                        id="descriptionInput"
+                        rows="8"
+                        minlength="750"
+                        maxlength="2000"
+                        required
                         class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Write a detailed description..."></textarea>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        <span id="descriptionCount">0</span>/2000 characters
+                        (<span id="descriptionRemaining">2000</span> left)
+                        · Minimum 750 required
+                    </p>
                 </div>
             </div>
         </section>
@@ -595,6 +617,7 @@
     </form>
 </div>
 
+<script src="assets/js/utils.js"></script>
 <script src="assets/js/listings.js"></script>
 <script src="assets/js/create.js"></script>
 <script>
