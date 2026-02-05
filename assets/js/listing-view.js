@@ -41,13 +41,19 @@ function getImageUrl(img) {
   );
 }
 
-function buildDetailRow(label, value) {
+function buildDetailRow(label, value, icon = null) {
   const v =
     value !== undefined && value !== null && String(value).trim() !== "";
+
   return `
     <div class="flex items-start justify-between gap-4 py-2 border-b border-slate-100 last:border-b-0">
-      <div class="text-md font-semibold text-slate-500">${escapeHtml(label)}</div>
-      <div class="text-md font-bold text-slate-800 text-right">${v ? escapeHtml(String(value)) : "-"}</div>
+      <div class="flex items-center gap-2 text-md font-semibold text-slate-500">
+        ${icon ? `<i class="fa-solid ${icon} text-slate-400"></i>` : ""}
+        <span>${escapeHtml(label)}</span>
+      </div>
+      <div class="text-md font-bold text-slate-800 text-right">
+        ${v ? escapeHtml(String(value)) : "-"}
+      </div>
     </div>
   `;
 }
@@ -175,7 +181,10 @@ function renderListingDetails(container, listing) {
 
         <div class="mt-4 bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
           <div class="flex items-center justify-between mb-3">
-            <div class="text-lg font-bold text-slate-800">Description</div>
+            <div class="flex items-center gap-2 text-lg font-bold text-slate-800">
+              <i class="fa-solid fa-align-left text-slate-400"></i>
+              Description
+            </div>
           </div>
           <div class="text-md text-slate-700 leading-relaxed whitespace-pre-line">${
             desc
@@ -194,28 +203,27 @@ function renderListingDetails(container, listing) {
             )}</div>
           </div>
           <div class="space-y-0">
-            ${buildDetailRow("Type", prettyLabel(propertyType))}
-            ${buildDetailRow("Bedrooms", listing?.bedrooms)}
-            ${buildDetailRow("Bathrooms", listing?.bathrooms)}
-            ${buildDetailRow("Size", size)}
-            ${buildDetailRow("Location", location)}
-            ${buildDetailRow("Agent", agent)}
-            ${buildDetailRow("Owner", owner)}
+            ${buildDetailRow("Type", prettyLabel(propertyType), "fa-house")}
+            ${buildDetailRow("Bedrooms", listing?.bedrooms, "fa-bed")}
+            ${buildDetailRow("Bathrooms", listing?.bathrooms, "fa-bath")}
+            ${buildDetailRow("Size", size, "fa-ruler-combined")}
+            ${buildDetailRow("Location", location, "fa-location-dot")}
+            ${buildDetailRow("Agent", agent, "fa-user-tie")}
+            ${buildDetailRow("Owner", owner, "fa-id-card")}
           </div>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
           <div class="text-lg font-bold text-slate-800 mb-4">More details</div>
           <div class="space-y-0">
-            ${buildDetailRow("Emirate", listing?.emirate ? prettyLabel(listing.emirate) : "")}
-            ${buildDetailRow("Unit number", listing?.unit_number)}
-            ${buildDetailRow("Floor", listing?.floor_number)}
-            ${buildDetailRow("Parking slots", listing?.parking_slots)}
-            ${buildDetailRow("Total floors", listing?.total_floors)}
-            ${buildDetailRow("Elevators", listing?.elevators)}
-            ${buildDetailRow("Advertisement no.", listing?.advertisement_number)}
-            ${buildDetailRow("Compliance", listing?.compliance_type ? prettyLabel(listing.compliance_type) : "")}
-            ${buildDetailRow("License date", listing?.license_date)}
+            ${buildDetailRow("Emirate", listing?.emirate ? prettyLabel(listing.emirate) : "", "fa-map")}
+            ${buildDetailRow("Unit number", listing?.unit_number, "fa-door-closed")}
+            ${buildDetailRow("Floor", listing?.floor_number, "fa-layer-group")}
+            ${buildDetailRow("Parking slots", listing?.parking_slots, "fa-square-parking")}
+            ${buildDetailRow("Total floors", listing?.total_floors, "fa-building")}
+            ${buildDetailRow("Elevators", listing?.elevators, "fa-elevator")}
+            ${buildDetailRow("Advertisement no.", listing?.advertisement_number, "fa-hashtag")}
+            ${buildDetailRow("Compliance", listing?.compliance_type ? prettyLabel(listing.compliance_type) : "", "fa-file-signature")}
             ${
               listing?.brochure_url
                 ? buildDetailRowHtml(
@@ -273,7 +281,10 @@ function renderListingDetails(container, listing) {
 
     <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
       <div class="flex items-center justify-between mb-4">
-        <div class="text-lg font-bold text-slate-800">Gallery</div>
+        <div class="flex items-center gap-2 text-lg font-bold text-slate-800">
+          <i class="fa-solid fa-images text-slate-400"></i>
+          Gallery
+        </div>
         <div class="text-md text-slate-500 font-semibold">${images.length} image${
           images.length === 1 ? "" : "s"
         }</div>
@@ -282,7 +293,7 @@ function renderListingDetails(container, listing) {
       ${
         otherImages.length
           ? `
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           ${otherImages
             .map(
               (url) => `
@@ -291,7 +302,7 @@ function renderListingDetails(container, listing) {
             )}">
               <img src="${escapeHtml(
                 url,
-              )}" class="w-full h-24 object-cover group-hover:scale-[1.02] transition" alt="Listing image">
+              )}" class="w-full h-48 object-cover group-hover:scale-[1.02] transition" alt="Listing image">
             </button>
           `,
             )
