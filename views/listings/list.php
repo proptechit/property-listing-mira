@@ -240,7 +240,7 @@
                     <tr class="bg-slate-50/50 border-b border-slate-100">
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Title</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Type</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Purpose</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Sale/Rent</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Specifications</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Location</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Price (AED)</th>

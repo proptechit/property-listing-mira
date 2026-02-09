@@ -464,7 +464,7 @@ function setupCreatePageUI() {
     btnId: "purposeTypeBtn",
     labelId: "purposeTypeLabel",
     menuId: "purposeTypeMenu",
-    placeholder: "Select Purpose",
+    placeholder: "Select Sale/Rent",
     options: [
       { value: "For Sale", label: "Buy", icon: "fa-solid fa-bag-shopping" },
       {

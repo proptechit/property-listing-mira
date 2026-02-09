@@ -18,10 +18,10 @@
             <canvas id="typeChart"></canvas>
         </div>
 
-        <!-- Listings by Purpose -->
+        <!-- Listings by Sale/Rent -->
         <div class="bg-white rounded-lg shadow p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">
-                Listings by Purpose
+                Listings by Sale/Rent
             </h2>
             <canvas id="purposeChart"></canvas>
         </div>

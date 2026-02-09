@@ -313,7 +313,7 @@ function getActiveChips(filters, searchTerm) {
   push("title", "Title", filters.title);
   push("location", "Location", filters.location);
   push("status", "Status", filters.status);
-  push("purpose", "Purpose", filters.purpose);
+  push("purpose", "Sale/Rent", filters.purpose);
   push("type", "Type", filters.type);
 
   // For agent, display name from agentMap if available, otherwise show ID
