@@ -10,7 +10,7 @@
         <i class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200" data-collapsible-icon></i>
     </div>
 
-    <div class="overflow-hidden transition-all duration-300 ease-in-out" data-collapsible-content>
+    <div class="transition-all duration-300 ease-in-out" data-collapsible-content>
         <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3" id="amenitiesContainer">
             <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
                 <input type="checkbox" name="amenities_kitchen" class="rounded border-slate-300">

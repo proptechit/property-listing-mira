@@ -11,7 +11,7 @@
         <i class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200" data-collapsible-icon></i>
     </div>
 
-    <div class="overflow-hidden transition-all duration-300 ease-in-out" data-collapsible-content>
+    <div class="transition-all duration-300 ease-in-out" data-collapsible-content>
         <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Residential/Commercial -->
             <div>
@@ -174,7 +174,7 @@
                         <i class="fa-solid fa-chevron-down text-slate-400"></i>
                     </button>
                     <div id="projectStatusMenu"
-                        class="absolute z-20 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"></div>
+                        class="absolute z-100 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"></div>
                 </div>
             </div>
         </div>

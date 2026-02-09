@@ -11,7 +11,7 @@
         <i class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200" data-collapsible-icon></i>
     </div>
 
-    <div class="overflow-hidden transition-all duration-300 ease-in-out" data-collapsible-content>
+    <div class="transition-all duration-300 ease-in-out" data-collapsible-content>
         <div class="p-5 space-y-6">
             <!-- Photos Section -->
             <div>

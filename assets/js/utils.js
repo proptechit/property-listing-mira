@@ -173,6 +173,9 @@ function initCollapsibleSections() {
     const setState = (state) => {
       open = state;
       content.style.maxHeight = open ? content.scrollHeight + "px" : "0px";
+
+      content.classList.toggle("overflow-hidden", !open);
+      content.classList.toggle("overflow-visible", open);
       if (icon) {
         icon.classList.toggle("-rotate-90", !open);
       }
