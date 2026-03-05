@@ -5,7 +5,7 @@ return [
     'name'     => 'NAME',
     'last_name' => 'LAST_NAME',
     'email'    => 'EMAIL',
-    'phone'    => 'WORK_PHONE',
+    'phone'    => 'PERSONAL_MOBILE',
     'position' => 'WORK_POSITION',
     'photo'    => 'PERSONAL_PHOTO',
     'brn'   => 'UF_PFID',
