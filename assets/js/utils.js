@@ -8,6 +8,8 @@ MIRA Real Estate is a premium brokerage in Dubai, accredited by top developers a
 // Character counter
 document.addEventListener("DOMContentLoaded", () => {
   const setupCounter = (input, countEl, remainingEl, max) => {
+    if (!input || !countEl || !remainingEl) return;
+
     const update = () => {
       const length = input.value.length;
       countEl.textContent = length;
@@ -100,52 +102,38 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Hide edit page for non-admin
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
+  const root = document.getElementById("editPageRoot");
+  if (!root) return; // Only run this block on edit page
+
   const isAdmin = atob(localStorage.getItem("is_admin") || "0") === "1";
 
   // 🚫 Non-admin: show not authorised page
   if (!isAdmin) {
-    const root = document.getElementById("editPageRoot");
-
-    if (root) {
-      root.innerHTML = `
-        <div class="max-w-xl mx-auto mt-20 bg-white border border-red-200 rounded-2xl shadow-sm p-8 text-center">
-          <div class="text-5xl text-red-500 mb-4">
-            <i class="fa-solid fa-ban"></i>
-          </div>
-
-          <h1 class="text-xl font-bold text-slate-800 mb-2">
-            Not authorised
-          </h1>
-
-          <p class="text-md text-slate-500 mb-6">
-            You do not have permission to view this page.
-          </p>
-
-          <a href="?page=listings&action=list"
-             class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
-                    bg-blue-600 hover:bg-blue-700 text-white font-semibold">
-            <i class="fa-solid fa-arrow-left"></i>
-            Back to Listings
-          </a>
+    root.innerHTML = `
+      <div class="max-w-xl mx-auto mt-20 bg-white border border-red-200 rounded-2xl shadow-sm p-8 text-center">
+        <div class="text-5xl text-red-500 mb-4">
+          <i class="fa-solid fa-ban"></i>
         </div>
-      `;
-    }
+
+        <h1 class="text-xl font-bold text-slate-800 mb-2">
+          Not authorised
+        </h1>
+
+        <p class="text-md text-slate-500 mb-6">
+          You do not have permission to view this page.
+        </p>
+
+        <a href="?page=listings&action=list"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
+                  bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+          <i class="fa-solid fa-arrow-left"></i>
+          Back to Listings
+        </a>
+      </div>
+    `;
 
     return; // ⛔ stop all edit logic
-  }
-
-  // ✅ Admin only logic below
-  if (typeof loadFormOptions === "function") {
-    await loadFormOptions();
-  }
-
-  if (typeof loadListingForEdit === "function") {
-    await loadListingForEdit(listingId);
-  }
-
-  if (typeof setupEditForm === "function") {
-    setupEditForm(listingId);
   }
 });
 
@@ -160,6 +148,13 @@ function fileToBase64(file) {
 }
 
 // Collapsible sections
+function refreshCollapsibleHeights() {
+  document.querySelectorAll("[data-collapsible-content]").forEach((content) => {
+    if (!content || content.style.maxHeight === "0px") return;
+    content.style.maxHeight = content.scrollHeight + "px";
+  });
+}
+
 function initCollapsibleSections() {
   document.querySelectorAll("[data-collapsible]").forEach((section) => {
     const toggle = section.querySelector("[data-collapsible-toggle]");
@@ -198,4 +193,7 @@ function initCollapsibleSections() {
       }
     });
   });
+
+  // Keep open section heights accurate on viewport changes.
+  window.addEventListener("resize", refreshCollapsibleHeights);
 }

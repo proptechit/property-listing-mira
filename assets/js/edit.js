@@ -5,6 +5,46 @@
 /**
  * Load listing data and pre-fill the edit form
  */
+function getExistingImageUrl(image) {
+  if (!image) return "";
+  if (typeof image === "string") return image;
+  return (
+    image.urlMachine ||
+    image.url ||
+    image.downloadUrl ||
+    image.previewUrl ||
+    image.href ||
+    ""
+  );
+}
+
+function getExistingImageFileId(image) {
+  if (!image || typeof image !== "object") return null;
+
+  const candidates = [
+    image.existingFileId,
+    image.existing_file_id,
+    image.fileId,
+    image.file_id,
+    image.value,
+    image.id,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined) continue;
+
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      return candidate;
+    }
+
+    const value = String(candidate).trim();
+    if (!value) continue;
+    if (/^\d+$/.test(value)) return Number(value);
+  }
+
+  return null;
+}
+
 async function loadListingForEdit(listingId) {
   try {
     const response = await api("/?resource=listings&id=" + listingId, {
@@ -101,6 +141,24 @@ async function loadListingForEdit(listingId) {
       }
     }
 
+    const portalsSelect = document.getElementById("portals");
+    if (
+      portalsSelect &&
+      listing.portals !== undefined &&
+      listing.portals !== null
+    ) {
+      const selectedPortals = Array.isArray(listing.portals)
+        ? listing.portals
+        : String(listing.portals)
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean);
+
+      Array.from(portalsSelect.options).forEach((option) => {
+        option.selected = selectedPortals.includes(option.value);
+      });
+    }
+
     if (listing.location_id) {
       const locationSelect = document.getElementById("locationSelect");
       if (locationSelect) {
@@ -167,11 +225,19 @@ async function loadListingForEdit(listingId) {
 
     // Pre-fill image gallery
     if (listing.images && Array.isArray(listing.images)) {
-      imageGallery = listing.images.map((img, index) => ({
-        id: `existing-${index}`,
-        src: img,
-        name: `Image ${index + 1}`,
-      }));
+      imageGallery = listing.images
+        .map((img, index) => {
+          const src = getExistingImageUrl(img);
+          if (!src) return null;
+          const existingFileId = getExistingImageFileId(img);
+          return {
+            id: `existing-${index}`,
+            src,
+            name: img?.name || `Image ${index + 1}`,
+            ...(existingFileId !== null ? { existingFileId } : {}),
+          };
+        })
+        .filter(Boolean);
       renderImageGallery();
       updateImagesInput();
     }

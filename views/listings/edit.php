@@ -379,7 +379,7 @@ if (!$id) {
                             id="appendCompanyInfoBtn"
                             class="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold">
                             <i class="fa-solid fa-building"></i>
-                            Add Mira details
+                            Add Primo details
                         </button>
                     </div>
                 </div>
@@ -498,12 +498,12 @@ if (!$id) {
                     <!-- Image Input Area -->
                     <div class="mb-4 p-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50">
                         <div class="flex items-center justify-center flex-col gap-2">
-                            <input type="file" id="imageInput" multiple accept="image/*" class="hidden">
-                            <button type="button" id="addImageBtn"
-                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-md transition-colors">
+                            <input type="file" id="imageInput" multiple accept="image/*" class="sr-only" onchange="window.handleImageInputChange && window.handleImageInputChange(event)">
+                            <label for="imageInput" id="addImageBtn" role="button" tabindex="0"
+                                class="inline-flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-md transition-colors">
                                 <i class="fa-solid fa-plus"></i>
                                 Add Images
-                            </button>
+                            </label>
                             <p class="text-sm text-slate-500">Select images to add to the gallery or drag & drop to reorder</p>
                         </div>
                     </div>
@@ -657,7 +657,6 @@ if (!$id) {
     const listingId = <?php echo json_encode($id); ?>;
 </script>
 <script src="assets/js/utils.js"></script>
-<script src="assets/js/listings.js"></script>
 <script src="assets/js/create.js"></script>
 <script src="assets/js/edit.js"></script>
 <script>

@@ -61,7 +61,6 @@
 </div>
 
 <script src="assets/js/utils.js"></script>
-<script src="assets/js/listings.js"></script>
 <script src="assets/js/create.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", async () => {

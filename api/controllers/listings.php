@@ -1,8 +1,5 @@
 <?php
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require 'helpers/response.php';
 require 'helpers/request.php';
 require 'helpers/bitrix.php';
@@ -13,6 +10,42 @@ require 'helpers/user-cache.php';
 $map = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
 
+function summarizeImagePayload(array $images): array
+{
+    $out = [];
+    foreach ($images as $i => $img) {
+        if (is_int($img)) {
+            $out[] = ['idx' => $i, 'type' => 'id', 'value' => $img];
+            continue;
+        }
+
+        if (is_array($img) && count($img) === 2) {
+            $name = is_string($img[0] ?? null) ? $img[0] : '';
+            $body = is_string($img[1] ?? null) ? $img[1] : '';
+            $out[] = [
+                'idx' => $i,
+                'type' => 'tuple',
+                'name' => $name,
+                'base64_len' => strlen($body),
+            ];
+            continue;
+        }
+
+        if (is_array($img)) {
+            $out[] = ['idx' => $i, 'type' => 'array', 'keys' => array_keys($img)];
+            continue;
+        }
+
+        if (is_object($img)) {
+            $out[] = ['idx' => $i, 'type' => 'object', 'keys' => array_keys((array)$img)];
+            continue;
+        }
+
+        $out[] = ['idx' => $i, 'type' => gettype($img)];
+    }
+    return $out;
+}
+
 function normalizeFiles(array $files): array
 {
     $result = [];
@@ -21,24 +54,107 @@ function normalizeFiles(array $files): array
         $name = is_object($file) ? ($file->name ?? null) : ($file['name'] ?? null);
         $src  = is_object($file) ? ($file->src ?? null)  : ($file['src'] ?? null);
 
-        if (!$name || !$src) {
-            continue;
-        }
-
         // If already in format: ["name", "base64"]
         if (is_array($src) && count($src) === 2) {
-            $result[] = [$src[0], cleanBase64($src[1])];
+            $tupleName = (string)($src[0] ?? '');
+            $tupleBody = (string)($src[1] ?? '');
+            if ($tupleName !== '' && $tupleBody !== '') {
+                $result[] = [$tupleName, cleanBase64($tupleBody)];
+            }
             continue;
         }
 
-        if (!is_string($src)) {
+        // Prefer src-based conversion to tuple (create-style) whenever src exists.
+        if (is_string($src) && trim($src) !== '') {
+            if (!$name || !is_string($name) || trim($name) === '') {
+                $name = isLikelyUrl($src) ? inferFileNameFromUrl($src) : ('image-' . uniqid() . '.jpg');
+            }
+
+            if (isLikelyUrl($src)) {
+                $downloaded = downloadUrlAsBase64($src);
+                if ($downloaded !== null) {
+                    $result[] = [$name, $downloaded];
+                }
+                continue;
+            }
+
+            $result[] = [$name, cleanBase64($src)];
             continue;
         }
 
-        $result[] = [$name, cleanBase64($src)];
+        // Fallback: if no src is present, preserve existing Bitrix file id.
+        $existingId = extractExistingFileId($file);
+        if ($existingId !== null) {
+            $result[] = $existingId;
+            continue;
+        }
     }
 
     return $result;
+}
+
+function extractExistingFileId($file): ?int
+{
+    $candidate = null;
+
+    if (is_object($file)) {
+        $candidate = $file->existingFileId ?? $file->existing_file_id ?? $file->fileId ?? $file->file_id ?? null;
+    } elseif (is_array($file)) {
+        $candidate = $file['existingFileId'] ?? $file['existing_file_id'] ?? $file['fileId'] ?? $file['file_id'] ?? null;
+    }
+
+    if ($candidate === null || $candidate === '') {
+        return null;
+    }
+
+    if (is_int($candidate)) return $candidate;
+    if (is_float($candidate)) return (int)$candidate;
+    if (is_string($candidate) && preg_match('/^\d+$/', trim($candidate))) {
+        return (int)trim($candidate);
+    }
+
+    return null;
+}
+
+function isLikelyUrl(string $value): bool
+{
+    return preg_match('/^https?:\/\//i', trim($value)) === 1;
+}
+
+function inferFileNameFromUrl(string $url): string
+{
+    $path = parse_url($url, PHP_URL_PATH) ?: '';
+    $name = basename($path);
+    if (!$name || $name === '/' || strpos($name, '.') === false) {
+        return 'image-' . uniqid() . '.jpg';
+    }
+    return $name;
+}
+
+function downloadUrlAsBase64(string $url): ?string
+{
+    if (!isLikelyUrl($url)) return null;
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+    ]);
+
+    $binary = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_errno($ch);
+    curl_close($ch);
+
+    if ($curlErr !== 0 || $httpCode < 200 || $httpCode >= 300 || !is_string($binary) || $binary === '') {
+        return null;
+    }
+
+    return base64_encode($binary);
 }
 
 function cleanBase64(string $src): string
@@ -229,11 +345,21 @@ if ($method === 'POST') {
     $input['images'] = normalizeFiles($input['images']);
 
     // reformat documents
-    $input['title_deed'] = normalizeFiles([$input['title_deed']])[0];
-    $input['passport_copy'] = normalizeFiles([$input['passport_copy']])[0];
-    $input['emirates_id'] = normalizeFiles([$input['emirates_id']])[0];
-    $input['contract_a'] = normalizeFiles([$input['contract_a']])[0];
-    $input['listing_form'] = normalizeFiles([$input['listing_form']])[0];
+    // if (!empty($input['title_deed']) && is_array($input['title_deed'])) {
+    //     $input['title_deed'] = normalizeFiles([$input['title_deed']])[0];
+    // }
+    // if (!empty($input['passport_copy']) && is_array($input['passport_copy'])) {
+    //     $input['passport_copy'] = normalizeFiles([$input['passport_copy']])[0];
+    // }
+    // if (!empty($input['emirates_id']) && is_array($input['emirates_id'])) {
+    //     $input['emirates_id'] = normalizeFiles([$input['emirates_id']])[0];
+    // }
+    // if (!empty($input['contract_a']) && is_array($input['contract_a'])) {
+    //     $input['contract_a'] = normalizeFiles([$input['contract_a']])[0];
+    // }
+    // if (!empty($input['listing_form']) && is_array($input['listing_form'])) {
+    //     $input['listing_form'] = normalizeFiles([$input['listing_form']])[0];
+    // }
 
     $fields = toBitrixFields($input, $map, $enums);
 
@@ -271,18 +397,30 @@ if ($method === 'PUT') {
     }
 
     $input  = getRequestBody();
+    $requestId = uniqid('img_put_', true);
 
     // reformat images
-    $input['images'] = normalizeFiles($input['images']);
+    $input['images'] = normalizeFiles($input['images'] ?? []);
 
     // reformat documents
-    $input['title_deed'] = normalizeFiles([$input['title_deed']])[0];
-    $input['passport_copy'] = normalizeFiles([$input['passport_copy']])[0];
-    $input['emirates_id'] = normalizeFiles([$input['emirates_id']])[0];
-    $input['contract_a'] = normalizeFiles([$input['contract_a']])[0];
-    $input['listing_form'] = normalizeFiles([$input['listing_form']])[0];
+    // if (!empty($input['title_deed']) && is_array($input['title_deed'])) {
+    //     $input['title_deed'] = normalizeFiles([$input['title_deed']])[0];
+    // }
+    // if (!empty($input['passport_copy']) && is_array($input['passport_copy'])) {
+    //     $input['passport_copy'] = normalizeFiles([$input['passport_copy']])[0];
+    // }
+    // if (!empty($input['emirates_id']) && is_array($input['emirates_id'])) {
+    //     $input['emirates_id'] = normalizeFiles([$input['emirates_id']])[0];
+    // }
+    // if (!empty($input['contract_a']) && is_array($input['contract_a'])) {
+    //     $input['contract_a'] = normalizeFiles([$input['contract_a']])[0];
+    // }
+    // if (!empty($input['listing_form']) && is_array($input['listing_form'])) {
+    //     $input['listing_form'] = normalizeFiles([$input['listing_form']])[0];
+    // }
 
     $fields = toBitrixFields($input, $map, $enums);
+    $bitrixImages = $fields[$map['images']] ?? [];
 
     if (empty($fields)) {
         jsonResponse([

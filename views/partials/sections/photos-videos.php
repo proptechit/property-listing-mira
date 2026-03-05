@@ -20,12 +20,12 @@
                 <!-- Image Input Area -->
                 <div class="mb-4 p-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50">
                     <div class="flex items-center justify-center flex-col gap-2">
-                        <input type="file" id="imageInput" multiple accept="image/*" class="hidden">
-                        <button type="button" id="addImageBtn"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-md transition-colors">
+                        <input type="file" id="imageInput" multiple accept="image/*" class="sr-only" onchange="window.handleImageInputChange && window.handleImageInputChange(event)">
+                        <label for="imageInput" id="addImageBtn" role="button" tabindex="0"
+                            class="inline-flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-md transition-colors">
                             <i class="fa-solid fa-plus"></i>
                             Add Images
-                        </button>
+                        </label>
                         <p class="text-sm text-slate-500">Select images to add to the gallery or drag & drop to reorder</p>
                     </div>
                 </div>

@@ -658,7 +658,7 @@ async function loadAgentsDropdown() {
     // Clear existing options except "Please select"
     agentSelect.innerHTML = '<option value="">Please select</option>';
 
-    // Add agent options and populate agentMap
+    // Add agent options
     agents.forEach((agent) => {
       const fullName =
         [agent.name, agent.last_name].filter(Boolean).join(" ") || "Unknown";
@@ -666,9 +666,6 @@ async function loadAgentsDropdown() {
       option.value = agent.id; // Use ID as value for API filtering
       option.textContent = fullName; // Display name to user
       agentSelect.appendChild(option);
-
-      // Store ID-to-name mapping for chip display
-      agentMap[agent.id] = fullName;
     });
   } catch (err) {
     console.error("Failed to load agents:", err);
@@ -686,7 +683,7 @@ async function loadOwnersDropdown() {
     // Clear existing options except "Please select"
     ownerSelect.innerHTML = '<option value="">Please select</option>';
 
-    // Add owner options and populate ownerMap
+    // Add owner options
     owners.forEach((owner) => {
       const fullName =
         [owner.name, owner.last_name].filter(Boolean).join(" ") || "Unknown";
@@ -694,9 +691,6 @@ async function loadOwnersDropdown() {
       option.value = owner.id; // Use ID as value for API filtering
       option.textContent = fullName; // Display name to user
       ownerSelect.appendChild(option);
-
-      // Store ID-to-name mapping for chip display
-      ownerMap[owner.id] = fullName;
     });
   } catch (err) {
     console.error("Failed to load owners:", err);
@@ -821,34 +815,61 @@ container.innerHTML = amenities
 let imageGallery = []; // Store image data
 let draggedImageId = null; // Track dragged image
 
+function toImageId(id) {
+  return String(id ?? "");
+}
+
+function handleImageInputChange(e) {
+  const files = Array.from(e?.target?.files || []);
+  files.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageData = {
+        id: Date.now() + Math.random(),
+        src: event.target.result,
+        name: file.name,
+      };
+      imageGallery.push(imageData);
+      renderImageGallery();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  if (e?.target) {
+    e.target.value = ""; // Reset input so selecting same file again still triggers change
+  }
+}
+
+window.handleImageInputChange = handleImageInputChange;
+
 function initializeImageManagement() {
   const addImageBtn = document.getElementById("addImageBtn");
   const imageInput = document.getElementById("imageInput");
   const imageGrid = document.getElementById("imagePreviewGrid");
 
-  if (!addImageBtn || !imageInput || !imageGrid) return;
+  if (!imageInput || !imageGrid) return;
+  if (imageInput.dataset.imageManagementBound === "1") return;
+  imageInput.dataset.imageManagementBound = "1";
 
-  addImageBtn.addEventListener("click", () => {
-    imageInput.click();
-  });
-
-  imageInput.addEventListener("change", (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imageData = {
-          id: Date.now() + Math.random(),
-          src: event.target.result,
-          name: file.name,
-        };
-        imageGallery.push(imageData);
-        renderImageGallery();
-      };
-      reader.readAsDataURL(file);
+  if (addImageBtn) {
+    addImageBtn.addEventListener("click", () => {
+      if (typeof imageInput.showPicker === "function") {
+        imageInput.showPicker();
+        return;
+      }
+      imageInput.click();
     });
-    imageInput.value = ""; // Reset input
-  });
+
+    addImageBtn.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      if (typeof imageInput.showPicker === "function") {
+        imageInput.showPicker();
+        return;
+      }
+      imageInput.click();
+    });
+  }
 
   setupDragAndDrop();
 }
@@ -921,11 +942,20 @@ function renderImageGallery() {
   });
 
   updateImagesInput();
+
+  // When gallery height changes inside an open collapsible section,
+  // recalculate section max-height to prevent overlap with next sections.
+  if (typeof refreshCollapsibleHeights === "function") {
+    requestAnimationFrame(refreshCollapsibleHeights);
+  }
 }
 
 function removeImage(id) {
   if (!id) return;
-  imageGallery = imageGallery.filter((img) => img && img.id !== parseFloat(id));
+  const targetId = toImageId(id);
+  imageGallery = imageGallery.filter(
+    (img) => img && toImageId(img.id) !== targetId,
+  );
   renderImageGallery();
 }
 
@@ -981,10 +1011,10 @@ function setupDragAndDrop() {
       const targetId = dropTarget.getAttribute("data-image-id");
       if (draggedImageId !== targetId) {
         const fromIndex = imageGallery.findIndex(
-          (img) => img && img.id === parseFloat(draggedImageId),
+          (img) => img && toImageId(img.id) === toImageId(draggedImageId),
         );
         const toIndex = imageGallery.findIndex(
-          (img) => img && img.id === parseFloat(targetId),
+          (img) => img && toImageId(img.id) === toImageId(targetId),
         );
 
         if (fromIndex !== -1 && toIndex !== -1) {
@@ -1010,7 +1040,7 @@ function setupDragAndDrop() {
 function moveImageUp(id) {
   if (!id) return;
   const index = imageGallery.findIndex(
-    (img) => img && img.id === parseFloat(id),
+    (img) => img && toImageId(img.id) === toImageId(id),
   );
   if (index > 0 && index !== -1) {
     [imageGallery[index], imageGallery[index - 1]] = [
@@ -1024,7 +1054,7 @@ function moveImageUp(id) {
 function moveImageDown(id) {
   if (!id) return;
   const index = imageGallery.findIndex(
-    (img) => img && img.id === parseFloat(id),
+    (img) => img && toImageId(img.id) === toImageId(id),
   );
   if (index !== -1 && index < imageGallery.length - 1) {
     [imageGallery[index], imageGallery[index + 1]] = [
@@ -1063,6 +1093,8 @@ function attachFormSubmissionHandler(id) {
   const form = createForm || editForm;
 
   if (!form) return;
+  if (form.dataset.submitHandlerBound === "1") return;
+  form.dataset.submitHandlerBound = "1";
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1124,6 +1156,12 @@ function attachFormSubmissionHandler(id) {
         data.amenities_pf = amenities;
       }
       delete data["amenities_pf[]"];
+
+      // Parse portals multi-select (Object.fromEntries keeps only last value)
+      data.portals = formData
+        .getAll("portals")
+        .map((v) => String(v || "").trim())
+        .filter(Boolean);
 
       // Parse image data
       const imagesValue = data.images || "[]";

@@ -619,7 +619,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                       ? "bg-yellow-100 text-yellow-800"
                       : "bg-gray-100 text-gray-800"
             }">
-              ${escapeHtml(l.status == "Published" || l.status == "Unpublished" ? l.status : "Not Published" || "")}
+              ${escapeHtml(l.status || "")}
             </span>
           </td>
 
@@ -658,6 +658,18 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                 <a href="?page=listings&action=edit&id=${l.id}"
                    class="${IS_ADMIN == false ? "hidden" : "block"} px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
                    role="menuitem">Edit</a>
+
+                <button type="button"
+                  class="${l.status != "Start" ? "hidden" : "block"} w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
+                  data-action="send-for-approval"
+                  data-id="${l.id}"
+                  role="menuitem">Send for approval</button>
+
+                <button type="button"
+                  class="${l.status != "Start" ? "hidden" : "block"} w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
+                  data-action="photographer-booking"
+                  data-id="${l.id}"
+                  role="menuitem">Book photographer</button>
 
                 <button type="button"
                   class="${IS_ADMIN == false || l.status == "Published" ? "hidden" : "block"} w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50"
@@ -959,6 +971,64 @@ async function unpublishListing(id) {
   }
 }
 
+async function sendForApproval(id) {
+  if (!id) return;
+
+  if (!confirm("Are you sure you want to send this listing for approval?")) {
+    return;
+  }
+
+  try {
+    const response = await api(`/?resource=listings&id=${id}`, {
+      method: "PUT",
+      body: {
+        status: "Pending Approval",
+      },
+    });
+
+    if (response) {
+      alert("Listing sent for approval successfully!");
+      loadListings(currentPage, state.searchTerm, state.filters);
+    }
+  } catch (error) {
+    console.error("Send for approval error:", error);
+    alert(
+      "Error sending listing for approval: " +
+        (error.message || "Unknown error"),
+    );
+  }
+}
+
+async function photograherBooking(id) {
+  if (!id) return;
+
+  if (
+    !confirm("Are you sure you want to book a photographer for this listing?")
+  ) {
+    return;
+  }
+
+  try {
+    const response = await api(`/?resource=listings&id=${id}`, {
+      method: "PUT",
+      body: {
+        status: "Photographer Booking",
+      },
+    });
+
+    if (response) {
+      alert("Listing sent for photographer booking successfully!");
+      loadListings(currentPage, state.searchTerm, state.filters);
+    }
+  } catch (error) {
+    console.error("Send for photographer booking error:", error);
+    alert(
+      "Error sending listing for photographer booking: " +
+        (error.message || "Unknown error"),
+    );
+  }
+}
+
 async function deleteListing(id) {
   if (!id) return;
 
@@ -1004,6 +1074,15 @@ document.addEventListener("click", (e) => {
       unpublishListing(id);
       return;
     }
+    if (action === "send-for-approval") {
+      sendForApproval(id);
+      return;
+    }
+    if (action === "photographer-booking") {
+      photograherBooking(id);
+      return;
+    }
+
     if (action === "download_pdf") return;
     if (action === "delete") {
       deleteListing(id);
@@ -1201,6 +1280,10 @@ async function loadOwnersDropdown() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Run listings bootstrap only on listings list page.
+  const hasListingsUI = !!qs("#listingsTable") || !!qs("#listingsGrid");
+  if (!hasListingsUI) return;
+
   wireSearch();
   wireFilters();
   wireViewToggle();
