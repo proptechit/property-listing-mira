@@ -554,8 +554,8 @@ if (!$id) {
 
                 <!-- Document field template -->
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">Title Deed <span class="text-red-500">*</span></label>
-                    <input type="file" name="title_deed" required
+                    <label class="block text-md font-semibold text-slate-500">Title Deed</label>
+                    <input type="file" name="title_deed"
                         accept=".pdf,.jpg,.jpeg,.png"
                         class="mt-1 block w-full text-sm text-slate-600
                     file:mr-4 file:rounded-lg file:border-0
@@ -566,8 +566,8 @@ if (!$id) {
                 </div>
 
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">Passport Copy <span class="text-red-500">*</span></label>
-                    <input type="file" name="passport_copy" required
+                    <label class="block text-md font-semibold text-slate-500">Passport Copy</label>
+                    <input type="file" name="passport_copy"
                         accept=".pdf,.jpg,.jpeg,.png"
                         class="mt-1 block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0
                     file:bg-slate-100 file:px-4 file:py-2 file:font-semibold
@@ -576,8 +576,8 @@ if (!$id) {
                 </div>
 
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">UAE ID <span class="text-red-500">*</span></label>
-                    <input type="file" name="emirates_id" required
+                    <label class="block text-md font-semibold text-slate-500">UAE ID</label>
+                    <input type="file" name="emirates_id"
                         accept=".pdf,.jpg,.jpeg,.png"
                         class="mt-1 block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0
                     file:bg-slate-100 file:px-4 file:py-2 file:font-semibold
@@ -586,8 +586,8 @@ if (!$id) {
                 </div>
 
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">Contract A <span class="text-red-500">*</span></label>
-                    <input type="file" name="contract_a" required
+                    <label class="block text-md font-semibold text-slate-500">Contract A</label>
+                    <input type="file" name="contract_a"
                         accept=".pdf,.jpg,.jpeg,.png"
                         class="mt-1 block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0
                     file:bg-slate-100 file:px-4 file:py-2 file:font-semibold
@@ -596,8 +596,8 @@ if (!$id) {
                 </div>
 
                 <div class="sm:col-span-2">
-                    <label class="block text-md font-semibold text-slate-500">Listing Form <span class="text-red-500">*</span></label>
-                    <input type="file" name="listing_form" required
+                    <label class="block text-md font-semibold text-slate-500">Listing Form</label>
+                    <input type="file" name="listing_form"
                         accept=".pdf,.jpg,.jpeg,.png"
                         class="mt-1 block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0
                     file:bg-slate-100 file:px-4 file:py-2 file:font-semibold
