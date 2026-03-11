@@ -51,6 +51,10 @@ if ($all) {
         $allUsers
     );
 
+    usort($users, function ($a, $b) {
+        return strcasecmp($a['name'], $b['name']);
+    });
+
     jsonResponse([
         'data' => $users,
         'pagination' => [
@@ -79,6 +83,10 @@ $users = array_map(
     fn($u) => fromBitrixFields($u, $map),
     $users
 );
+
+usort($users, function ($a, $b) {
+    return strcasecmp($a['name'], $b['name']);
+});
 
 jsonResponse([
     'data' => $users,
