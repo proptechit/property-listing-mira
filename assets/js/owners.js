@@ -5,7 +5,7 @@ const pageSize = 50;
 async function loadOwners(page = 1) {
   try {
     currentPage = page;
-    const response = await api(`/?resource=owners&page=${page}`);
+    const response = await api(`/?resource=owners&page=${page}&all=true`);
     const data = response.data || [];
     const pagination = response.pagination || {};
     const tbody = document.getElementById("ownersList");
@@ -86,7 +86,7 @@ async function loadOwners(page = 1) {
 
     // Render pagination - always show if we have pagination data
     if (paginationContainer && pagination.total && pagination.total > 0) {
-      renderPagination(paginationContainer, pagination, loadOwners);
+      // renderPagination(paginationContainer, pagination, loadOwners);
     } else if (paginationContainer) {
       paginationContainer.innerHTML = "";
     }

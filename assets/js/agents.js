@@ -106,7 +106,7 @@ async function loadAgents(page = 1) {
 
     // Render pagination - always show if we have pagination data
     if (paginationContainer && pagination.total && pagination.total > 0) {
-      renderPagination(paginationContainer, pagination, loadAgents);
+      // renderPagination(paginationContainer, pagination, loadAgents);
     } else if (paginationContainer) {
       paginationContainer.innerHTML = "";
     }
