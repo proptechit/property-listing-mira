@@ -8,7 +8,9 @@ return [
     'phone'    => 'PERSONAL_MOBILE',
     'position' => 'WORK_POSITION',
     'photo'    => 'PERSONAL_PHOTO',
-    'brn'   => 'UF_PFID',
+    'pf_id'   => 'UF_PFID',
+    'bayut_id' => 'UF_BAYUTID',
     'super_agent' => 'UF_PFSUPERAGENT',
-    'agent_code' => 'UF_USR_1770017892768'
+    'agent_code' => 'UF_USR_1770017892768',
+    'branch' => 'BRANCH',
 ];
