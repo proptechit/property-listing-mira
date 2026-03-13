@@ -92,7 +92,7 @@ async function loadListingForEdit(listingId) {
     if (listing.license_date) {
       const dateInput = document.querySelector('[name="license_date"]');
       if (dateInput) {
-        dateInput.value = listing.license_date;
+        dateInput.value = listing.license_date.split("T")[0];
       }
     }
 
@@ -194,13 +194,164 @@ async function loadListingForEdit(listingId) {
       { id: "purposeType", field: "purpose" },
     ];
 
+    const valueLabels = {
+      category: {
+        residential: { label: "Residential", icon: "fa-solid fa-house" },
+        commercial: { label: "Commercial", icon: "fa-solid fa-building" },
+      },
+      property_type_pf: {
+        apartment: { label: "Apartment", icon: "fa-solid fa-building" },
+        bungalow: { label: "Bungalow", icon: "fa-solid fa-house" },
+        "bulk-rent-unit": {
+          label: "Bulk Rent Unit",
+          icon: "fa-solid fa-layer-group",
+        },
+        "bulk-sale-unit": {
+          label: "Bulk Sale Unit",
+          icon: "fa-solid fa-layer-group",
+        },
+        "business-center": {
+          label: "Business Center",
+          icon: "fa-solid fa-city",
+        },
+        cabin: { label: "Cabin", icon: "fa-solid fa-house-tree" },
+        cafeteria: { label: "Cafeteria", icon: "fa-solid fa-mug-hot" },
+        chalet: { label: "Chalet", icon: "fa-solid fa-house-snowflake" },
+        clinic: { label: "Clinic", icon: "fa-solid fa-house-medical" },
+        "co-working-space": {
+          label: "Co-working Space",
+          icon: "fa-solid fa-people-group",
+        },
+        compound: {
+          label: "Compound",
+          icon: "fa-solid fa-building-circle-check",
+        },
+        duplex: { label: "Duplex", icon: "fa-solid fa-building" },
+        factory: { label: "Factory", icon: "fa-solid fa-industry" },
+        farm: { label: "Farm", icon: "fa-solid fa-tractor" },
+        "full-floor": { label: "Full Floor", icon: "fa-solid fa-layer-group" },
+        "half-floor": { label: "Half Floor", icon: "fa-solid fa-layer-group" },
+        "hotel-apartment": {
+          label: "Hotel Apartment",
+          icon: "fa-solid fa-hotel",
+        },
+        ivilla: {
+          label: "Independent Villa",
+          icon: "fa-solid fa-house-chimney",
+        },
+        land: { label: "Land", icon: "fa-solid fa-mountain-sun" },
+        "labor-camp": { label: "Labor Camp", icon: "fa-solid fa-people-roof" },
+        "medical-facility": {
+          label: "Medical Facility",
+          icon: "fa-solid fa-hospital",
+        },
+        "office-space": {
+          label: "Office Space",
+          icon: "fa-solid fa-briefcase",
+        },
+        palace: { label: "Palace", icon: "fa-solid fa-crown" },
+        penthouse: { label: "Penthouse", icon: "fa-solid fa-building-user" },
+        "rest-house": { label: "Rest House", icon: "fa-solid fa-bed" },
+        restaurant: { label: "Restaurant", icon: "fa-solid fa-utensils" },
+        retail: { label: "Retail", icon: "fa-solid fa-bag-shopping" },
+        roof: { label: "Roof", icon: "fa-solid fa-house-circle-check" },
+        "show-room": { label: "Showroom", icon: "fa-solid fa-store-large" },
+        shop: { label: "Shop", icon: "fa-solid fa-store" },
+        "staff-accommodation": {
+          label: "Staff Accommodation",
+          icon: "fa-solid fa-house-user",
+        },
+        townhouse: { label: "Townhouse", icon: "fa-solid fa-house" },
+        "twin-house": { label: "Twin House", icon: "fa-solid fa-house" },
+        villa: { label: "Villa", icon: "fa-solid fa-house-chimney" },
+        warehouse: { label: "Warehouse", icon: "fa-solid fa-warehouse" },
+        "whole-building": {
+          label: "Whole Building",
+          icon: "fa-solid fa-building",
+        },
+      },
+
+      purpose: {
+        "For Sale": { label: "Buy", icon: "fa-solid fa-bag-shopping" },
+        "For Rent": { label: "Rent", icon: "fa-solid fa-hand-holding-dollar" },
+      },
+
+      furnishing_type: {
+        furnished: { label: "Furnished", icon: "fa-solid fa-couch" },
+        "semi-furnished": {
+          label: "Semi-Furnished",
+          icon: "fa-solid fa-chair",
+        },
+        unfurnished: { label: "Unfurnished", icon: "fa-regular fa-square" },
+      },
+
+      finishing_type: {
+        "fully-finished": {
+          label: "Fully Finished",
+          icon: "fa-solid fa-circle-check",
+        },
+        "semi-furnished": { label: "Semi-Finished", icon: "fa-solid fa-couch" },
+        unfinished: { label: "Unfinished", icon: "fa-solid fa-hammer" },
+      },
+
+      compliance_type: {
+        rera: { label: "RERA (Dubai)", icon: "fa-solid fa-building-shield" },
+        dtcm: { label: "DTCM (Dubai)", icon: "fa-solid fa-building-columns" },
+        adrec: { label: "ABREC (Abu Dhabi)", icon: "fa-solid fa-landmark" },
+      },
+
+      project_status: {
+        completed: { label: "Completed", icon: "fa-solid fa-circle-check" },
+        completed_primary: {
+          label: "Completed Primary",
+          icon: "fa-solid fa-circle-check",
+        },
+        off_plan: { label: "Off-plan", icon: "fa-solid fa-diagram-project" },
+        off_plan_primary: {
+          label: "Off-plan Primary",
+          icon: "fa-solid fa-diagram-project",
+        },
+      },
+
+      price_type: {
+        yearly: { label: "Yearly", icon: "fa-solid fa-key" },
+        monthly: { label: "Monthly", icon: "fa-solid fa-key" },
+        weekly: { label: "Weekly", icon: "fa-solid fa-key" },
+        daily: { label: "Daily", icon: "fa-solid fa-key" },
+        sale: { label: "Sale", icon: "fa-solid fa-handshake" },
+      },
+
+      payment_methods: {
+        cash: { label: "Cash", icon: "fa-solid fa-money-bill" },
+        installments: { label: "Installments", icon: "fa-solid fa-receipt" },
+      },
+
+      emirate: {
+        dubai: { label: "Dubai", icon: "fa-solid fa-city" },
+        abu_dhabi: { label: "Abu Dhabi", icon: "fa-solid fa-landmark" },
+        northern_emirates: {
+          label: "Northern Emirates",
+          icon: "fa-solid fa-landmark",
+        },
+      },
+    };
+
     iconSelects.forEach(({ id, field }) => {
       if (listing[field]) {
         const hidden = document.getElementById(id);
         const label = document.getElementById(id + "Label");
+
         if (hidden) hidden.value = listing[field];
+
         if (label) {
-          label.textContent = listing[field];
+          const option = valueLabels[field]?.[listing[field]];
+
+          if (option) {
+            label.innerHTML = `<i class="${option.icon} mr-2"></i> ${option.label}`;
+          } else {
+            label.textContent = listing[field];
+          }
+
           label.classList.remove("text-slate-400");
           label.classList.add("text-slate-800");
         }

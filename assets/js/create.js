@@ -531,7 +531,7 @@ function setupCreatePageUI() {
       {
         value: "rera",
         label: "RERA (Dubai)",
-        icon: "fa-solid fa-shield-check",
+        icon: "fa-solid fa-building-shield",
       },
       {
         value: "dtcm",
