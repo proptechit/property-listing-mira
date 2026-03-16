@@ -489,7 +489,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+          <td colspan="13" class="px-6 py-4 text-center text-gray-500">Loading...</td>
         </tr>
       `;
     }
@@ -569,7 +569,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
       if (tbody) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" class="px-6 py-4 text-center">${emptyHtml}</td>
+            <td colspan="13" class="px-6 py-4 text-center">${emptyHtml}</td>
           </tr>
         `;
       }
@@ -701,7 +701,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
               </button>
 
               <div
-                class="absolute right-0 z-20 mt-2 hidden w-44 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg"
+                class="absolute right-0 z-20 mt-2 hidden w-48 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg"
                 data-menu-panel
                 role="menu"
               >
@@ -742,6 +742,28 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                    role="menuitem"
                    target="_blank"
                    >Download PDF</a>
+
+                ${
+                  l.status === "Published" && l.propertyfinder_id
+                    ? `<a href="https://propertyfinder.ae/go/${l.propertyfinder_id}"
+                        class="block px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
+                        role="menuitem"
+                        target="_blank">
+                        View on Property Finder
+                      </a>`
+                    : ""
+                }
+
+                ${
+                  l.status === "Published" && l.bayut_id
+                    ? `<a href="https://www.bayut.com/property/details-${l.bayut_id}.html"
+                        class="block px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
+                        role="menuitem"
+                        target="_blank">
+                        View on Bayut
+                      </a>`
+                    : ""
+                }
 
                 <div class="my-1 h-px bg-gray-100"></div>
 

@@ -255,7 +255,7 @@
                 </thead>
                 <tbody id="listingsTable" class="bg-white divide-y divide-gray-200">
                     <tr>
-                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+                        <td colspan="13" class="px-6 py-4 text-center text-gray-500">Loading...</td>
                     </tr>
                 </tbody>
             </table>

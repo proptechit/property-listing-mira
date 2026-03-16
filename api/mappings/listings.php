@@ -107,6 +107,7 @@ return [
     */
     'portals'           => 'ufCrm5_1752569141',
     'propertyfinder_id' => 'ufCrm5_1754838287',
+    'bayut_id'          => 'ufCrm7_1773047782',
     'pocket_listing'    => 'ufCrm7_1770201260',
 
     /*
