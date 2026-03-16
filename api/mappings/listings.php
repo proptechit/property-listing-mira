@@ -38,6 +38,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'location'        => 'parentId1056',
+    'bayut_location'  => 'parentId1074',
     'emirate'          => 'ufCrm5_1752509816',
     'floor_number'     => 'ufCrm5_1752508720',
     'unit_number'      => 'ufCrm5_1752571865',

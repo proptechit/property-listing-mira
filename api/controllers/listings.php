@@ -188,10 +188,15 @@ if ($method === 'GET') {
 
         // Hydrate location + agent + owner (same behavior as list endpoint)
         $locationIds = [];
+        $bayutLocationIds = [];
         $userIds = [];
 
         if (!empty($item['location'])) {
             $locationIds[] = $item['location'];
+        }
+
+        if (!empty($item['bayut_location'])) {
+            $bayutLocationIds[] = $item['bayut_location'];
         }
 
         if (!empty($item['listing_agent'])) {
@@ -203,24 +208,36 @@ if ($method === 'GET') {
         }
 
         $locationIds = array_values(array_unique($locationIds));
+        $bayutLocationIds = array_values(array_unique($bayutLocationIds));
         $userIds = array_values(array_unique($userIds));
 
-        $locationCache = getLocationCache();
+        $locationCache = getLocationCache('pf');
+        $bayutLocationCache = getLocationCache('bayut');
         $userCache = getUserCache();
 
         $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
+        $missingBayutLocationIds = array_diff($bayutLocationIds, array_keys($bayutLocationCache));
         $missingUserIds = array_diff($userIds, array_keys($userCache));
 
-        fetchLocationsByIds($missingLocationIds, $locationCache);
+        fetchLocationsByIds($missingLocationIds, $locationCache, 'pf');
+        fetchLocationsByIds($missingBayutLocationIds, $bayutLocationCache, 'bayut');
         fetchUsersByIds($missingUserIds, $userCache);
 
-        saveLocationCache($locationCache);
+        saveLocationCache($locationCache, 'pf');
+        saveLocationCache($bayutLocationCache, 'bayut');
         saveUserCache($userCache);
 
         if (!empty($item['location']) && isset($locationCache[$item['location']])) {
             $item['location'] = [
                 'id' => $item['location'],
                 'name' => $locationCache[$item['location']],
+            ];
+        }
+
+        if (!empty($item['bayut_location']) && isset($bayutLocationCache[$item['bayut_location']])) {
+            $item['bayut_location'] = [
+                'id' => $item['bayut_location'],
+                'name' => $bayutLocationCache[$item['bayut_location']],
             ];
         }
 
@@ -267,11 +284,16 @@ if ($method === 'GET') {
     );
 
     $locationIds = [];
+    $bayutLocationIds = [];
     $userIds = [];
 
     foreach ($output as $item) {
         if (!empty($item['location'])) {
             $locationIds[] = $item['location'];
+        }
+
+        if (!empty($item['bayut_location'])) {
+            $bayutLocationIds[] = $item['bayut_location'];
         }
 
         if (!empty($item['listing_agent'])) {
@@ -284,19 +306,24 @@ if ($method === 'GET') {
     }
 
     $locationIds = array_values(array_unique($locationIds));
+    $bayutLocationIds = array_values(array_unique($bayutLocationIds));
     $userIds = array_values(array_unique($userIds));
 
-    $locationCache = getLocationCache();
+    $locationCache = getLocationCache('pf');
+    $bayutLocationCache = getLocationCache('bayut');
     $userCache = getUserCache();
 
     $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
+    $missingBayutLocationIds = array_diff($bayutLocationIds, array_keys($bayutLocationCache));
     $missingUserIds = array_diff($userIds, array_keys($userCache));
 
 
-    fetchLocationsByIds($missingLocationIds, $locationCache);
+    fetchLocationsByIds($missingLocationIds, $locationCache, 'pf');
+    fetchLocationsByIds($missingBayutLocationIds, $bayutLocationCache, 'bayut');
     fetchUsersByIds($missingUserIds, $userCache);
 
-    saveLocationCache($locationCache);
+    saveLocationCache($locationCache, 'pf');
+    saveLocationCache($bayutLocationCache, 'bayut');
     saveUserCache($userCache);
 
     foreach ($output as &$item) {
@@ -304,6 +331,13 @@ if ($method === 'GET') {
             $item['location'] = [
                 'id' => $item['location'],
                 'name' => $locationCache[$item['location']],
+            ];
+        }
+
+        if (!empty($item['bayut_location']) && isset($bayutLocationCache[$item['bayut_location']])) {
+            $item['bayut_location'] = [
+                'id' => $item['bayut_location'],
+                'name' => $bayutLocationCache[$item['bayut_location']],
             ];
         }
 
