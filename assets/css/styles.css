@@ -1,0 +1,7 @@
+.portals img {
+  transition: transform 0.15s ease;
+}
+
+.portals img:hover {
+  transform: scale(1.15);
+}

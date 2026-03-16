@@ -800,6 +800,10 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                   )}</span>
                 </div>
 
+                <div class="mt-2 flex items-center gap-2">
+                  ${renderPortals(l.portals)}
+                </div>
+
                 <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
                   ${
                     type
@@ -824,6 +828,12 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                   <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold"><i class="fa-solid fa-ruler-combined text-slate-400 mr-1"></i>${escapeHtml(
                     String(size),
                   )}${size ? " sqft" : ""}</span>
+                </div>
+
+                <div class="mt-3 text-xs text-slate-500 space-y-1">
+                  <div><span class="font-semibold">Agent:</span> ${escapeHtml(displayName(l.listing_agent) || "")}</div>
+                  <div><span class="font-semibold">Owner:</span> ${escapeHtml(displayName(l.listing_owner) || "")}</div>
+                  <div><span class="font-semibold">Updated:</span> ${escapeHtml(formatDate(l.updated_at || ""))}</div>
                 </div>
               </div>
             </div>
