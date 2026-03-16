@@ -28,10 +28,10 @@
                     <option value="Start">Start</option>
                     <option value="Photographer Booking">Photographer Booking</option>
                     <option value="Pending Approval">Pending Approval</option>
-                    <option value="Draft at Portals">Draft</option>
+                    <option value="Draft at Portals">Draft at Portals</option>
                     <option value="Published">Published</option>
                     <option value="Unpublished">Unpublished</option>
-                    <option value="Deleted from Portals">Deleted</option>
+                    <option value="Deleted from Portals">Deleted from Portals</option>
                 </select>
             </div>
 
@@ -247,6 +247,9 @@
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Status</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Agent</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Owner</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Created At</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Updated At</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Portals</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-right">Actions</th>
                     </tr>
                 </thead>

@@ -185,6 +185,39 @@ function displayName(v) {
   return String(v);
 }
 
+function formatDate(dateString) {
+  const date = new Date(dateString);
+
+  return date.toLocaleString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function renderPortals(portals = []) {
+  const portalIcons = {
+    propertyfinder: "./assets/images/propertyfinder.webp",
+    bayut: "./assets/images/bayut.png",
+    dubizzle: "./assets/images/dubizzle.png",
+    website: "./assets/images/website.png",
+  };
+
+  return portals
+    .filter((p) => portalIcons[p])
+    .map(
+      (p) => `
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm" title="${escapeHtml(prettyLabel(p))}">
+          <img src="${portalIcons[p]}" alt="${p}" class="w-5 h-5 object-contain"/>
+        </span>
+      `,
+    )
+    .join("");
+}
+
 function buildQueryParams(page, searchTerm, filters) {
   const params = new URLSearchParams();
   params.set("resource", "listings");
@@ -631,6 +664,20 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
 
           <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-sm font-bold text-slate-700"> ${escapeHtml(displayName(l.listing_owner) || "")}</div>
+          </td>
+
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+            <div class="text-sm font-bold text-slate-700"> ${escapeHtml(formatDate(l.created_at || ""))}</div>
+          </td>
+
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+            <div class="text-sm font-bold text-slate-700"> ${escapeHtml(formatDate(l.updated_at || ""))}</div>
+          </td>
+
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+            <div class="flex items-center gap-2">
+              ${renderPortals(l.portals)}
+            </div>
           </td>
 
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">

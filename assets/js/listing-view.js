@@ -58,6 +58,19 @@ function buildDetailRow(label, value, icon = null) {
   `;
 }
 
+function formatDate(dateString) {
+  const date = new Date(dateString);
+
+  return date.toLocaleString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 function buildDetailRowHtml(label, html) {
   const has = html !== undefined && html !== null && String(html).trim() !== "";
   return `
@@ -210,6 +223,8 @@ function renderListingDetails(container, listing) {
             ${buildDetailRow("Location", location, "fa-location-dot")}
             ${buildDetailRow("Agent", agent, "fa-user-tie")}
             ${buildDetailRow("Owner", owner, "fa-id-card")}
+            ${buildDetailRow("Created At", formatDate(listing?.created_at), "fa-clock")}
+            ${buildDetailRow("Updated At", formatDate(listing?.updated_at), "fa-clock")}
           </div>
         </div>
 
