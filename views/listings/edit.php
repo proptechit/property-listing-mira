@@ -634,6 +634,16 @@ if (!$id) {
                         <option value="no">No</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Portals to be published (Ctrl/Cmd + Click for multiple)</label>
+                    <select name="portals" id="portals" class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" multiple size="2">
+                        <option value="">Select</option>
+                        <option value="propertyfinder">Property Finder</option>
+                        <option value="bayut">Bayut</option>
+                        <option value="dubizzle">Dubizzle</option>
+                        <option value="website">Website</option>
+                    </select>
+                </div>
             </div>
         </section>
 
