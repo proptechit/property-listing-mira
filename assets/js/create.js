@@ -281,7 +281,10 @@ function setupLocationSearch(type = "pf") {
     const opt = select.querySelector(
       `option[value="${CSS.escape(select.value)}"]`,
     );
-    setLocationSelection({ id: select.value, name: opt?.textContent || "" }, type);
+    setLocationSelection(
+      { id: select.value, name: opt?.textContent || "" },
+      type,
+    );
   }
 
   input.addEventListener("input", () => {
@@ -721,6 +724,7 @@ function setupCreateForm() {
   setupCreatePageUI();
   setupLocationSearch();
   initializeImageManagement();
+  initializeDocumentManagement();
   attachFormSubmissionHandler();
 }
 
@@ -892,6 +896,29 @@ container.innerHTML = amenities
 let imageGallery = []; // Store image data
 let draggedImageId = null; // Track dragged image
 
+const documentFieldConfig = {
+  title_deed: {
+    previewId: "titleDeedPreview",
+    label: "Title Deed",
+  },
+  passport_copy: {
+    previewId: "passportPreview",
+    label: "Passport Copy",
+  },
+  emirates_id: {
+    previewId: "emiratesPreview",
+    label: "UAE ID",
+  },
+  contract_a: {
+    previewId: "contractPreview",
+    label: "Contract A",
+  },
+  listing_form: {
+    previewId: "listingFormPreview",
+    label: "Listing Form",
+  },
+};
+
 function toImageId(id) {
   return String(id ?? "");
 }
@@ -949,6 +976,119 @@ function initializeImageManagement() {
   }
 
   setupDragAndDrop();
+}
+
+function escapeAttribute(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function getDocumentUrl(doc) {
+  if (!doc) return "";
+  if (typeof doc === "string") return doc;
+  return (
+    doc.urlMachine ||
+    doc.url ||
+    doc.downloadUrl ||
+    doc.previewUrl ||
+    doc.href ||
+    doc.src ||
+    ""
+  );
+}
+
+function inferFileNameFromUrl(url, fallbackLabel) {
+  if (!url) return fallbackLabel || "Document";
+
+  try {
+    const parsed = new URL(url, window.location.origin);
+    const fileName = decodeURIComponent(
+      (parsed.pathname || "").split("/").filter(Boolean).pop() || "",
+    );
+    return fileName || fallbackLabel || "Document";
+  } catch {
+    const cleanedUrl = String(url).split("?")[0].split("#")[0];
+    const fileName = decodeURIComponent(cleanedUrl.split("/").pop() || "");
+    return fileName || fallbackLabel || "Document";
+  }
+}
+
+function getDocumentName(doc, fallbackLabel) {
+  if (!doc) return fallbackLabel || "Document";
+  if (typeof doc === "string") {
+    return inferFileNameFromUrl(doc, fallbackLabel);
+  }
+
+  const candidates = [
+    doc.name,
+    doc.fileName,
+    doc.filename,
+    doc.originalName,
+    doc.original_name,
+    doc.description,
+    doc.title,
+  ];
+
+  for (const candidate of candidates) {
+    const value = String(candidate ?? "").trim();
+    if (value) return value;
+  }
+
+  return inferFileNameFromUrl(getDocumentUrl(doc), fallbackLabel);
+}
+
+function renderDocumentPreview(fieldName, documentData = null) {
+  const config = documentFieldConfig[fieldName];
+  if (!config) return;
+
+  const preview = document.getElementById(config.previewId);
+  if (!preview) return;
+
+  if (!documentData) {
+    preview.innerHTML = "";
+    return;
+  }
+
+  const name = getDocumentName(documentData, config.label);
+  const url = getDocumentUrl(documentData);
+
+  if (url) {
+    preview.innerHTML = `
+      <a href="${escapeAttribute(url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium">
+        <i class="fa-solid fa-file-lines"></i>
+        <span>${escapeAttribute(name)}</span>
+      </a>
+    `;
+    return;
+  }
+
+  preview.innerHTML = `
+    <div class="inline-flex items-center gap-2 text-slate-600">
+      <i class="fa-solid fa-file-lines"></i>
+      <span>${escapeAttribute(name)}</span>
+    </div>
+  `;
+}
+
+function initializeDocumentManagement() {
+  Object.keys(documentFieldConfig).forEach((fieldName) => {
+    const input = document.querySelector(`input[name="${fieldName}"]`);
+    if (!input || input.dataset.documentPreviewBound === "1") return;
+
+    input.dataset.documentPreviewBound = "1";
+    input.addEventListener("change", (e) => {
+      const file = e?.target?.files?.[0];
+      if (!file || !file.name) {
+        renderDocumentPreview(fieldName, null);
+        return;
+      }
+
+      renderDocumentPreview(fieldName, { name: file.name });
+    });
+  });
 }
 
 function renderImageGallery() {
@@ -1206,19 +1346,16 @@ function attachFormSubmissionHandler(id) {
       const data = Object.fromEntries(formData);
 
       // convert documents
-      const docs = [
-        "title_deed",
-        "passport_copy",
-        "emirates_id",
-        "contract_a",
-        "listing_form",
-      ];
-
-      for (const key of docs) {
+      for (const key of Object.keys(documentFieldConfig)) {
         const file = formData.get(key);
-        if (!file) {
-          alert(`${key.replace("_", " ")} is required`);
-          return;
+        const hasFile =
+          file instanceof File &&
+          file.size > 0 &&
+          String(file.name || "").trim() !== "";
+
+        if (!hasFile) {
+          delete data[key];
+          continue;
         }
 
         data[key] = {
@@ -1301,3 +1438,6 @@ function attachFormSubmissionHandler(id) {
     }
   });
 }
+
+window.renderDocumentPreview = renderDocumentPreview;
+window.initializeDocumentManagement = initializeDocumentManagement;

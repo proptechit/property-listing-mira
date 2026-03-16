@@ -45,6 +45,33 @@ function getExistingImageFileId(image) {
   return null;
 }
 
+function getExistingDocumentFileId(doc) {
+  if (!doc || typeof doc !== "object") return null;
+
+  const candidates = [
+    doc.existingFileId,
+    doc.existing_file_id,
+    doc.fileId,
+    doc.file_id,
+    doc.value,
+    doc.id,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined) continue;
+
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      return candidate;
+    }
+
+    const value = String(candidate).trim();
+    if (!value) continue;
+    if (/^\d+$/.test(value)) return Number(value);
+  }
+
+  return null;
+}
+
 async function loadListingForEdit(listingId) {
   try {
     const response = await api("/?resource=listings&id=" + listingId, {
@@ -430,6 +457,29 @@ async function loadListingForEdit(listingId) {
       updateImagesInput();
     }
 
+    const documentFields =
+      typeof documentFieldConfig === "object" && documentFieldConfig !== null
+        ? Object.keys(documentFieldConfig)
+        : [];
+
+    documentFields.forEach((fieldName) => {
+      const documentValue = listing[fieldName];
+      if (!documentValue) return;
+
+      const existingFileId = getExistingDocumentFileId(documentValue);
+      const previewData =
+        typeof documentValue === "object" && documentValue !== null
+          ? {
+              ...documentValue,
+              ...(existingFileId !== null ? { existingFileId } : {}),
+            }
+          : documentValue;
+
+      if (typeof renderDocumentPreview === "function") {
+        renderDocumentPreview(fieldName, previewData);
+      }
+    });
+
     // Trigger character counters after prefilling (TITLE + DESCRIPTION)
     const titleInput = document.getElementById("titleInput");
 
@@ -460,5 +510,6 @@ function setupEditForm(listingId) {
   setupLocationSearch("bayut");
 
   initializeImageManagement();
+  initializeDocumentManagement();
   attachFormSubmissionHandler(listingId);
 }

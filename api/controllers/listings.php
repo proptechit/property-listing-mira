@@ -166,6 +166,47 @@ function cleanBase64(string $src): string
     return trim($src);
 }
 
+function normalizeDocumentFields(array &$input): void
+{
+    $documentFields = [
+        'title_deed',
+        'passport_copy',
+        'emirates_id',
+        'contract_a',
+        'listing_form',
+    ];
+
+    foreach ($documentFields as $field) {
+        if (!array_key_exists($field, $input)) {
+            continue;
+        }
+
+        if ($input[$field] === null || $input[$field] === '') {
+            unset($input[$field]);
+            continue;
+        }
+
+        $normalized = normalizeFiles([$input[$field]]);
+        if (empty($normalized)) {
+            unset($input[$field]);
+            continue;
+        }
+
+        $value = $normalized[0];
+        if (is_array($value) && count($value) === 2) {
+            $input[$field] = [
+                'fileData' => [
+                    (string)($value[0] ?? ''),
+                    (string)($value[1] ?? ''),
+                ],
+            ];
+            continue;
+        }
+
+        $input[$field] = $value;
+    }
+}
+
 
 /**
  * GET /api/?resource=listings
@@ -376,24 +417,8 @@ if ($method === 'POST') {
     $input = getRequestBody();
 
     // reformat images
-    $input['images'] = normalizeFiles($input['images']);
-
-    // reformat documents
-    // if (!empty($input['title_deed']) && is_array($input['title_deed'])) {
-    //     $input['title_deed'] = normalizeFiles([$input['title_deed']])[0];
-    // }
-    // if (!empty($input['passport_copy']) && is_array($input['passport_copy'])) {
-    //     $input['passport_copy'] = normalizeFiles([$input['passport_copy']])[0];
-    // }
-    // if (!empty($input['emirates_id']) && is_array($input['emirates_id'])) {
-    //     $input['emirates_id'] = normalizeFiles([$input['emirates_id']])[0];
-    // }
-    // if (!empty($input['contract_a']) && is_array($input['contract_a'])) {
-    //     $input['contract_a'] = normalizeFiles([$input['contract_a']])[0];
-    // }
-    // if (!empty($input['listing_form']) && is_array($input['listing_form'])) {
-    //     $input['listing_form'] = normalizeFiles([$input['listing_form']])[0];
-    // }
+    $input['images'] = normalizeFiles($input['images'] ?? []);
+    normalizeDocumentFields($input);
 
     $fields = toBitrixFields($input, $map, $enums);
 
@@ -435,23 +460,7 @@ if ($method === 'PUT') {
 
     // reformat images
     $input['images'] = normalizeFiles($input['images'] ?? []);
-
-    // reformat documents
-    // if (!empty($input['title_deed']) && is_array($input['title_deed'])) {
-    //     $input['title_deed'] = normalizeFiles([$input['title_deed']])[0];
-    // }
-    // if (!empty($input['passport_copy']) && is_array($input['passport_copy'])) {
-    //     $input['passport_copy'] = normalizeFiles([$input['passport_copy']])[0];
-    // }
-    // if (!empty($input['emirates_id']) && is_array($input['emirates_id'])) {
-    //     $input['emirates_id'] = normalizeFiles([$input['emirates_id']])[0];
-    // }
-    // if (!empty($input['contract_a']) && is_array($input['contract_a'])) {
-    //     $input['contract_a'] = normalizeFiles([$input['contract_a']])[0];
-    // }
-    // if (!empty($input['listing_form']) && is_array($input['listing_form'])) {
-    //     $input['listing_form'] = normalizeFiles([$input['listing_form']])[0];
-    // }
+    normalizeDocumentFields($input);
 
     $fields = toBitrixFields($input, $map, $enums);
     $bitrixImages = $fields[$map['images']] ?? [];
