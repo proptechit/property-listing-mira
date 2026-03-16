@@ -895,6 +895,8 @@ container.innerHTML = amenities
 
 let imageGallery = []; // Store image data
 let draggedImageId = null; // Track dragged image
+const documentRemovalState = {};
+const documentPreviewState = {};
 
 const documentFieldConfig = {
   title_deed: {
@@ -987,6 +989,9 @@ function escapeAttribute(value) {
 }
 
 function getDocumentUrl(doc) {
+  if (Array.isArray(doc)) {
+    return getDocumentUrl(doc[0] || null);
+  }
   if (!doc) return "";
   if (typeof doc === "string") return doc;
   return (
@@ -1008,15 +1013,34 @@ function inferFileNameFromUrl(url, fallbackLabel) {
     const fileName = decodeURIComponent(
       (parsed.pathname || "").split("/").filter(Boolean).pop() || "",
     );
-    return fileName || fallbackLabel || "Document";
+    if (
+      !fileName ||
+      /^crm\.controller\./i.test(fileName) ||
+      !/\.[a-z0-9]{2,8}$/i.test(fileName)
+    ) {
+      return fallbackLabel || "Document";
+    }
+
+    return fileName;
   } catch {
     const cleanedUrl = String(url).split("?")[0].split("#")[0];
     const fileName = decodeURIComponent(cleanedUrl.split("/").pop() || "");
-    return fileName || fallbackLabel || "Document";
+    if (
+      !fileName ||
+      /^crm\.controller\./i.test(fileName) ||
+      !/\.[a-z0-9]{2,8}$/i.test(fileName)
+    ) {
+      return fallbackLabel || "Document";
+    }
+
+    return fileName;
   }
 }
 
 function getDocumentName(doc, fallbackLabel) {
+  if (Array.isArray(doc)) {
+    return getDocumentName(doc[0] || null, fallbackLabel);
+  }
   if (!doc) return fallbackLabel || "Document";
   if (typeof doc === "string") {
     return inferFileNameFromUrl(doc, fallbackLabel);
@@ -1048,29 +1072,79 @@ function renderDocumentPreview(fieldName, documentData = null) {
   if (!preview) return;
 
   if (!documentData) {
+    documentPreviewState[fieldName] = [];
     preview.innerHTML = "";
     return;
   }
 
+  const entries = Array.isArray(documentData)
+    ? documentData.filter(Boolean)
+    : [documentData];
+  const primaryDocument = entries[0];
+  if (!primaryDocument) {
+    documentPreviewState[fieldName] = [];
+    preview.innerHTML = "";
+    return;
+  }
+  documentPreviewState[fieldName] = entries;
+
   const name = getDocumentName(documentData, config.label);
   const url = getDocumentUrl(documentData);
+  const removeMode = entries.some((entry) => entry?.isExistingDocument)
+    ? "existing"
+    : "new";
+  const extraCount = entries.length > 1 ? entries.length - 1 : 0;
+  const secondaryLabel =
+    extraCount > 0
+      ? `<span class="ml-2 text-xs font-medium text-slate-400">+${extraCount} more</span>`
+      : "";
+  const removeButton = `
+    <button type="button" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50" data-document-remove="${escapeAttribute(fieldName)}" data-remove-mode="${removeMode}">
+      <i class="fa-solid fa-trash-can"></i>
+      <span>Remove</span>
+    </button>
+  `;
 
   if (url) {
     preview.innerHTML = `
-      <a href="${escapeAttribute(url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium">
-        <i class="fa-solid fa-file-lines"></i>
-        <span>${escapeAttribute(name)}</span>
-      </a>
+      <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+        <a href="${escapeAttribute(url)}" target="_blank" rel="noopener noreferrer" class="inline-flex min-w-0 items-center gap-2 text-blue-600 hover:text-blue-800 font-medium">
+          <i class="fa-solid fa-file-lines shrink-0"></i>
+          <span class="truncate">${escapeAttribute(name)}</span>
+          ${secondaryLabel}
+        </a>
+        ${removeButton}
+      </div>
     `;
     return;
   }
 
   preview.innerHTML = `
-    <div class="inline-flex items-center gap-2 text-slate-600">
-      <i class="fa-solid fa-file-lines"></i>
-      <span>${escapeAttribute(name)}</span>
+    <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-600">
+      <div class="inline-flex min-w-0 items-center gap-2">
+        <i class="fa-solid fa-file-lines shrink-0"></i>
+        <span class="truncate">${escapeAttribute(name)}</span>
+        ${secondaryLabel}
+      </div>
+      ${removeButton}
     </div>
   `;
+}
+
+function clearDocumentSelection(fieldName, removeExisting = false) {
+  const input = document.querySelector(`input[name="${fieldName}"]`);
+  if (input) {
+    input.value = "";
+  }
+
+  const existingFileId = removeExisting
+    ? (documentPreviewState[fieldName]?.[0]?.existingFileId ?? null)
+    : null;
+  documentRemovalState[fieldName] = removeExisting
+    ? { removeExisting: true, existingFileId: existingFileId }
+    : false;
+  documentPreviewState[fieldName] = [];
+  renderDocumentPreview(fieldName, null);
 }
 
 function initializeDocumentManagement() {
@@ -1082,11 +1156,31 @@ function initializeDocumentManagement() {
     input.addEventListener("change", (e) => {
       const file = e?.target?.files?.[0];
       if (!file || !file.name) {
+        documentRemovalState[fieldName] = false;
+        documentPreviewState[fieldName] = [];
         renderDocumentPreview(fieldName, null);
         return;
       }
 
-      renderDocumentPreview(fieldName, { name: file.name });
+      documentRemovalState[fieldName] = false;
+      renderDocumentPreview(fieldName, {
+        name: file.name,
+        isExistingDocument: false,
+      });
+    });
+
+    const preview = document.getElementById(
+      documentFieldConfig[fieldName].previewId,
+    );
+    if (!preview || preview.dataset.documentRemoveBound === "1") return;
+
+    preview.dataset.documentRemoveBound = "1";
+    preview.addEventListener("click", (e) => {
+      const button = e.target.closest("[data-document-remove]");
+      if (!button) return;
+
+      const removeMode = button.getAttribute("data-remove-mode") || "new";
+      clearDocumentSelection(fieldName, removeMode === "existing");
     });
   });
 }
@@ -1348,13 +1442,31 @@ function attachFormSubmissionHandler(id) {
       // convert documents
       for (const key of Object.keys(documentFieldConfig)) {
         const file = formData.get(key);
+        if (
+          documentRemovalState[key] &&
+          typeof documentRemovalState[key] === "object" &&
+          documentRemovalState[key].removeExisting
+        ) {
+          data[key] = false;
+          continue;
+        }
+
         const hasFile =
           file instanceof File &&
           file.size > 0 &&
           String(file.name || "").trim() !== "";
 
         if (!hasFile) {
-          delete data[key];
+          const existingPreview = documentPreviewState[key]?.[0] || null;
+          const existingFileId = existingPreview?.existingFileId ?? null;
+
+          if (existingFileId !== null && existingFileId !== undefined) {
+            data[key] = {
+              existingFileId,
+            };
+          } else {
+            delete data[key];
+          }
           continue;
         }
 

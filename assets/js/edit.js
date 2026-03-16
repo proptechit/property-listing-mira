@@ -466,14 +466,26 @@ async function loadListingForEdit(listingId) {
       const documentValue = listing[fieldName];
       if (!documentValue) return;
 
-      const existingFileId = getExistingDocumentFileId(documentValue);
-      const previewData =
-        typeof documentValue === "object" && documentValue !== null
-          ? {
-              ...documentValue,
-              ...(existingFileId !== null ? { existingFileId } : {}),
-            }
-          : documentValue;
+      const values = Array.isArray(documentValue)
+        ? documentValue.filter(Boolean)
+        : [documentValue];
+      const previewData = values.map((value) => {
+        const existingFileId = getExistingDocumentFileId(value);
+
+        if (typeof value === "object" && value !== null) {
+          return {
+            ...value,
+            ...(existingFileId !== null ? { existingFileId } : {}),
+            isExistingDocument: true,
+          };
+        }
+
+        return {
+          name: String(value),
+          url: String(value),
+          isExistingDocument: true,
+        };
+      });
 
       if (typeof renderDocumentPreview === "function") {
         renderDocumentPreview(fieldName, previewData);

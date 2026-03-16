@@ -181,29 +181,48 @@ function normalizeDocumentFields(array &$input): void
             continue;
         }
 
-        if ($input[$field] === null || $input[$field] === '') {
+        if ($input[$field] === null) {
+            $input[$field] = [];
+            continue;
+        }
+
+        if ($input[$field] === false) {
+            $input[$field] = false;
+            continue;
+        }
+
+        if ($input[$field] === '') {
             unset($input[$field]);
             continue;
         }
 
-        $normalized = normalizeFiles([$input[$field]]);
+        $source = is_array($input[$field]) && array_is_list($input[$field])
+            ? $input[$field]
+            : [$input[$field]];
+        $normalized = normalizeFiles($source);
         if (empty($normalized)) {
             unset($input[$field]);
             continue;
         }
 
-        $value = $normalized[0];
-        if (is_array($value) && count($value) === 2) {
-            $input[$field] = [
-                'fileData' => [
-                    (string)($value[0] ?? ''),
-                    (string)($value[1] ?? ''),
-                ],
-            ];
-            continue;
-        }
+        $normalized = array_map(function ($value) {
+            if (is_array($value) && count($value) === 2) {
+                $base64 = (string)($value[1] ?? '');
 
-        $input[$field] = $value;
+                if (strpos($base64, 'base64,') !== false) {
+                    $base64 = explode('base64,', $base64, 2)[1];
+                }
+
+                return [
+                    (string)($value[0] ?? ''),
+                    $base64,
+                ];
+            }
+
+            return $value;
+        }, $normalized);
+
+        $input[$field] = $normalized[0] ?? false;
     }
 }
 
