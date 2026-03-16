@@ -165,18 +165,55 @@ async function loadListingForEdit(listingId) {
         locationSelect.value = listing.location_id;
       }
     } else if (listing.location) {
+      console.log("Location data:", listing.location);
       // If location is returned as object with name property
       const locationId = listing.location?.id || listing.location;
       const locationName = listing.location?.name || listing.location;
       if (locationId) {
         const locationSelect = document.getElementById("locationSelect");
+        console.log("Location select:", locationSelect);
         if (locationSelect) {
           locationSelect.value = locationId;
         }
-        setLocationSelection({
-          id: locationId,
-          name: locationName,
-        });
+        setLocationSelection(
+          {
+            id: locationId,
+            name: locationName,
+          },
+          "pf",
+        );
+      }
+    }
+
+    if (listing.bayut_location_id) {
+      const bayutLocationSelect = document.getElementById(
+        "bayutLocationSelect",
+      );
+      if (bayutLocationSelect) {
+        bayutLocationSelect.value = listing.bayut_location_id;
+      }
+    } else if (listing.bayut_location) {
+      console.log("Bayut location data:", listing.bayut_location);
+      // If location is returned as object with name property
+      const locationId =
+        listing.bayut_location?.id || listing.bayut_location || "";
+      const locationName =
+        listing.bayut_location?.name || listing.bayut_location || "";
+      if (locationId) {
+        const bayutLocationSelect = document.getElementById(
+          "bayutLocationSelect",
+        );
+        console.log("Bayut location select:", bayutLocationSelect);
+        if (bayutLocationSelect) {
+          bayutLocationSelect.value = locationId;
+        }
+        setLocationSelection(
+          {
+            id: locationId,
+            name: locationName,
+          },
+          "bayut",
+        );
       }
     }
 
@@ -418,7 +455,10 @@ function setupEditForm(listingId) {
 
   // Setup all the custom dropdowns and location search
   setupCreatePageUI();
-  setupLocationSearch();
+
+  setupLocationSearch("pf");
+  setupLocationSearch("bayut");
+
   initializeImageManagement();
   attachFormSubmissionHandler(listingId);
 }

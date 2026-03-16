@@ -109,18 +109,35 @@ let locationSearchTimer;
 let locationActiveIndex = -1;
 let locationActiveItems = [];
 
-function closeLocationMenu() {
-  const menu = qs("#locationSearchMenu");
+let bayutLocationSearchTimer;
+let bayutLocationActiveIndex = -1;
+let bayutLocationActiveItems = [];
+
+function closeLocationMenu(type = "pf") {
+  const menu =
+    type === "pf" ? qs("#locationSearchMenu") : qs("#bayutLocationSearchMenu");
   if (menu) menu.classList.add("hidden");
-  locationActiveIndex = -1;
-  locationActiveItems = [];
+
+  if (type === "pf") {
+    locationActiveIndex = -1;
+    locationActiveItems = [];
+  } else {
+    bayutLocationActiveIndex = -1;
+    bayutLocationActiveItems = [];
+  }
 }
 
-function setLocationSelection({ id, name, pfId } = {}) {
-  const select = qs("#locationSelect");
-  const input = qs("#locationSearchInput");
-  const clearBtn = qs("#clearLocationBtn");
-  const menu = qs("#locationSearchMenu");
+function setLocationSelection({ id, name, pfId } = {}, type = "pf") {
+  const select =
+    type === "pf" ? qs("#locationSelect") : qs("#bayutLocationSelect");
+  const input =
+    type === "pf"
+      ? qs("#locationSearchInput")
+      : qs("#bayutLocationSearchInput");
+  const clearBtn =
+    type === "pf" ? qs("#clearLocationBtn") : qs("#clearBayutLocationBtn");
+  const menu =
+    type === "pf" ? qs("#locationSearchMenu") : qs("#bayutLocationSearchMenu");
 
   if (!select || !input) return;
 
@@ -156,22 +173,31 @@ function setLocationSelection({ id, name, pfId } = {}) {
   if (clearBtn) clearBtn.classList.remove("hidden");
 }
 
-async function fetchLocationsForSearch(query) {
+async function fetchLocationsForSearch(query, type = "pf") {
   const q = String(query || "").trim();
   if (q.length < 2) return [];
-  const res = await api(
-    `/?resource=locations&q=${encodeURIComponent(q)}&page=1`,
-  );
+
+  url =
+    type === "pf"
+      ? `/?resource=locations&q=${encodeURIComponent(q)}&page=1`
+      : `/?resource=bayut-locations&q=${encodeURIComponent(q)}&page=1`;
+  const res = await api(url);
   const data = Array.isArray(res) ? res : res?.data || [];
   return Array.isArray(data) ? data : [];
 }
 
-function renderLocationResults(results, query) {
-  const menu = qs("#locationSearchMenu");
+function renderLocationResults(results, query, type = "pf") {
+  const menu =
+    type === "pf" ? qs("#locationSearchMenu") : qs("#bayutLocationSearchMenu");
   if (!menu) return;
 
-  locationActiveItems = results;
-  locationActiveIndex = -1;
+  if (type === "pf") {
+    locationActiveItems = results;
+    locationActiveIndex = -1;
+  } else {
+    bayutLocationActiveItems = results;
+    bayutLocationActiveIndex = -1;
+  }
 
   if (!query || String(query).trim().length < 2) {
     menu.innerHTML =
@@ -223,21 +249,30 @@ function renderLocationResults(results, query) {
       const idx = Number(btn.getAttribute("data-idx"));
       const loc = results[idx];
       if (!loc) return;
-      setLocationSelection({
-        id: loc.id,
-        name: loc.name,
-        pfId: loc.location_id,
-      });
-      closeLocationMenu();
+      setLocationSelection(
+        {
+          id: loc.id,
+          name: loc.name,
+          pfId: loc.location_id,
+        },
+        type,
+      );
+      closeLocationMenu(type);
     });
   });
 }
 
-function setupLocationSearch() {
-  const input = qs("#locationSearchInput");
-  const select = qs("#locationSelect");
-  const menu = qs("#locationSearchMenu");
-  const clearBtn = qs("#clearLocationBtn");
+function setupLocationSearch(type = "pf") {
+  const input =
+    type === "pf"
+      ? qs("#locationSearchInput")
+      : qs("#bayutLocationSearchInput");
+  const select =
+    type === "pf" ? qs("#locationSelect") : qs("#bayutLocationSelect");
+  const menu =
+    type === "pf" ? qs("#locationSearchMenu") : qs("#bayutLocationSearchMenu");
+  const clearBtn =
+    type === "pf" ? qs("#clearLocationBtn") : qs("#clearBayutLocationBtn");
 
   if (!input || !select || !menu) return;
 
@@ -246,7 +281,7 @@ function setupLocationSearch() {
     const opt = select.querySelector(
       `option[value="${CSS.escape(select.value)}"]`,
     );
-    setLocationSelection({ id: select.value, name: opt?.textContent || "" });
+    setLocationSelection({ id: select.value, name: opt?.textContent || "" }, type);
   }
 
   input.addEventListener("input", () => {
@@ -263,8 +298,8 @@ function setupLocationSearch() {
     clearTimeout(locationSearchTimer);
     locationSearchTimer = setTimeout(async () => {
       try {
-        const results = await fetchLocationsForSearch(q);
-        renderLocationResults(results, q);
+        const results = await fetchLocationsForSearch(q, type);
+        renderLocationResults(results, q, type);
       } catch (e) {
         menu.innerHTML =
           '<div class="p-3 text-md text-rose-600">Failed to search locations. Please try again.</div>';
@@ -287,44 +322,86 @@ function setupLocationSearch() {
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      locationActiveIndex = Math.min(items.length - 1, locationActiveIndex + 1);
+      if (type === "pf") {
+        locationActiveIndex = Math.min(
+          items.length - 1,
+          locationActiveIndex + 1,
+        );
+      } else {
+        bayutLocationActiveIndex = Math.min(
+          items.length - 1,
+          bayutLocationActiveIndex + 1,
+        );
+      }
       items.forEach((el, i) =>
-        el.classList.toggle("bg-slate-50", i === locationActiveIndex),
+        el.classList.toggle(
+          "bg-slate-50",
+          i ===
+            (type === "pf" ? locationActiveIndex : bayutLocationActiveIndex),
+        ),
       );
-      items[locationActiveIndex]?.scrollIntoView({ block: "nearest" });
+      items[
+        type === "pf" ? locationActiveIndex : bayutLocationActiveIndex
+      ]?.scrollIntoView({ block: "nearest" });
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      locationActiveIndex = Math.max(0, locationActiveIndex - 1);
+      if (type === "pf") {
+        locationActiveIndex = Math.max(0, locationActiveIndex - 1);
+      } else {
+        bayutLocationActiveIndex = Math.max(0, bayutLocationActiveIndex - 1);
+      }
       items.forEach((el, i) =>
-        el.classList.toggle("bg-slate-50", i === locationActiveIndex),
+        el.classList.toggle(
+          "bg-slate-50",
+          i ===
+            (type === "pf" ? locationActiveIndex : bayutLocationActiveIndex),
+        ),
       );
-      items[locationActiveIndex]?.scrollIntoView({ block: "nearest" });
+      items[
+        type === "pf" ? locationActiveIndex : bayutLocationActiveIndex
+      ]?.scrollIntoView({ block: "nearest" });
     } else if (e.key === "Enter") {
-      if (locationActiveIndex >= 0) {
-        e.preventDefault();
-        items[locationActiveIndex].click();
+      if (type === "pf") {
+        if (locationActiveIndex >= 0) {
+          e.preventDefault();
+          items[locationActiveIndex].click();
+        }
+      } else {
+        if (bayutLocationActiveIndex >= 0) {
+          e.preventDefault();
+          items[bayutLocationActiveIndex].click();
+        }
       }
     } else if (e.key === "Escape") {
-      closeLocationMenu();
+      closeLocationMenu(type);
     }
   });
 
   if (clearBtn) {
     clearBtn.addEventListener("click", () => {
-      setLocationSelection();
+      setLocationSelection({}, type);
       input.focus();
-      closeLocationMenu();
+      closeLocationMenu(type);
     });
   }
 
   document.addEventListener("click", (e) => {
-    if (
-      e.target.closest("#locationSearchMenu") ||
-      e.target.closest("#locationSearchInput")
-    ) {
-      return;
+    if (type === "pf") {
+      if (
+        e.target.closest("#locationSearchMenu") ||
+        e.target.closest("#locationSearchInput")
+      ) {
+        return;
+      }
+    } else {
+      if (
+        e.target.closest("#bayutLocationSearchMenu") ||
+        e.target.closest("#bayutLocationSearchInput")
+      ) {
+        return;
+      }
     }
-    closeLocationMenu();
+    closeLocationMenu(type);
   });
 }
 
