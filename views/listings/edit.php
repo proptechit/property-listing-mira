@@ -129,7 +129,7 @@ if (!$id) {
                 </div>
 
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">No. of Bedrooms</label>
+                    <label class="block text-md font-semibold text-slate-500">No. of Bedrooms (Select 0 for 'studio')</label>
                     <div class="mt-1 relative">
                         <input type="number" name="bedrooms" min="0"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
@@ -139,7 +139,7 @@ if (!$id) {
                 </div>
 
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">No. of Bathrooms</label>
+                    <label class="block text-md font-semibold text-slate-500">No. of Bathrooms (Select 0 for 'none')</label>
                     <div class="mt-1 relative">
                         <input type="number" name="bathrooms" min="0"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
