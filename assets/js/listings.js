@@ -624,8 +624,15 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
 
           <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="flex gap-2 text-slate-600">
-              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bed text-slate-400"></i> ${escapeHtml(l.bedrooms ?? "none")}</span>
-              <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-bath text-slate-400"></i> ${escapeHtml(l.bathrooms ?? "none")}</span>
+              <span class="text-sm flex items-center gap-1">
+                <i class="fa-solid fa-bed text-slate-400"></i> 
+                ${escapeHtml(l.bedrooms === 0 ? "Studio" : (l.bedrooms ?? "none"))}
+              </span>
+
+              <span class="text-sm flex items-center gap-1">
+                <i class="fa-solid fa-bath text-slate-400"></i> 
+                ${escapeHtml(l.bathrooms === 0 ? "none" : (l.bathrooms ?? "none"))}
+              </span>
               <span class="text-sm flex items-center gap-1"><i class="fa-solid fa-ruler-combined text-slate-400"></i> ${escapeHtml((l.size ?? "") + (l.size ? " sqft" : ""))}</span>
             </div>
           </td>
@@ -819,12 +826,15 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                         )}</span>`
                       : ""
                   }
-                  <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold"><i class="fa-solid fa-bed text-slate-400 mr-1"></i>${escapeHtml(
-                    String(beds),
-                  )}</span>
-                  <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold"><i class="fa-solid fa-bath text-slate-400 mr-1"></i>${escapeHtml(
-                    String(baths),
-                  )}</span>
+                  <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold">
+                    <i class="fa-solid fa-bed text-slate-400 mr-1"></i>
+                    ${escapeHtml(beds === 0 ? "Studio" : String(beds ?? "none"))}
+                  </span>
+
+                  <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold">
+                    <i class="fa-solid fa-bath text-slate-400 mr-1"></i>
+                    ${escapeHtml(baths === 0 ? "none" : String(baths ?? "none"))}
+                  </span>
                   <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold"><i class="fa-solid fa-ruler-combined text-slate-400 mr-1"></i>${escapeHtml(
                     String(size),
                   )}${size ? " sqft" : ""}</span>
