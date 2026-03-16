@@ -429,9 +429,9 @@ return [
         'Photographer Booking'  => 'DT1052_11:PREPARATION',
         'Pending Approval'  => 'DT1052_11:CLIENT',
         'Pocket Listing'  => 'DT1052_11:UC_BDKHAU',
-        'Draft at Property Finder' => 'DT1052_11:UC_5FRJTE',
+        'Draft at Portals' => 'DT1052_11:UC_5FRJTE',
         'Published' => 'DT1052_11:SUCCESS',
         'Unpublished'  => 'DT1052_11:FAIL',
-        'Deleted from Property Finder'  => 'DT1052_11:1'
+        'Deleted from Portals'  => 'DT1052_11:1'
     ]
 ];

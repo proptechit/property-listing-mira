@@ -28,10 +28,10 @@
                     <option value="Start">Start</option>
                     <option value="Photographer Booking">Photographer Booking</option>
                     <option value="Pending Approval">Pending Approval</option>
-                    <option value="Draft at Property Finder">Draft</option>
+                    <option value="Draft at Portals">Draft</option>
                     <option value="Published">Published</option>
                     <option value="Unpublished">Unpublished</option>
-                    <option value="Deleted from Property Finder">Deleted</option>
+                    <option value="Deleted from Portals">Deleted</option>
                 </select>
             </div>
 
@@ -148,10 +148,10 @@
                             <option value="Start">Start</option>
                             <option value="Photographer Booking">Photographer Booking</option>
                             <option value="Pending Approval">Pending Approval</option>
-                            <option value="Draft at Property Finder">Draft</option>
+                            <option value="Draft at Portals">Draft</option>
                             <option value="Published">Published</option>
                             <option value="Unpublished">Unpublished</option>
-                            <option value="Deleted from Property Finder">Deleted</option>
+                            <option value="Deleted from Portals">Deleted</option>
                         </select>
                     </div>
 

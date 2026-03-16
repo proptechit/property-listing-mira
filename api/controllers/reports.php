@@ -41,7 +41,7 @@ $pendingApprovalListings = getCount([
 ]);
 
 $draftListings = getCount([
-    $map['status'] => $enums['status']['Draft at Property Finder'],
+    $map['status'] => $enums['status']['Draft at Portals'],
 ]);
 
 $publishedListings = getCount([
