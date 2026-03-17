@@ -482,7 +482,7 @@ if (!$id) {
                     <label class="block text-md font-semibold text-slate-500">Location (Bayut) <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
                         <!-- Keep the select for native form validation; JS will populate a selected option -->
-                        <select name="bayut_location" id="bayutLocationSelect" required class="hidden">
+                        <select name="bayut_location" id="bayutLocationSelect" class="hidden">
                             <option value="">Select Location</option>
                         </select>
 

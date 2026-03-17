@@ -192,13 +192,11 @@ async function loadListingForEdit(listingId) {
         locationSelect.value = listing.location_id;
       }
     } else if (listing.location) {
-      console.log("Location data:", listing.location);
       // If location is returned as object with name property
       const locationId = listing.location?.id || listing.location;
       const locationName = listing.location?.name || listing.location;
       if (locationId) {
         const locationSelect = document.getElementById("locationSelect");
-        console.log("Location select:", locationSelect);
         if (locationSelect) {
           locationSelect.value = locationId;
         }
@@ -220,7 +218,6 @@ async function loadListingForEdit(listingId) {
         bayutLocationSelect.value = listing.bayut_location_id;
       }
     } else if (listing.bayut_location) {
-      console.log("Bayut location data:", listing.bayut_location);
       // If location is returned as object with name property
       const locationId =
         listing.bayut_location?.id || listing.bayut_location || "";
@@ -230,7 +227,6 @@ async function loadListingForEdit(listingId) {
         const bayutLocationSelect = document.getElementById(
           "bayutLocationSelect",
         );
-        console.log("Bayut location select:", bayutLocationSelect);
         if (bayutLocationSelect) {
           bayutLocationSelect.value = locationId;
         }
