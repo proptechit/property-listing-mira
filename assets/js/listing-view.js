@@ -370,8 +370,12 @@ async function loadListingDetails(id) {
 
     // Hide edit button for non-admin
     const editBtn = qs("#editListingBtn");
-    if (editBtn && typeof IS_ADMIN !== "undefined" && IS_ADMIN === false) {
-      editBtn.classList.add("hidden");
+    if (editBtn) {
+      const isOwner = listing?.listing_owner?.id == USER_ID;
+
+      if (!(IS_ADMIN || isOwner)) {
+        editBtn.classList.add("hidden");
+      }
     }
 
     renderListingDetails(container, listing);
