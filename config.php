@@ -5,8 +5,9 @@ $ADMIN_IDS = [
     30, // Cindy Nacario (Admin of ST1)
     31,  // Jezra Agao (Admin of ST2)
     156, // Jaymee Javin (Admin of ST3)
-    29, // Ma. Betty (Admin of ST4 and PO)
+    167, // Marimar Ordaniel (Admin of ST4)
     157, // Alex Jordan Devenport (Admin of ST5)
+    29, // Ma. Betty (Admin of ST4 and PO)
     134, // Moh'D Barakat
     5, // Kristina Boeva
     7, // Abinas Subair
