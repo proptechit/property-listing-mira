@@ -1148,57 +1148,102 @@ function loadImageElement(src) {
   });
 }
 
+function canvasToBlob(canvas, type = "image/jpeg", quality = IMAGE_OUTPUT_QUALITY) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+
+      reject(new Error("Failed to export image blob."));
+    }, type, quality);
+  });
+}
+
+function getImagePreviewSrc(image) {
+  return image?.previewUrl || image?.src || "";
+}
+
+function disposeImagePreview(image) {
+  if (!image?.previewUrl) return;
+  if (image?.isExistingImage) return;
+  URL.revokeObjectURL(image.previewUrl);
+}
+
+function disposeAllImagePreviews() {
+  imageGallery.forEach((image) => {
+    disposeImagePreview(image);
+  });
+}
+
 function getResizedImageName(fileName) {
   const name = String(fileName || "image.jpg");
   return name.replace(/\.[^.]+$/, "") + ".jpg";
 }
 
 async function buildListingImage(file, autoResizeEnabled) {
-  const src = await fileToBase64(file);
-  const image = await loadImageElement(src);
-  const width = Number(image.naturalWidth || image.width || 0);
-  const height = Number(image.naturalHeight || image.height || 0);
-  const ratio = height > 0 ? width / height : 0;
+  const sourceUrl = URL.createObjectURL(file);
+  try {
+    const image = await loadImageElement(sourceUrl);
+    const width = Number(image.naturalWidth || image.width || 0);
+    const height = Number(image.naturalHeight || image.height || 0);
+    const ratio = height > 0 ? width / height : 0;
 
-  if (width < IMAGE_MIN_WIDTH || height < IMAGE_MIN_HEIGHT) {
-    throw new Error(
-      `${file.name}: minimum size is ${IMAGE_MIN_WIDTH}x${IMAGE_MIN_HEIGHT}px. Uploaded image is ${width}x${height}px.`,
+    if (width < IMAGE_MIN_WIDTH || height < IMAGE_MIN_HEIGHT) {
+      throw new Error(
+        `${file.name}: minimum size is ${IMAGE_MIN_WIDTH}x${IMAGE_MIN_HEIGHT}px. Uploaded image is ${width}x${height}px.`,
+      );
+    }
+
+    if (ratio < IMAGE_MIN_RATIO || ratio > IMAGE_MAX_RATIO) {
+      throw new Error(
+        `${file.name}: aspect ratio must be between ${IMAGE_MIN_RATIO.toFixed(1)} and ${IMAGE_MAX_RATIO.toFixed(1)}. Uploaded image ratio is ${ratio.toFixed(2)}.`,
+      );
+    }
+
+    if (!autoResizeEnabled) {
+      return {
+        id: Date.now() + Math.random(),
+        file,
+        previewUrl: sourceUrl,
+        name: file.name,
+        isExistingImage: false,
+      };
+    }
+
+    const scale = Math.min(
+      IMAGE_MAX_WIDTH / width,
+      IMAGE_MAX_HEIGHT / height,
+      1,
     );
-  }
+    const targetWidth = Math.max(1, Math.round(width * scale));
+    const targetHeight = Math.max(1, Math.round(height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
 
-  if (ratio < IMAGE_MIN_RATIO || ratio > IMAGE_MAX_RATIO) {
-    throw new Error(
-      `${file.name}: aspect ratio must be between ${IMAGE_MIN_RATIO.toFixed(1)} and ${IMAGE_MAX_RATIO.toFixed(1)}. Uploaded image ratio is ${ratio.toFixed(2)}.`,
-    );
-  }
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error(`${file.name}: failed to prepare image resize canvas.`);
+    }
 
-  if (!autoResizeEnabled) {
+    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+    const resizedBlob = await canvasToBlob(canvas);
+    const previewUrl = URL.createObjectURL(resizedBlob);
+    URL.revokeObjectURL(sourceUrl);
+
     return {
       id: Date.now() + Math.random(),
-      src,
-      name: file.name,
+      file: resizedBlob,
+      previewUrl,
+      name: getResizedImageName(file.name),
+      isExistingImage: false,
     };
+  } catch (error) {
+    URL.revokeObjectURL(sourceUrl);
+    throw error;
   }
-
-  const scale = Math.min(IMAGE_MAX_WIDTH / width, IMAGE_MAX_HEIGHT / height, 1);
-  const targetWidth = Math.max(1, Math.round(width * scale));
-  const targetHeight = Math.max(1, Math.round(height * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error(`${file.name}: failed to prepare image resize canvas.`);
-  }
-
-  ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
-
-  return {
-    id: Date.now() + Math.random(),
-    src: canvas.toDataURL("image/jpeg", IMAGE_OUTPUT_QUALITY),
-    name: getResizedImageName(file.name),
-  };
 }
 
 async function handleImageInputChange(e) {
@@ -1271,6 +1316,11 @@ function initializeImageManagement() {
   }
 
   setupDragAndDrop();
+
+  if (imageInput.dataset.imageCleanupBound !== "1") {
+    imageInput.dataset.imageCleanupBound = "1";
+    window.addEventListener("beforeunload", disposeAllImagePreviews);
+  }
 }
 
 function escapeAttribute(value) {
@@ -1484,9 +1534,10 @@ function renderImageGallery() {
 
   imageGrid.innerHTML = imageGallery
     .map((image, index) => {
+      const previewSrc = getImagePreviewSrc(image);
       return `
     <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-sm hover:shadow-md transition-shadow cursor-move" draggable="true" data-image-id="${image.id}">
-      <img src="${image.src}" alt="${image.name}" class="w-full h-full object-cover pointer-events-none select-none">
+      <img src="${escapeAttribute(previewSrc)}" alt="${escapeAttribute(image.name)}" class="w-full h-full object-cover pointer-events-none select-none">
       
       <!-- Overlay with actions -->
       <div class="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 z-10">
@@ -1557,6 +1608,11 @@ function renderImageGallery() {
 function removeImage(id) {
   if (!id) return;
   const targetId = toImageId(id);
+  imageGallery.forEach((img) => {
+    if (img && toImageId(img.id) === targetId) {
+      disposeImagePreview(img);
+    }
+  });
   imageGallery = imageGallery.filter(
     (img) => img && toImageId(img.id) !== targetId,
   );
@@ -1672,7 +1728,37 @@ function moveImageDown(id) {
 function updateImagesInput() {
   const imagesInput = document.getElementById("imagesInput");
   if (!imagesInput) return;
-  imagesInput.value = JSON.stringify(imageGallery);
+  imagesInput.value = String(imageGallery.length);
+}
+
+async function serializeImageGalleryForSubmission() {
+  const serialized = [];
+
+  for (const image of imageGallery) {
+    if (!image) continue;
+
+    if (image.isExistingImage) {
+      serialized.push({
+        name: image.name || "Image",
+        src: image.src || image.previewUrl || "",
+        ...(image.existingFileId !== null && image.existingFileId !== undefined
+          ? { existingFileId: image.existingFileId }
+          : {}),
+      });
+      continue;
+    }
+
+    if (!(image.file instanceof Blob)) {
+      continue;
+    }
+
+    serialized.push({
+      name: image.name || "image.jpg",
+      src: await fileToBase64(image.file),
+    });
+  }
+
+  return serialized;
 }
 
 function shuffleImages() {
@@ -1788,17 +1874,7 @@ function attachFormSubmissionHandler(id) {
         .map((v) => String(v || "").trim())
         .filter(Boolean);
 
-      // Parse image data
-      const imagesValue = data.images || "[]";
-      if (imagesValue) {
-        try {
-          data.images = JSON.parse(imagesValue);
-        } catch {
-          data.images = [];
-        }
-      } else {
-        data.images = [];
-      }
+      data.images = await serializeImageGalleryForSubmission();
 
       // Convert empty strings to null for cleaner API payload
       Object.keys(data).forEach((key) => {

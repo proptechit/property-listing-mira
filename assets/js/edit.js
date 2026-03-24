@@ -465,7 +465,9 @@ async function loadListingForEdit(listingId) {
           return {
             id: `existing-${index}`,
             src,
+            previewUrl: src,
             name: img?.name || `Image ${index + 1}`,
+            isExistingImage: true,
             ...(existingFileId !== null ? { existingFileId } : {}),
           };
         })
