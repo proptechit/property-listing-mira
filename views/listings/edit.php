@@ -531,6 +531,18 @@ if (!$id) {
                         </div>
                     </div>
 
+                    <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+                        <label class="inline-flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="autoResizeImages" class="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked>
+                            <span>
+                                <span class="block text-sm font-semibold text-slate-800">Auto resize images</span>
+                                <span class="block text-sm text-slate-500">When enabled, new uploads are validated and resized to fit within 1400 x 1050 pixels. Minimum accepted size is 800 x 600 and aspect ratio must stay between 1.3 and 1.8, with 4:3 recommended.</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div id="imageUploadFeedback" class="hidden mb-4 rounded-xl border px-4 py-3 text-sm"></div>
+
                     <!-- Image Preview Grid -->
                     <div id="imagePreviewGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         <!-- Images will be dynamically added here -->

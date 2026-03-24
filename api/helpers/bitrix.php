@@ -7,11 +7,13 @@ function bitrixRequest($method, $params = [], $customUrl = null)
         $url = BITRIX_WEBHOOK . $method;
     }
 
+    $encodedParams = http_build_query($params);
+
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => http_build_query($params),
+        CURLOPT_POSTFIELDS     => $encodedParams,
         CURLOPT_TIMEOUT        => 30,
     ]);
 

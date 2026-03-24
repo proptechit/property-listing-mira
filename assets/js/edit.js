@@ -7,7 +7,11 @@
  */
 function getExistingImageUrl(image) {
   if (!image) return "";
-  if (typeof image === "string") return image;
+  if (typeof image === "string") {
+    const value = image.trim();
+    if (!value || /^\d+$/.test(value)) return "";
+    return value;
+  }
   return (
     image.urlMachine ||
     image.url ||
@@ -19,6 +23,16 @@ function getExistingImageUrl(image) {
 }
 
 function getExistingImageFileId(image) {
+  if (typeof image === "number" && Number.isFinite(image)) {
+    return image;
+  }
+
+  if (typeof image === "string") {
+    const value = image.trim();
+    if (/^\d+$/.test(value)) return Number(value);
+    return null;
+  }
+
   if (!image || typeof image !== "object") return null;
 
   const candidates = [

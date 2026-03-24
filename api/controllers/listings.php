@@ -88,6 +88,7 @@ function normalizeFiles(array $files): array
             $result[] = $existingId;
             continue;
         }
+
     }
 
     return $result;
@@ -164,6 +165,104 @@ function cleanBase64(string $src): string
     }
 
     return trim($src);
+}
+
+function getBitrixBaseUrl(): string
+{
+    $parts = parse_url(BITRIX_WEBHOOK);
+    if (empty($parts['scheme']) || empty($parts['host'])) {
+        return '';
+    }
+
+    return $parts['scheme'] . '://' . $parts['host'];
+}
+
+function normalizeBitrixFileUrl(?string $url): string
+{
+    $value = trim((string)$url);
+    if ($value === '') return '';
+    if (preg_match('/^https?:\/\//i', $value)) return $value;
+
+    $baseUrl = getBitrixBaseUrl();
+    if ($baseUrl === '') return $value;
+
+    return $baseUrl . '/' . ltrim($value, '/');
+}
+
+function hydrateBitrixFileById($value)
+{
+    $id = null;
+
+    if (is_int($value)) {
+        $id = $value;
+    } elseif (is_string($value) && preg_match('/^\d+$/', trim($value))) {
+        $id = (int)trim($value);
+    } else {
+        return $value;
+    }
+
+    if ($id <= 0) {
+        return $value;
+    }
+
+    $res = bitrixRequest('disk.file.get', ['id' => $id]);
+    $file = $res['result'] ?? null;
+
+    if (!is_array($file)) {
+        return [
+            'id' => $id,
+        ];
+    }
+
+    $url = normalizeBitrixFileUrl(
+        $file['DOWNLOAD_URL'] ??
+        $file['downloadUrl'] ??
+        $file['DETAIL_URL'] ??
+        $file['detailUrl'] ??
+        ''
+    );
+
+    return [
+        'id' => $id,
+        'name' => $file['NAME'] ?? $file['name'] ?? ('File ' . $id),
+        'urlMachine' => $url,
+        'downloadUrl' => $url,
+        'existingFileId' => $id,
+    ];
+}
+
+function hydrateListingMediaFields(array &$item): void
+{
+    if (!empty($item['images']) && is_array($item['images'])) {
+        $item['images'] = array_values(array_filter(array_map(
+            fn($image) => hydrateBitrixFileById($image),
+            $item['images']
+        )));
+    }
+
+    $documentFields = [
+        'title_deed',
+        'passport_copy',
+        'emirates_id',
+        'contract_a',
+        'listing_form',
+    ];
+
+    foreach ($documentFields as $field) {
+        if (!isset($item[$field])) {
+            continue;
+        }
+
+        if (is_array($item[$field])) {
+            $item[$field] = array_values(array_filter(array_map(
+                fn($doc) => hydrateBitrixFileById($doc),
+                $item[$field]
+            )));
+            continue;
+        }
+
+        $item[$field] = hydrateBitrixFileById($item[$field]);
+    }
 }
 
 function normalizeDocumentFields(array &$input): void
@@ -245,6 +344,7 @@ if ($method === 'GET') {
         }
 
         $item = fromBitrixFields($res['result']['item'], $map, $enums);
+        hydrateListingMediaFields($item);
 
         // Hydrate location + agent + owner (same behavior as list endpoint)
         $locationIds = [];
@@ -339,7 +439,11 @@ if ($method === 'GET') {
     $total = $res['total'] ?? count($items);
 
     $output = array_map(
-        fn($item) => fromBitrixFields($item, $map, $enums),
+        function ($item) use ($map, $enums) {
+            $mapped = fromBitrixFields($item, $map, $enums);
+            hydrateListingMediaFields($mapped);
+            return $mapped;
+        },
         $items
     );
 
@@ -460,7 +564,11 @@ if ($method === 'POST') {
     }
 
     jsonResponse(
-        fromBitrixFields($res['result']['item'], $map, $enums),
+        (function () use ($res, $map, $enums) {
+            $item = fromBitrixFields($res['result']['item'], $map, $enums);
+            hydrateListingMediaFields($item);
+            return $item;
+        })(),
         201
     );
 }
@@ -475,14 +583,12 @@ if ($method === 'PUT') {
     }
 
     $input  = getRequestBody();
-    $requestId = uniqid('img_put_', true);
 
     // reformat images
     $input['images'] = normalizeFiles($input['images'] ?? []);
     normalizeDocumentFields($input);
 
     $fields = toBitrixFields($input, $map, $enums);
-    $bitrixImages = $fields[$map['images']] ?? [];
 
     if (empty($fields)) {
         jsonResponse([
@@ -503,15 +609,27 @@ if ($method === 'PUT') {
         ], 500);
     }
 
-    if (empty($res['result']['item'])) {
+    $fetchRes = bitrixRequest('crm.item.get', [
+        'entityTypeId' => LISTINGS_ENTITY_ID,
+        'id' => $id
+    ]);
+
+    if (!empty($fetchRes['error']) || empty($fetchRes['result']['item'])) {
         jsonResponse([
             'error'   => 'Bitrix error',
-            'details' => $res
+            'details' => [
+                'update' => $res,
+                'fetch' => $fetchRes
+            ]
         ], 500);
     }
 
     jsonResponse(
-        fromBitrixFields($res['result']['item'], $map, $enums)
+        (function () use ($fetchRes, $map, $enums) {
+            $item = fromBitrixFields($fetchRes['result']['item'], $map, $enums);
+            hydrateListingMediaFields($item);
+            return $item;
+        })()
     );
 }
 

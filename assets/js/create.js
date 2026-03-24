@@ -1096,21 +1096,143 @@ function toImageId(id) {
   return String(id ?? "");
 }
 
-function handleImageInputChange(e) {
-  const files = Array.from(e?.target?.files || []);
-  files.forEach((file) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageData = {
-        id: Date.now() + Math.random(),
-        src: event.target.result,
-        name: file.name,
-      };
-      imageGallery.push(imageData);
-      renderImageGallery();
-    };
-    reader.readAsDataURL(file);
+const IMAGE_MIN_WIDTH = 800;
+const IMAGE_MIN_HEIGHT = 600;
+const IMAGE_MAX_WIDTH = 1400;
+const IMAGE_MAX_HEIGHT = 1050;
+const IMAGE_MIN_RATIO = 1.3;
+const IMAGE_MAX_RATIO = 1.8;
+const IMAGE_OUTPUT_QUALITY = 0.82;
+const MAX_REQUEST_BYTES = 24 * 1024 * 1024;
+
+function getAutoResizeEnabled() {
+  return document.getElementById("autoResizeImages")?.checked === true;
+}
+
+function setImageUploadFeedback(messages = [], tone = "info") {
+  const feedback = document.getElementById("imageUploadFeedback");
+  if (!feedback) return;
+
+  if (!Array.isArray(messages) || messages.length === 0) {
+    feedback.className = "hidden mb-4 rounded-xl border px-4 py-3 text-sm";
+    feedback.innerHTML = "";
+    return;
+  }
+
+  const toneClasses = {
+    info: "mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700",
+    success:
+      "mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800",
+    error:
+      "mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800",
+  };
+
+  feedback.className = toneClasses[tone] || toneClasses.info;
+  feedback.innerHTML = messages.map((message) => `<div>${escapeHtml(message)}</div>`).join("");
+}
+
+function estimatePayloadBytes(payload) {
+  try {
+    return new Blob([JSON.stringify(payload)]).size;
+  } catch {
+    return 0;
+  }
+}
+
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Unable to read image"));
+    image.src = src;
   });
+}
+
+function getResizedImageName(fileName) {
+  const name = String(fileName || "image.jpg");
+  return name.replace(/\.[^.]+$/, "") + ".jpg";
+}
+
+async function buildListingImage(file, autoResizeEnabled) {
+  const src = await fileToBase64(file);
+  const image = await loadImageElement(src);
+  const width = Number(image.naturalWidth || image.width || 0);
+  const height = Number(image.naturalHeight || image.height || 0);
+  const ratio = height > 0 ? width / height : 0;
+
+  if (width < IMAGE_MIN_WIDTH || height < IMAGE_MIN_HEIGHT) {
+    throw new Error(
+      `${file.name}: minimum size is ${IMAGE_MIN_WIDTH}x${IMAGE_MIN_HEIGHT}px. Uploaded image is ${width}x${height}px.`,
+    );
+  }
+
+  if (ratio < IMAGE_MIN_RATIO || ratio > IMAGE_MAX_RATIO) {
+    throw new Error(
+      `${file.name}: aspect ratio must be between ${IMAGE_MIN_RATIO.toFixed(1)} and ${IMAGE_MAX_RATIO.toFixed(1)}. Uploaded image ratio is ${ratio.toFixed(2)}.`,
+    );
+  }
+
+  if (!autoResizeEnabled) {
+    return {
+      id: Date.now() + Math.random(),
+      src,
+      name: file.name,
+    };
+  }
+
+  const scale = Math.min(IMAGE_MAX_WIDTH / width, IMAGE_MAX_HEIGHT / height, 1);
+  const targetWidth = Math.max(1, Math.round(width * scale));
+  const targetHeight = Math.max(1, Math.round(height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error(`${file.name}: failed to prepare image resize canvas.`);
+  }
+
+  ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  return {
+    id: Date.now() + Math.random(),
+    src: canvas.toDataURL("image/jpeg", IMAGE_OUTPUT_QUALITY),
+    name: getResizedImageName(file.name),
+  };
+}
+
+async function handleImageInputChange(e) {
+  const files = Array.from(e?.target?.files || []);
+  const autoResizeEnabled = getAutoResizeEnabled();
+  const failures = [];
+  let addedCount = 0;
+
+  for (const file of files) {
+    try {
+      const imageData = await buildListingImage(file, autoResizeEnabled);
+      imageGallery.push(imageData);
+      addedCount += 1;
+    } catch (error) {
+      failures.push(error?.message || `${file.name}: failed to process image.`);
+    }
+  }
+
+  if (addedCount > 0) {
+    renderImageGallery();
+  }
+
+  if (failures.length > 0) {
+    setImageUploadFeedback(failures, "error");
+  } else if (addedCount > 0 && autoResizeEnabled) {
+    setImageUploadFeedback(
+      [
+        `${addedCount} image${addedCount === 1 ? "" : "s"} validated and resized for listing upload.`,
+      ],
+      "success",
+    );
+  } else {
+    setImageUploadFeedback();
+  }
 
   if (e?.target) {
     e.target.value = ""; // Reset input so selecting same file again still triggers change
@@ -1685,18 +1807,35 @@ function attachFormSubmissionHandler(id) {
         }
       });
 
+      const estimatedPayloadBytes = estimatePayloadBytes(data);
+      if (estimatedPayloadBytes > MAX_REQUEST_BYTES) {
+        const maxMb = (MAX_REQUEST_BYTES / (1024 * 1024)).toFixed(1);
+        const actualMb = (estimatedPayloadBytes / (1024 * 1024)).toFixed(1);
+        const resizeNote = getAutoResizeEnabled()
+          ? "Please upload fewer images or smaller originals."
+          : "Please turn on auto resize or upload fewer images.";
+
+        throw new Error(
+          `Image upload is too large for the server limit (${actualMb} MB > ${maxMb} MB). ${resizeNote}`,
+        );
+      }
+
       // Determine if it's create or edit
       const isEdit = editForm !== null;
-      const method = isEdit ? "PUT" : "POST";
+      const method = "POST";
+      const url =
+        "/?resource=listings" +
+        (isEdit ? `&id=${id}&_method=PUT` : "");
+      const requestHeaders = isEdit
+        ? { "X-HTTP-Method-Override": "PUT" }
+        : {};
 
       // POST/PUT to API
-      const response = await api(
-        "/?resource=listings" + (isEdit ? `&id=${id}` : ""),
-        {
-          method: method,
-          body: data,
-        },
-      );
+      const response = await api(url, {
+        method,
+        headers: requestHeaders,
+        body: data,
+      });
 
       // Success - redirect to listings
       if (response && response.id) {

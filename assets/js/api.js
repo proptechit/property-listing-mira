@@ -12,6 +12,11 @@ async function api(url, options = {}) {
     ...options,
   };
 
+  config.headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+
   // Convert body to JSON if it's an object
   if (config.body && typeof config.body === "object") {
     config.body = JSON.stringify(config.body);
@@ -19,15 +24,37 @@ async function api(url, options = {}) {
 
   try {
     const res = await fetch(API_BASE + url, config);
+    const rawText = await res.text();
+    let parsed;
+
+    if (rawText) {
+      try {
+        parsed = JSON.parse(rawText);
+      } catch (parseError) {
+        parsed = null;
+      }
+    }
 
     if (!res.ok) {
-      const error = await res
-        .json()
-        .catch(() => ({ message: "An error occurred" }));
+      const error =
+        parsed ||
+        ({
+          message:
+            `HTTP ${res.status} ${res.statusText}` +
+            (rawText ? `: ${rawText.slice(0, 500)}` : ""),
+        });
       throw error;
     }
 
-    return res.json();
+    if (!rawText) return null;
+
+    if (parsed !== null) {
+      return parsed;
+    }
+
+    throw new Error(
+      `Invalid JSON response from API: ${rawText.slice(0, 500)}`,
+    );
   } catch (error) {
     console.error("API Error:", error);
     throw error;

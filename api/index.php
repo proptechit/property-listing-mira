@@ -35,6 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+if ($method === 'POST') {
+    $overrideHeader = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? '';
+    $overrideQuery = $_GET['_method'] ?? '';
+    $overrideMethod = strtoupper(trim($overrideHeader ?: $overrideQuery));
+
+    if (in_array($overrideMethod, ['PUT', 'DELETE'], true)) {
+        $method = $overrideMethod;
+    }
+}
+
 // ONLY use query-based routing
 $resource = $_GET['resource'] ?? null;
 $id       = $_GET['id'] ?? null;
