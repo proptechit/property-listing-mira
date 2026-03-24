@@ -127,7 +127,7 @@ function closeLocationMenu(type = "pf") {
   }
 }
 
-function setLocationSelection({ id, name, pfId } = {}, type = "pf") {
+function setLocationSelection({ id, name, locId } = {}, type = "pf") {
   const select =
     type === "pf" ? qs("#locationSelect") : qs("#bayutLocationSelect");
   const input =
@@ -162,7 +162,7 @@ function setLocationSelection({ id, name, pfId } = {}, type = "pf") {
   if (!existing) {
     const opt = document.createElement("option");
     opt.value = String(id);
-    opt.textContent = String(name || pfId || id);
+    opt.textContent = String(name || locId || id);
     select.appendChild(opt);
   }
   select.value = String(id);
@@ -217,7 +217,7 @@ function renderLocationResults(results, query, type = "pf") {
     .slice(0, 12)
     .map((loc, idx) => {
       const name = loc?.name || "";
-      const pfId = loc?.location_id || "";
+      const locId = loc?.location_id || "";
       return `
         <button type="button"
           class="w-full px-4 py-3 text-left hover:bg-slate-50 transition flex items-center justify-between gap-3"
@@ -229,9 +229,9 @@ function renderLocationResults(results, query, type = "pf") {
               name,
             )}</div>
             ${
-              pfId
-                ? `<div class="text-xs text-slate-400 font-semibold">PF ID: ${escapeHtml(
-                    pfId,
+              locId
+                ? `<div class="text-xs text-slate-400 font-semibold">Location ID: ${escapeHtml(
+                    locId,
                   )}</div>`
                 : ""
             }
@@ -253,7 +253,7 @@ function renderLocationResults(results, query, type = "pf") {
         {
           id: loc.id,
           name: loc.name,
-          pfId: loc.location_id,
+          locId: loc.location_id,
         },
         type,
       );
@@ -722,7 +722,8 @@ async function loadFormOptions() {
 // Called by the page if present
 function setupCreateForm() {
   setupCreatePageUI();
-  setupLocationSearch();
+  setupLocationSearch("pf");
+  setupLocationSearch("bayut");
   initializeImageManagement();
   initializeDocumentManagement();
   attachFormSubmissionHandler();
@@ -779,7 +780,7 @@ async function loadOwnersDropdown() {
 }
 
 // Amenities
-const amenities = [
+const pfAmenities = [
   { value: "balcony", label: "Balcony", icon: "fa-solid fa-person-shelter" },
   { value: "barbecue-area", label: "Barbecue Area", icon: "fa-solid fa-fire" },
   {
@@ -870,15 +871,181 @@ const amenities = [
   },
 ];
 
-const container = document.getElementById("amenitiesContainer");
+const bayutAmenities = [
+  {
+    value: "24 Hours Concierge",
+    label: "24 Hours Concierge",
+    icon: "fa-solid fa-bell-concierge",
+  },
+  {
+    value: "ATM Facility",
+    label: "ATM Facility",
+    icon: "fa-solid fa-money-bill",
+  },
+  {
+    value: "Balcony or Terrace",
+    label: "Balcony or Terrace",
+    icon: "fa-solid fa-person-shelter",
+  },
+  { value: "Barbeque Area", label: "Barbeque Area", icon: "fa-solid fa-fire" },
+  {
+    value: "Broadband Internet",
+    label: "Broadband Internet",
+    icon: "fa-solid fa-wifi",
+  },
+  {
+    value: "Business Center",
+    label: "Business Center",
+    icon: "fa-solid fa-building",
+  },
+  {
+    value: "Cafeteria or Canteen",
+    label: "Cafeteria or Canteen",
+    icon: "fa-solid fa-mug-hot",
+  },
+  { value: "CCTV Security", label: "CCTV Security", icon: "fa-solid fa-video" },
+  {
+    value: "Centrally Air-Conditioned",
+    label: "Centrally Air-Conditioned",
+    icon: "fa-solid fa-snowflake",
+  },
+  {
+    value: "Central Heating",
+    label: "Central Heating",
+    icon: "fa-solid fa-temperature-high",
+  },
+  {
+    value: "Cleaning Services",
+    label: "Cleaning Services",
+    icon: "fa-solid fa-soap",
+  },
+  {
+    value: "Conference Room",
+    label: "Conference Room",
+    icon: "fa-solid fa-people-line",
+  },
+  {
+    value: "Day Care Center",
+    label: "Day Care Center",
+    icon: "fa-solid fa-child-reaching",
+  },
+  {
+    value: "Double Glazed Windows",
+    label: "Double Glazed Windows",
+    icon: "fa-solid fa-table-columns",
+  },
+  {
+    value: "Electricity Backup",
+    label: "Electricity Backup",
+    icon: "fa-solid fa-bolt",
+  },
+  {
+    value: "Facilities for Disabled",
+    label: "Facilities for Disabled",
+    icon: "fa-solid fa-wheelchair",
+  },
+  {
+    value: "First Aid Medical Center",
+    label: "First Aid Medical Center",
+    icon: "fa-solid fa-kit-medical",
+  },
+  { value: "Freehold", label: "Freehold", icon: "fa-solid fa-key" },
+  { value: "Furnished", label: "Furnished", icon: "fa-solid fa-couch" },
+  {
+    value: "Gym or Health Club",
+    label: "Gym or Health Club",
+    icon: "fa-solid fa-dumbbell",
+  },
+  { value: "Intercom", label: "Intercom", icon: "fa-solid fa-phone-volume" },
+  { value: "Jacuzzi", label: "Jacuzzi", icon: "fa-solid fa-hot-tub-person" },
+  {
+    value: "Kids Play Area",
+    label: "Kids Play Area",
+    icon: "fa-solid fa-child-reaching",
+  },
+  {
+    value: "Laundry Facility",
+    label: "Laundry Facility",
+    icon: "fa-solid fa-shirt",
+  },
+  { value: "Laundry Room", label: "Laundry Room", icon: "fa-solid fa-shirt" },
+  {
+    value: "Lawn or Garden",
+    label: "Lawn or Garden",
+    icon: "fa-solid fa-seedling",
+  },
+  {
+    value: "Lobby in Building",
+    label: "Lobby in Building",
+    icon: "fa-solid fa-building",
+  },
+  {
+    value: "Maintenance Staff",
+    label: "Maintenance Staff",
+    icon: "fa-solid fa-screwdriver-wrench",
+  },
+  { value: "Maids Room", label: "Maids Room", icon: "fa-solid fa-bed" },
+  {
+    value: "Prayer Room",
+    label: "Prayer Room",
+    icon: "fa-solid fa-place-of-worship",
+  },
+  {
+    value: "Reception/Waiting Room",
+    label: "Reception/Waiting Room",
+    icon: "fa-solid fa-chair",
+  },
+  { value: "Sauna", label: "Sauna", icon: "fa-solid fa-spa" },
+  {
+    value: "Satellite/Cable TV",
+    label: "Satellite/Cable TV",
+    icon: "fa-solid fa-tv",
+  },
+  {
+    value: "Security Staff",
+    label: "Security Staff",
+    icon: "fa-solid fa-shield-halved",
+  },
+  {
+    value: "Service Elevators",
+    label: "Service Elevators",
+    icon: "fa-solid fa-elevator",
+  },
+  {
+    value: "Shared Kitchen",
+    label: "Shared Kitchen",
+    icon: "fa-solid fa-kitchen-set",
+  },
+  { value: "Steam Room", label: "Steam Room", icon: "fa-solid fa-cloud" },
+  {
+    value: "Storage Areas",
+    label: "Storage Areas",
+    icon: "fa-solid fa-box-archive",
+  },
+  { value: "Study Room", label: "Study Room", icon: "fa-solid fa-book-open" },
+  {
+    value: "Swimming Pool",
+    label: "Swimming Pool",
+    icon: "fa-solid fa-water-ladder",
+  },
+  {
+    value: "Waste Disposal",
+    label: "Waste Disposal",
+    icon: "fa-solid fa-trash",
+  },
+];
 
-container.innerHTML = amenities
-  .map(
-    (item) => `
+function renderAmenities(containerId, inputName, items) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = items
+    .map(
+      (item) => `
     <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
       <input
         type="checkbox"
-        name="amenities_pf[]"
+        name="${inputName}"
         value="${item.value}"
         class="rounded border-slate-300"
       />
@@ -886,8 +1053,12 @@ container.innerHTML = amenities
       <span>${item.label}</span>
     </label>
   `,
-  )
-  .join("");
+    )
+    .join("");
+}
+
+renderAmenities("amenitiesPfContainer", "amenities_pf[]", pfAmenities);
+renderAmenities("amenitiesBayutContainer", "amenities_bayut[]", bayutAmenities);
 
 // ============================================================================
 // IMAGE PREVIEW AND MANAGEMENT
@@ -1477,11 +1648,17 @@ function attachFormSubmissionHandler(id) {
       }
 
       // Parse amenities array
-      const amenities = formData.getAll("amenities_pf[]");
-      if (amenities.length > 0) {
-        data.amenities_pf = amenities;
+      const amenitiesPf = formData.getAll("amenities_pf[]");
+      if (amenitiesPf.length > 0) {
+        data.amenities_pf = amenitiesPf;
       }
       delete data["amenities_pf[]"];
+
+      const amenitiesBayut = formData.getAll("amenities_bayut[]");
+      if (amenitiesBayut.length > 0) {
+        data.amenities_bayut = amenitiesBayut;
+      }
+      delete data["amenities_bayut[]"];
 
       // Parse portals multi-select (Object.fromEntries keeps only last value)
       data.portals = formData

@@ -419,20 +419,27 @@ async function loadListingForEdit(listingId) {
     });
 
     // Pre-fill amenities checkboxes
-    // Support PropertyFinder / Bayut amenities fields
-    const amenitiesList =
-      listing.amenities_pf ||
-      listing.amenities_bayut ||
-      listing.amenities ||
-      [];
-    if (Array.isArray(amenitiesList)) {
-      amenitiesList.forEach((amenity) => {
-        const checkbox = document.querySelector(
-          `input[name="amenities_pf[]"][value="${amenity}"]`,
-        );
-        if (checkbox) checkbox.checked = true;
-      });
-    }
+    const amenitiesPfList = Array.isArray(listing.amenities_pf)
+      ? listing.amenities_pf
+      : Array.isArray(listing.amenities)
+        ? listing.amenities
+        : [];
+    amenitiesPfList.forEach((amenity) => {
+      const checkbox = document.querySelector(
+        `input[name="amenities_pf[]"][value="${amenity}"]`,
+      );
+      if (checkbox) checkbox.checked = true;
+    });
+
+    const amenitiesBayutList = Array.isArray(listing.amenities_bayut)
+      ? listing.amenities_bayut
+      : [];
+    amenitiesBayutList.forEach((amenity) => {
+      const checkbox = document.querySelector(
+        `input[name="amenities_bayut[]"][value="${amenity}"]`,
+      );
+      if (checkbox) checkbox.checked = true;
+    });
 
     // Pre-fill image gallery
     if (listing.images && Array.isArray(listing.images)) {

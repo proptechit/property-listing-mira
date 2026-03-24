@@ -55,6 +55,34 @@
                     </div>
                 </div>
             </div>
+
+            <div>
+                <label class="block text-md font-semibold text-slate-500">Location (Bayut)</label>
+                <div class="mt-1 relative">
+                    <select name="bayut_location" id="bayutLocationSelect" class="hidden">
+                        <option value="">Select Bayut Location</option>
+                    </select>
+
+                    <div class="relative">
+                        <input
+                            id="bayutLocationSearchInput"
+                            type="text"
+                            autocomplete="off"
+                            placeholder="Search and select a Bayut location..."
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 pl-10 pr-10 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
+                        <i class="fa-solid fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        <button id="clearBayutLocationBtn" type="button"
+                            class="hidden absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-slate-200 text-slate-500">
+                            ✕
+                        </button>
+
+                        <div id="bayutLocationSearchMenu"
+                            class="absolute z-30 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                            <div class="p-3 text-md text-slate-500">Type at least 2 characters to search…</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>

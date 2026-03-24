@@ -40,7 +40,7 @@ if (!$id) {
             <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Residential/Commercial -->
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">Residential / Commercial</label>
+                    <label class="block text-md font-semibold text-slate-500">Residential / Commercial <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
                         <input type="hidden" name="category" id="propertyCategory" value="">
                         <button type="button" id="propertyCategoryBtn"
@@ -149,11 +149,12 @@ if (!$id) {
                 </div>
 
                 <div>
-                    <label class="block text-md font-semibold text-slate-500">Size (sqft)</label>
+                    <label class="block text-md font-semibold text-slate-500">Size (sqft) <span class="text-red-500">*</span></label>
                     <div class="mt-1 relative">
                         <input type="number" name="size" min="0"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0">
+                            placeholder="0"
+                            required>
                         <i class="fa-solid fa-ruler-combined absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
                 </div>
@@ -396,30 +397,22 @@ if (!$id) {
                 <i class="fa-solid fa-star text-slate-400"></i>
             </div>
 
-            <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3" id="amenitiesContainer">
-                <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
-                    <input type="checkbox" name="amenities_kitchen" class="rounded border-slate-300">
-                    <i class="fa-solid fa-kitchen-set text-slate-500"></i>
-                    <span>Kitchen</span>
-                </label>
+            <div class="p-5 space-y-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-building text-slate-400"></i>
+                        <h3 class="text-md font-semibold text-slate-900">Property Finder Amenities</h3>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="amenitiesPfContainer"></div>
+                </div>
 
-                <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
-                    <input type="checkbox" name="amenities_garden" class="rounded border-slate-300">
-                    <i class="fa-solid fa-seedling text-slate-500"></i>
-                    <span>Garden</span>
-                </label>
-
-                <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
-                    <input type="checkbox" name="amenities_parking" class="rounded border-slate-300">
-                    <i class="fa-solid fa-square-parking text-slate-500"></i>
-                    <span>Parking</span>
-                </label>
-
-                <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
-                    <input type="checkbox" name="amenities_pool" class="rounded border-slate-300">
-                    <i class="fa-solid fa-water-ladder text-slate-500"></i>
-                    <span>Pool</span>
-                </label>
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-house-signal text-slate-400"></i>
+                        <h3 class="text-md font-semibold text-slate-900">Bayut Amenities</h3>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="amenitiesBayutContainer"></div>
+                </div>
             </div>
         </section>
 

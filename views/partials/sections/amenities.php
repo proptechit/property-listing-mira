@@ -11,30 +11,22 @@
     </div>
 
     <div class="transition-all duration-300 ease-in-out" data-collapsible-content>
-        <div class="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3" id="amenitiesContainer">
-            <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
-                <input type="checkbox" name="amenities_kitchen" class="rounded border-slate-300">
-                <i class="fa-solid fa-kitchen-set text-slate-500"></i>
-                <span>Kitchen</span>
-            </label>
+        <div class="p-5 space-y-6">
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-building text-slate-400"></i>
+                    <h3 class="text-md font-semibold text-slate-900">Property Finder Amenities</h3>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="amenitiesPfContainer"></div>
+            </div>
 
-            <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
-                <input type="checkbox" name="amenities_garden" class="rounded border-slate-300">
-                <i class="fa-solid fa-seedling text-slate-500"></i>
-                <span>Garden</span>
-            </label>
-
-            <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
-                <input type="checkbox" name="amenities_parking" class="rounded border-slate-300">
-                <i class="fa-solid fa-square-parking text-slate-500"></i>
-                <span>Parking</span>
-            </label>
-
-            <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-md text-slate-700">
-                <input type="checkbox" name="amenities_pool" class="rounded border-slate-300">
-                <i class="fa-solid fa-water-ladder text-slate-500"></i>
-                <span>Pool</span>
-            </label>
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-house-signal text-slate-400"></i>
+                    <h3 class="text-md font-semibold text-slate-900">Bayut Amenities</h3>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="amenitiesBayutContainer"></div>
+            </div>
         </div>
     </div>
 </section>
