@@ -1290,6 +1290,7 @@ function initializeImageManagement() {
   const addImageBtn = document.getElementById("addImageBtn");
   const imageInput = document.getElementById("imageInput");
   const imageGrid = document.getElementById("imagePreviewGrid");
+  const clearAllImagesBtn = document.getElementById("clearAllImagesBtn");
 
   if (!imageInput || !imageGrid) return;
   if (imageInput.dataset.imageManagementBound === "1") return;
@@ -1315,7 +1316,15 @@ function initializeImageManagement() {
     });
   }
 
+  if (clearAllImagesBtn && clearAllImagesBtn.dataset.bulkRemoveBound !== "1") {
+    clearAllImagesBtn.dataset.bulkRemoveBound = "1";
+    clearAllImagesBtn.addEventListener("click", () => {
+      clearAllImages();
+    });
+  }
+
   setupDragAndDrop();
+  syncClearAllImagesButton();
 
   if (imageInput.dataset.imageCleanupBound !== "1") {
     imageInput.dataset.imageCleanupBound = "1";
@@ -1597,6 +1606,7 @@ function renderImageGallery() {
   });
 
   updateImagesInput();
+  syncClearAllImagesButton();
 
   // When gallery height changes inside an open collapsible section,
   // recalculate section max-height to prevent overlap with next sections.
@@ -1617,6 +1627,37 @@ function removeImage(id) {
     (img) => img && toImageId(img.id) !== targetId,
   );
   renderImageGallery();
+}
+
+function clearAllImages() {
+  if (imageGallery.length === 0) return;
+
+  const confirmed = window.confirm(
+    `Delete all ${imageGallery.length} image${imageGallery.length === 1 ? "" : "s"} from this listing?`,
+  );
+  if (!confirmed) return;
+
+  disposeAllImagePreviews();
+  imageGallery = [];
+  setImageUploadFeedback();
+
+  const imageInput = document.getElementById("imageInput");
+  if (imageInput) {
+    imageInput.value = "";
+  }
+
+  renderImageGallery();
+}
+
+function syncClearAllImagesButton() {
+  const clearAllImagesWrap = document.getElementById("clearAllImagesWrap");
+  const clearAllImagesBtn = document.getElementById("clearAllImagesBtn");
+  if (!clearAllImagesWrap || !clearAllImagesBtn) return;
+
+  const hasImages = imageGallery.length > 0;
+  clearAllImagesWrap.classList.toggle("hidden", !hasImages);
+  clearAllImagesWrap.classList.toggle("flex", hasImages);
+  clearAllImagesBtn.disabled = !hasImages;
 }
 
 function reorderImages(fromIndex, toIndex) {

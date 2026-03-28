@@ -42,6 +42,14 @@
 
                 <div id="imageUploadFeedback" class="hidden mb-4 rounded-xl border px-4 py-3 text-sm"></div>
 
+                <div class="mb-4 hidden justify-end" id="clearAllImagesWrap">
+                    <button type="button" id="clearAllImagesBtn"
+                        class="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60">
+                        <i class="fa-solid fa-trash-can"></i>
+                        Delete All Images
+                    </button>
+                </div>
+
                 <!-- Image Preview Grid -->
                 <div id="imagePreviewGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     <!-- Images will be dynamically added here -->
