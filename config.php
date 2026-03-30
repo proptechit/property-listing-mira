@@ -12,6 +12,7 @@ $ADMIN_IDS = [
     5, // Kristina Boeva
     7, // Abinas Subair
     123, // Aldo De Jager
+    28, // Daphne Varghese
 ];
 
 $ENV = 'development';
