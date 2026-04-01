@@ -1,8 +1,8 @@
 const COMPANY_DESCRIPTION_BLOCK = `
 
-About MIRA Real Estate:
+About MIRA International:
 
-MIRA Real Estate is a premium brokerage in Dubai, accredited by top developers and offering over 400+ high-end projects. Our experienced team specializes in luxury real estate, investment advisory, and exclusive property sales, delivering record-breaking transactions and tailored client experiences.
+MIRA International is a premium brokerage in Dubai, accredited by top developers and offering over 400+ high-end projects. Our experienced team specializes in luxury real estate, investment advisory, and exclusive property sales, delivering record-breaking transactions and tailored client experiences.
 `;
 
 // Character counter
