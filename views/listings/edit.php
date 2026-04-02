@@ -536,7 +536,7 @@ if (!$id) {
                             <input type="checkbox" id="autoResizeImages" class="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked>
                             <span>
                                 <span class="block text-sm font-semibold text-slate-800">Auto resize images</span>
-                                <span class="block text-sm text-slate-500">When enabled, new uploads are validated and resized to fit within 1400 x 1050 pixels. Minimum accepted size is 800 x 600 and aspect ratio must stay between 1.3 and 1.8, with 4:3 recommended.</span>
+                                <span class="block text-sm text-slate-500">When enabled, new uploads are validated and resized to fit within 1400 x 1050 pixels. Minimum accepted size is 800 x 600 and aspect ratio must stay between 1.3 and 2, with 4:3 recommended.</span>
                             </span>
                         </label>
                     </div>

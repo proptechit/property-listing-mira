@@ -1096,13 +1096,6 @@ function toImageId(id) {
   return String(id ?? "");
 }
 
-const IMAGE_MIN_WIDTH = 800;
-const IMAGE_MIN_HEIGHT = 600;
-const IMAGE_MAX_WIDTH = 1400;
-const IMAGE_MAX_HEIGHT = 1050;
-const IMAGE_MIN_RATIO = 1.3;
-const IMAGE_MAX_RATIO = 1.8;
-const IMAGE_OUTPUT_QUALITY = 0.82;
 const MAX_REQUEST_BYTES = 24 * 1024 * 1024;
 
 function getAutoResizeEnabled() {
@@ -1139,28 +1132,6 @@ function estimatePayloadBytes(payload) {
   }
 }
 
-function loadImageElement(src) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Unable to read image"));
-    image.src = src;
-  });
-}
-
-function canvasToBlob(canvas, type = "image/jpeg", quality = IMAGE_OUTPUT_QUALITY) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-        return;
-      }
-
-      reject(new Error("Failed to export image blob."));
-    }, type, quality);
-  });
-}
-
 function getImagePreviewSrc(image) {
   return image?.previewUrl || image?.src || "";
 }
@@ -1177,84 +1148,24 @@ function disposeAllImagePreviews() {
   });
 }
 
-function getResizedImageName(fileName) {
-  const name = String(fileName || "image.jpg");
-  return name.replace(/\.[^.]+$/, "") + ".jpg";
-}
-
-async function buildListingImage(file, autoResizeEnabled) {
-  const sourceUrl = URL.createObjectURL(file);
-  try {
-    const image = await loadImageElement(sourceUrl);
-    const width = Number(image.naturalWidth || image.width || 0);
-    const height = Number(image.naturalHeight || image.height || 0);
-    const ratio = height > 0 ? width / height : 0;
-
-    if (width < IMAGE_MIN_WIDTH || height < IMAGE_MIN_HEIGHT) {
-      throw new Error(
-        `${file.name}: minimum size is ${IMAGE_MIN_WIDTH}x${IMAGE_MIN_HEIGHT}px. Uploaded image is ${width}x${height}px.`,
-      );
-    }
-
-    if (ratio < IMAGE_MIN_RATIO || ratio > IMAGE_MAX_RATIO) {
-      throw new Error(
-        `${file.name}: aspect ratio must be between ${IMAGE_MIN_RATIO.toFixed(1)} and ${IMAGE_MAX_RATIO.toFixed(1)}. Uploaded image ratio is ${ratio.toFixed(2)}.`,
-      );
-    }
-
-    if (!autoResizeEnabled) {
-      return {
-        id: Date.now() + Math.random(),
-        file,
-        previewUrl: sourceUrl,
-        name: file.name,
-        isExistingImage: false,
-      };
-    }
-
-    const scale = Math.min(
-      IMAGE_MAX_WIDTH / width,
-      IMAGE_MAX_HEIGHT / height,
-      1,
-    );
-    const targetWidth = Math.max(1, Math.round(width * scale));
-    const targetHeight = Math.max(1, Math.round(height * scale));
-    const canvas = document.createElement("canvas");
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      throw new Error(`${file.name}: failed to prepare image resize canvas.`);
-    }
-
-    ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
-    const resizedBlob = await canvasToBlob(canvas);
-    const previewUrl = URL.createObjectURL(resizedBlob);
-    URL.revokeObjectURL(sourceUrl);
-
-    return {
-      id: Date.now() + Math.random(),
-      file: resizedBlob,
-      previewUrl,
-      name: getResizedImageName(file.name),
-      isExistingImage: false,
-    };
-  } catch (error) {
-    URL.revokeObjectURL(sourceUrl);
-    throw error;
-  }
+async function buildListingImage(file) {
+  return {
+    id: Date.now() + Math.random(),
+    file,
+    previewUrl: URL.createObjectURL(file),
+    name: file.name,
+    isExistingImage: false,
+  };
 }
 
 async function handleImageInputChange(e) {
   const files = Array.from(e?.target?.files || []);
-  const autoResizeEnabled = getAutoResizeEnabled();
   const failures = [];
   let addedCount = 0;
 
   for (const file of files) {
     try {
-      const imageData = await buildListingImage(file, autoResizeEnabled);
+      const imageData = await buildListingImage(file);
       imageGallery.push(imageData);
       addedCount += 1;
     } catch (error) {
@@ -1268,13 +1179,6 @@ async function handleImageInputChange(e) {
 
   if (failures.length > 0) {
     setImageUploadFeedback(failures, "error");
-  } else if (addedCount > 0 && autoResizeEnabled) {
-    setImageUploadFeedback(
-      [
-        `${addedCount} image${addedCount === 1 ? "" : "s"} validated and resized for listing upload.`,
-      ],
-      "success",
-    );
   } else {
     setImageUploadFeedback();
   }
@@ -1928,9 +1832,7 @@ function attachFormSubmissionHandler(id) {
       if (estimatedPayloadBytes > MAX_REQUEST_BYTES) {
         const maxMb = (MAX_REQUEST_BYTES / (1024 * 1024)).toFixed(1);
         const actualMb = (estimatedPayloadBytes / (1024 * 1024)).toFixed(1);
-        const resizeNote = getAutoResizeEnabled()
-          ? "Please upload fewer images or smaller originals."
-          : "Please turn on auto resize or upload fewer images.";
+        const resizeNote = "Please upload fewer images or smaller originals.";
 
         throw new Error(
           `Image upload is too large for the server limit (${actualMb} MB > ${maxMb} MB). ${resizeNote}`,
