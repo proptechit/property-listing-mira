@@ -1096,6 +1096,9 @@ function toImageId(id) {
   return String(id ?? "");
 }
 
+const IMAGE_OUTPUT_WIDTH = 800;
+const IMAGE_OUTPUT_HEIGHT = 600;
+const IMAGE_OUTPUT_QUALITY = 0.82;
 const MAX_REQUEST_BYTES = 24 * 1024 * 1024;
 
 function getAutoResizeEnabled() {
@@ -1132,6 +1135,28 @@ function estimatePayloadBytes(payload) {
   }
 }
 
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Unable to read image"));
+    image.src = src;
+  });
+}
+
+function canvasToBlob(canvas, type = "image/jpeg", quality = IMAGE_OUTPUT_QUALITY) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+
+      reject(new Error("Failed to export image blob."));
+    }, type, quality);
+  });
+}
+
 function getImagePreviewSrc(image) {
   return image?.previewUrl || image?.src || "";
 }
@@ -1149,39 +1174,59 @@ function disposeAllImagePreviews() {
 }
 
 async function buildListingImage(file) {
-  return {
-    id: Date.now() + Math.random(),
-    file,
-    previewUrl: URL.createObjectURL(file),
-    name: file.name,
-    isExistingImage: false,
-  };
+  const sourceUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await loadImageElement(sourceUrl);
+    const canvas = document.createElement("canvas");
+    canvas.width = IMAGE_OUTPUT_WIDTH;
+    canvas.height = IMAGE_OUTPUT_HEIGHT;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      throw new Error("Failed to prepare image resize canvas.");
+    }
+
+    ctx.drawImage(image, 0, 0, IMAGE_OUTPUT_WIDTH, IMAGE_OUTPUT_HEIGHT);
+    const resizedBlob = await canvasToBlob(canvas);
+    const previewUrl = URL.createObjectURL(resizedBlob);
+    URL.revokeObjectURL(sourceUrl);
+
+    return {
+      id: Date.now() + Math.random(),
+      file: resizedBlob,
+      previewUrl,
+      name: String(file.name || "image").replace(/\.[^.]+$/, "") + ".jpg",
+      isExistingImage: false,
+    };
+  } catch {
+    URL.revokeObjectURL(sourceUrl);
+
+    return {
+      id: Date.now() + Math.random(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+      isExistingImage: false,
+    };
+  }
 }
 
 async function handleImageInputChange(e) {
   const files = Array.from(e?.target?.files || []);
-  const failures = [];
   let addedCount = 0;
 
   for (const file of files) {
-    try {
-      const imageData = await buildListingImage(file);
-      imageGallery.push(imageData);
-      addedCount += 1;
-    } catch (error) {
-      failures.push(error?.message || `${file.name}: failed to process image.`);
-    }
+    const imageData = await buildListingImage(file);
+    imageGallery.push(imageData);
+    addedCount += 1;
   }
 
   if (addedCount > 0) {
     renderImageGallery();
   }
 
-  if (failures.length > 0) {
-    setImageUploadFeedback(failures, "error");
-  } else {
-    setImageUploadFeedback();
-  }
+  setImageUploadFeedback();
 
   if (e?.target) {
     e.target.value = ""; // Reset input so selecting same file again still triggers change
