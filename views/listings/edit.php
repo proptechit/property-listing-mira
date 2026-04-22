@@ -380,7 +380,7 @@ if (!$id) {
                             id="appendCompanyInfoBtn"
                             class="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold">
                             <i class="fa-solid fa-building"></i>
-                            Add Primo details
+                            Add Company details
                         </button>
                     </div>
                 </div>
