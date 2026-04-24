@@ -260,8 +260,26 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   const location = normStr(listing?.location?.name || listing?.location);
   const status = normStr(listing?.status);
   const purpose = normStr(listing?.purpose);
-  const agent = normStr(listing?.listing_agent);
-  const owner = normStr(listing?.listing_owner);
+
+  // With these — handles both object and string forms:
+  const agentObj = listing?.listing_agent;
+  const agent = agentObj
+    ? normStr(
+        typeof agentObj === "object"
+          ? (agentObj.name ?? String(agentObj.id ?? ""))
+          : agentObj,
+      )
+    : "";
+
+  const ownerObj = listing?.listing_owner;
+  const owner = ownerObj
+    ? normStr(
+        typeof ownerObj === "object"
+          ? (ownerObj.name ?? String(ownerObj.id ?? ""))
+          : ownerObj,
+      )
+    : "";
+
   const type = normStr(listing?.property_type_pf);
   const bedrooms = toNum(listing?.bedrooms);
   const bathrooms = toNum(listing?.bathrooms);
@@ -298,18 +316,24 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
 
   // For agent, convert ID to name if it's stored as ID
   if (f.agent) {
-    const agentFilter = agentMap[f.agent]
-      ? normStr(agentMap[f.agent])
-      : normStr(f.agent);
-    if (!agent.includes(agentFilter)) return false;
+    // Match by ID (object form) or by name (string form)
+    const listingAgentObj = listing?.listing_agent;
+    const idMatch =
+      listingAgentObj?.id != null &&
+      String(listingAgentObj.id) === String(f.agent);
+    const nameFromMap = agentMap[f.agent] ? normStr(agentMap[f.agent]) : null;
+    const nameMatch = nameFromMap ? agent.includes(nameFromMap) : false;
+    if (!idMatch && !nameMatch) return false;
   }
 
-  // For owner, convert ID to name if it's stored as ID
   if (f.owner) {
-    const ownerFilter = ownerMap[f.owner]
-      ? normStr(ownerMap[f.owner])
-      : normStr(f.owner);
-    if (!owner.includes(ownerFilter)) return false;
+    const listingOwnerObj = listing?.listing_owner;
+    const idMatch =
+      listingOwnerObj?.id != null &&
+      String(listingOwnerObj.id) === String(f.owner);
+    const nameFromMap = ownerMap[f.owner] ? normStr(ownerMap[f.owner]) : null;
+    const nameMatch = nameFromMap ? owner.includes(nameFromMap) : false;
+    if (!idMatch && !nameMatch) return false;
   }
 
   if (f.type && !type.includes(normStr(f.type))) return false;
@@ -1371,15 +1395,16 @@ async function loadOwnersDropdown() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Run listings bootstrap only on listings list page.
   const hasListingsUI = !!qs("#listingsTable") || !!qs("#listingsGrid");
   if (!hasListingsUI) return;
 
   wireSearch();
   wireFilters();
   wireViewToggle();
-  loadAgentsDropdown();
-  loadOwnersDropdown();
   wireListingClicks();
-  loadListings(1, state.searchTerm, state.filters);
+
+  // Load dropdowns first, then listings (avoids agentMap being empty)
+  Promise.all([loadAgentsDropdown(), loadOwnersDropdown()]).finally(() => {
+    loadListings(1, state.searchTerm, state.filters);
+  });
 });
