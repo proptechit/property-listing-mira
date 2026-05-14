@@ -85,7 +85,7 @@ function normalizeFiles(array $files): array
         // Fallback: if no src is present, preserve existing Bitrix file id.
         $existingId = extractExistingFileId($file);
         if ($existingId !== null) {
-            $result[] = $existingId;
+            $result[] = ['id' => $existingId];
             continue;
         }
 
@@ -305,7 +305,7 @@ function normalizeDocumentFields(array &$input): void
         }
 
         $normalized = array_map(function ($value) {
-            if (is_array($value) && count($value) === 2) {
+            if (is_array($value) && count($value) === 2 && !isset($value['id'])) {
                 $base64 = (string)($value[1] ?? '');
 
                 if (strpos($base64, 'base64,') !== false) {
@@ -321,7 +321,17 @@ function normalizeDocumentFields(array &$input): void
             return $value;
         }, $normalized);
 
-        $input[$field] = $normalized[0] ?? false;
+        $first = $normalized[0] ?? false;
+        
+        // If the file is just an existing file reference, unset the field
+        // to preserve it in Bitrix (since single file fields are preserved by omitting them).
+        if (is_array($first) && isset($first['id'])) {
+            unset($input[$field]);
+        } elseif (is_int($first) || (is_string($first) && is_numeric($first))) {
+            unset($input[$field]);
+        } else {
+            $input[$field] = $first;
+        }
     }
 }
 
