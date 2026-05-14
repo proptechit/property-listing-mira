@@ -236,18 +236,32 @@ function hydrateListingMediaFields(array &$item): void
     $hydrate = function ($value) {
         if (empty($value)) return $value;
 
+        // Helper to format an associative array without making API calls
+        $formatObject = function($obj) {
+            if (is_array($obj) && isset($obj['id'])) {
+                $id = (int)$obj['id'];
+                // If urlMachine is present, we don't need to fetch from Bitrix
+                if (isset($obj['urlMachine']) || isset($obj['url']) || isset($obj['downloadUrl'])) {
+                    $url = normalizeBitrixFileUrl($obj['urlMachine'] ?? $obj['url'] ?? $obj['downloadUrl'] ?? '');
+                    return [
+                        'id' => $id,
+                        'name' => $obj['name'] ?? $obj['NAME'] ?? ('File ' . $id),
+                        'urlMachine' => $url,
+                        'downloadUrl' => $url,
+                        'existingFileId' => $id,
+                    ];
+                }
+                // Fallback to fetch if URLs are missing
+                return hydrateBitrixFileById($id);
+            }
+            return hydrateBitrixFileById($obj);
+        };
+
         if (is_array($value)) {
             if (array_is_list($value)) {
-                return array_values(array_filter(array_map(
-                    function($v) {
-                        $id = is_array($v) && isset($v['id']) ? $v['id'] : $v;
-                        return hydrateBitrixFileById($id);
-                    },
-                    $value
-                )));
+                return array_values(array_filter(array_map($formatObject, $value)));
             } else {
-                $id = isset($value['id']) ? $value['id'] : $value;
-                return hydrateBitrixFileById($id);
+                return $formatObject($value);
             }
         }
         
