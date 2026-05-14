@@ -233,11 +233,29 @@ function hydrateBitrixFileById($value)
 
 function hydrateListingMediaFields(array &$item): void
 {
-    if (!empty($item['images']) && is_array($item['images'])) {
-        $item['images'] = array_values(array_filter(array_map(
-            fn($image) => hydrateBitrixFileById($image),
-            $item['images']
-        )));
+    $hydrate = function ($value) {
+        if (empty($value)) return $value;
+
+        if (is_array($value)) {
+            if (array_is_list($value)) {
+                return array_values(array_filter(array_map(
+                    function($v) {
+                        $id = is_array($v) && isset($v['id']) ? $v['id'] : $v;
+                        return hydrateBitrixFileById($id);
+                    },
+                    $value
+                )));
+            } else {
+                $id = isset($value['id']) ? $value['id'] : $value;
+                return hydrateBitrixFileById($id);
+            }
+        }
+        
+        return hydrateBitrixFileById($value);
+    };
+
+    if (isset($item['images'])) {
+        $item['images'] = $hydrate($item['images']);
     }
 
     $documentFields = [
@@ -249,19 +267,9 @@ function hydrateListingMediaFields(array &$item): void
     ];
 
     foreach ($documentFields as $field) {
-        if (!isset($item[$field])) {
-            continue;
+        if (array_key_exists($field, $item)) {
+            $item[$field] = $hydrate($item[$field]);
         }
-
-        if (is_array($item[$field])) {
-            $item[$field] = array_values(array_filter(array_map(
-                fn($doc) => hydrateBitrixFileById($doc),
-                $item[$field]
-            )));
-            continue;
-        }
-
-        $item[$field] = hydrateBitrixFileById($item[$field]);
     }
 }
 
