@@ -734,7 +734,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                    role="menuitem">View</a>
 
                 <a href="?page=listings&action=edit&id=${l.id}"
-                  class="${IS_ADMIN || l.listing_owner?.id == USER_ID ? "block" : "hidden"} px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
+                  class="${IS_ADMIN || l.listing_owner?.id == USER_ID || l.listing_agent?.id == USER_ID ? "block" : "hidden"} px-4 py-2 text-md text-slate-700 hover:bg-slate-50"
                   role="menuitem">
                   Edit
                 </a>

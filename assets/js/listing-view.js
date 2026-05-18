@@ -372,8 +372,9 @@ async function loadListingDetails(id) {
     const editBtn = qs("#editListingBtn");
     if (editBtn) {
       const isOwner = listing?.listing_owner?.id == USER_ID;
+      const isAgent = listing?.listing_agent?.id == USER_ID;
 
-      if (!(IS_ADMIN || isOwner)) {
+      if (!(IS_ADMIN || isOwner || isAgent)) {
         editBtn.classList.add("hidden");
       }
     }
