@@ -27,9 +27,11 @@ if ($method === 'GET') {
     }
 
     $filter = [];
+    $order = ['ID' => 'DESC'];
 
     if (!empty($_GET['q'])) {
         $filter['%title'] = $_GET['q'];
+        $order = ['ID' => 'ASC']; // Prioritize older items (communities/parents) for searches
     }
 
     $mappedFilters = mapFilters($_GET, $map);
@@ -45,7 +47,7 @@ if ($method === 'GET') {
         'filter'       => $filter,
         'select'       => array_values($map),
         'start'        => $start,
-        'order'        => ['ID' => 'DESC'],
+        'order'        => $order,
         // Don't pass limit - use Bitrix default of 50
     ]);
 
@@ -56,6 +58,37 @@ if ($method === 'GET') {
         fn($item) => fromBitrixFields($item, $map),
         $items
     );
+
+    // Sort results intelligently if searching
+    if (!empty($_GET['q'])) {
+        $q = strtolower(trim($_GET['q']));
+        usort($output, function($a, $b) use ($q) {
+            $nameA = strtolower($a['name'] ?? '');
+            $nameB = strtolower($b['name'] ?? '');
+
+            // 1. Exact match (case insensitive)
+            $exactA = ($nameA === $q);
+            $exactB = ($nameB === $q);
+            if ($exactA && !$exactB) return -1;
+            if (!$exactA && $exactB) return 1;
+
+            // 2. Starts with (case-insensitive)
+            $startsWithA = (strpos($nameA, $q) === 0);
+            $startsWithB = (strpos($nameB, $q) === 0);
+            if ($startsWithA && !$startsWithB) return -1;
+            if (!$startsWithA && $startsWithB) return 1;
+
+            // 3. String length (shorter names first, e.g. parent communities)
+            $lenA = strlen($nameA);
+            $lenB = strlen($nameB);
+            if ($lenA !== $lenB) {
+                return $lenA - $lenB;
+            }
+
+            // 4. Fallback to ID (ASC)
+            return (int)($a['id'] ?? 0) - (int)($b['id'] ?? 0);
+        });
+    }
 
     jsonResponse([
         'data' => $output,
