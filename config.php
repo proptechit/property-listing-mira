@@ -8,6 +8,7 @@ $ADMIN_IDS = [
     167, // Marimar Ordaniel (Admin of ST4)
     157, // Alex Jordan Devenport (Admin of ST5)
     29, // Ma. Betty (Admin of ST4 and PO)
+    249, // Daniela Ramos (Admin of PO)
     134, // Moh'D Barakat
     5, // Kristina Boeva
     7, // Abinas Subair
