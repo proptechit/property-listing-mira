@@ -182,6 +182,20 @@ async function loadListingForEdit(listingId) {
       }
     }
 
+    // Pre-fill different type checkbox
+    const differentTypeCheckbox = document.getElementById("differentTypeBayutPf");
+    if (differentTypeCheckbox) {
+      const isDifferent = listing.different_type_bayut_pf === true || 
+                          listing.different_type_bayut_pf === 1 || 
+                          listing.different_type_bayut_pf === '1' ||
+                          listing.different_type_bayut_pf === 'Y';
+      differentTypeCheckbox.checked = isDifferent;
+      
+      // Trigger change event to show/hide the conditional Bayut Type select field
+      differentTypeCheckbox.dispatchEvent(new Event("change"));
+    }
+
+
     const portalsSelect = document.getElementById("portals");
     if (
       portalsSelect &&
@@ -258,6 +272,7 @@ async function loadListingForEdit(listingId) {
     const iconSelects = [
       { id: "propertyCategory", field: "category" },
       { id: "propertyType", field: "property_type_pf" },
+      { id: "bayutPropertyType", field: "property_type_bayut" },
       { id: "furnishingType", field: "furnishing_type" },
       { id: "finishingType", field: "finishing_type" },
       { id: "projectStatus", field: "project_status" },
@@ -267,6 +282,7 @@ async function loadListingForEdit(listingId) {
       { id: "uaeEmirate", field: "emirate" },
       { id: "purposeType", field: "purpose" },
     ];
+
 
     const valueLabels = {
       category: {
@@ -344,6 +360,28 @@ async function loadListingForEdit(listingId) {
           icon: "fa-solid fa-building",
         },
       },
+      property_type_bayut: {
+        apartment: { label: "Apartment", icon: "fa-solid fa-building" },
+        commercial_building: { label: "Commercial Building", icon: "fa-solid fa-city" },
+        commercial_floor: { label: "Commercial Floor", icon: "fa-solid fa-layer-group" },
+        commercial_land: { label: "Commercial Land", icon: "fa-solid fa-mountain-sun" },
+        duplex: { label: "Duplex", icon: "fa-solid fa-building" },
+        factory: { label: "Factory", icon: "fa-solid fa-industry" },
+        hotel_apartment: { label: "Hotel Apartment", icon: "fa-solid fa-hotel" },
+        labour_camp: { label: "Labour Camp", icon: "fa-solid fa-people-roof" },
+        loft_apartment: { label: "Loft Apartment", icon: "fa-solid fa-building" },
+        office: { label: "Office", icon: "fa-solid fa-briefcase" },
+        other_commercial: { label: "Other Commercial", icon: "fa-solid fa-store-large" },
+        pent_house: { label: "Penthouse", icon: "fa-solid fa-building-user" },
+        residential_building: { label: "Residential Building", icon: "fa-solid fa-building" },
+        residential_floor: { label: "Residential Floor", icon: "fa-solid fa-layer-group" },
+        residential_land: { label: "Residential Land", icon: "fa-solid fa-mountain-sun" },
+        shop: { label: "Shop", icon: "fa-solid fa-store" },
+        townhouse: { label: "Townhouse", icon: "fa-solid fa-house" },
+        villa: { label: "Villa", icon: "fa-solid fa-house-chimney" },
+        warehouse: { label: "Warehouse", icon: "fa-solid fa-warehouse" }
+      },
+
 
       purpose: {
         "For Sale": { label: "Buy", icon: "fa-solid fa-bag-shopping" },

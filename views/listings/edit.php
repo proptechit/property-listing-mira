@@ -72,7 +72,35 @@ if (!$id) {
                             <!-- populated by JS -->
                         </div>
                     </div>
+
+                    <!-- Checkbox: Different Type in Bayut and PF? -->
+                    <div class="mt-3 flex items-center gap-2">
+                        <input type="checkbox" id="differentTypeBayutPf" name="different_type_bayut_pf" value="1"
+                            class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4">
+                        <label for="differentTypeBayutPf" class="text-sm font-semibold text-slate-600 cursor-pointer select-none">
+                            Different type in Bayut and PF?
+                        </label>
+                    </div>
                 </div>
+
+                <!-- Bayut Property Type (Conditional) -->
+                <div id="bayutTypeContainer" class="hidden">
+                    <label class="block text-md font-semibold text-slate-500">Bayut Property Type <span class="text-red-500">*</span></label>
+                    <div class="mt-1 relative">
+                        <input type="hidden" name="property_type_bayut" id="bayutPropertyType" value="">
+                        <button type="button" id="bayutPropertyTypeBtn"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-left text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between">
+                            <span id="bayutPropertyTypeLabel" class="text-slate-400">Select Bayut Type</span>
+                            <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                        </button>
+
+                        <div id="bayutPropertyTypeMenu"
+                            class="absolute z-20 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg max-h-60 overflow-y-auto">
+                            <!-- populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Sale/Rent -->
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Sale/Rent <span class="text-red-500">*</span></label>

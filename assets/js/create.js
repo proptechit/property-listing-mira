@@ -540,6 +540,36 @@ function setupCreatePageUI() {
   });
 
   setupIconSelect({
+    hiddenInputId: "bayutPropertyType",
+    btnId: "bayutPropertyTypeBtn",
+    labelId: "bayutPropertyTypeLabel",
+    menuId: "bayutPropertyTypeMenu",
+    placeholder: "Select Bayut Type",
+    options: [
+      { value: "apartment", label: "Apartment", icon: "fa-solid fa-building" },
+      { value: "commercial_building", label: "Commercial Building", icon: "fa-solid fa-city" },
+      { value: "commercial_floor", label: "Commercial Floor", icon: "fa-solid fa-layer-group" },
+      { value: "commercial_land", label: "Commercial Land", icon: "fa-solid fa-mountain-sun" },
+      { value: "duplex", label: "Duplex", icon: "fa-solid fa-building" },
+      { value: "factory", label: "Factory", icon: "fa-solid fa-industry" },
+      { value: "hotel_apartment", label: "Hotel Apartment", icon: "fa-solid fa-hotel" },
+      { value: "labour_camp", label: "Labour Camp", icon: "fa-solid fa-people-roof" },
+      { value: "loft_apartment", label: "Loft Apartment", icon: "fa-solid fa-building" },
+      { value: "office", label: "Office", icon: "fa-solid fa-briefcase" },
+      { value: "other_commercial", label: "Other Commercial", icon: "fa-solid fa-store-large" },
+      { value: "pent_house", label: "Penthouse", icon: "fa-solid fa-building-user" },
+      { value: "residential_building", label: "Residential Building", icon: "fa-solid fa-building" },
+      { value: "residential_floor", label: "Residential Floor", icon: "fa-solid fa-layer-group" },
+      { value: "residential_land", label: "Residential Land", icon: "fa-solid fa-mountain-sun" },
+      { value: "shop", label: "Shop", icon: "fa-solid fa-store" },
+      { value: "townhouse", label: "Townhouse", icon: "fa-solid fa-house" },
+      { value: "villa", label: "Villa", icon: "fa-solid fa-house-chimney" },
+      { value: "warehouse", label: "Warehouse", icon: "fa-solid fa-warehouse" }
+    ],
+  });
+
+  setupIconSelect({
+
     hiddenInputId: "purposeType",
     btnId: "purposeTypeBtn",
     labelId: "purposeTypeLabel",
@@ -703,6 +733,34 @@ function setupCreatePageUI() {
       },
     ],
   });
+
+  const differentTypeCheckbox = document.getElementById("differentTypeBayutPf");
+  const bayutTypeContainer = document.getElementById("bayutTypeContainer");
+  const bayutPropertyTypeInput = document.getElementById("bayutPropertyType");
+
+  if (differentTypeCheckbox && bayutTypeContainer) {
+    const handleToggle = () => {
+      if (differentTypeCheckbox.checked) {
+        bayutTypeContainer.classList.remove("hidden");
+      } else {
+        bayutTypeContainer.classList.add("hidden");
+        if (bayutPropertyTypeInput) {
+          bayutPropertyTypeInput.value = "";
+        }
+        const bayutLabel = document.getElementById("bayutPropertyTypeLabel");
+        if (bayutLabel) {
+          bayutLabel.textContent = "Select Bayut Type";
+          bayutLabel.classList.add("text-slate-400");
+          bayutLabel.classList.remove("text-slate-800");
+        }
+      }
+    };
+
+    differentTypeCheckbox.addEventListener("change", handleToggle);
+    // Initial trigger
+    handleToggle();
+  }
+
 
   document.addEventListener("click", (e) => {
     const inside = e.target.closest("[data-icon-menu]");
@@ -1807,6 +1865,10 @@ function attachFormSubmissionHandler(id) {
       // Gather form data
       const formData = new FormData(form);
       const data = Object.fromEntries(formData);
+
+      // Explicitly set checkbox state (since unchecked checkboxes are omitted from FormData)
+      data.different_type_bayut_pf = document.getElementById("differentTypeBayutPf")?.checked ? 1 : 0;
+
 
       // convert documents
       for (const key of Object.keys(documentFieldConfig)) {

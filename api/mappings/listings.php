@@ -109,6 +109,8 @@ return [
     'propertyfinder_id' => 'ufCrm5_1754838287',
     'bayut_id'          => 'ufCrm7_1773047782',
     'pocket_listing'    => 'ufCrm7_1770201260',
+    'different_type_bayut_pf' => 'ufCrm7_1780385120830',
+
 
     /*
     |--------------------------------------------------------------------------
