@@ -1867,7 +1867,8 @@ function attachFormSubmissionHandler(id) {
       const data = Object.fromEntries(formData);
 
       // Explicitly set checkbox state (since unchecked checkboxes are omitted from FormData)
-      data.different_type_bayut_pf = document.getElementById("differentTypeBayutPf")?.checked ? 1 : 0;
+      data.different_type_bayut_pf = document.getElementById("differentTypeBayutPf")?.checked ? "Y" : "N";
+
 
 
       // convert documents
