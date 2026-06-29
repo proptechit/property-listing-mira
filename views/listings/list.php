@@ -181,16 +181,26 @@
 
                     <div>
                         <label class="text-md font-semibold text-slate-500">Bedrooms (min)</label>
-                        <input id="f_bedrooms" type="number" inputmode="numeric"
-                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0" />
+                        <select id="f_bedrooms"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Please select</option>
+                            <option value="0">Studio</option>
+                            <?php for ($i = 1; $i <= 20; $i++): ?>
+                                <option value="<?= $i ?>"><?= $i ?></option>
+                            <?php endfor; ?>
+                        </select>
                     </div>
 
                     <div>
                         <label class="text-md font-semibold text-slate-500">Bathrooms (min)</label>
-                        <input id="f_bathrooms" type="number" inputmode="numeric"
-                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="0" />
+                        <select id="f_bathrooms"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Please select</option>
+                            <option value="0">None</option>
+                            <?php for ($i = 1; $i <= 20; $i++): ?>
+                                <option value="<?= $i ?>"><?= $i ?></option>
+                            <?php endfor; ?>
+                        </select>
                     </div>
 
                     <div>
