@@ -93,8 +93,8 @@ return [
     |--------------------------------------------------------------------------
     */
     'advertisement_number' => 'ufCrm5_1752508269',
-    'license_date'         => 'ufCrm5_1752508197',
-    'permit_issue_date'    => 'ufCrm7_1782714700',
+    'permit_issue_date'         => 'ufCrm5_1752508197',
+    'permit_expiry_date'    => 'ufCrm7_1782714700',
     'compliance_type'      => 'ufCrm5_1752570656',
     'photoshoot_required'  => 'ufCrm5_1760883578',
 

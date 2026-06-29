@@ -114,7 +114,7 @@ async function loadListingForEdit(listingId) {
       "cheques",
       "mortgage_years",
       "developer",
-      "permit_issue_date",
+      "permit_expiry_date",
       "ownership",
     ];
 
@@ -133,10 +133,10 @@ async function loadListingForEdit(listingId) {
     }
 
     // Pre-fill date inputs
-    if (listing.license_date) {
-      const dateInput = document.querySelector('[name="license_date"]');
+    if (listing.permit_issue_date) {
+      const dateInput = document.querySelector('[name="permit_issue_date"]');
       if (dateInput) {
-        dateInput.value = listing.license_date.split("T")[0];
+        dateInput.value = listing.permit_issue_date.split("T")[0];
       }
     }
 
@@ -186,14 +186,17 @@ async function loadListingForEdit(listingId) {
     }
 
     // Pre-fill different type checkbox
-    const differentTypeCheckbox = document.getElementById("differentTypeBayutPf");
+    const differentTypeCheckbox = document.getElementById(
+      "differentTypeBayutPf",
+    );
     if (differentTypeCheckbox) {
-      const isDifferent = listing.different_type_bayut_pf === true || 
-                          listing.different_type_bayut_pf === 1 || 
-                          listing.different_type_bayut_pf === '1' ||
-                          listing.different_type_bayut_pf === 'Y';
+      const isDifferent =
+        listing.different_type_bayut_pf === true ||
+        listing.different_type_bayut_pf === 1 ||
+        listing.different_type_bayut_pf === "1" ||
+        listing.different_type_bayut_pf === "Y";
       differentTypeCheckbox.checked = isDifferent;
-      
+
       // Trigger change event to show/hide the conditional Bayut Type select field
       differentTypeCheckbox.dispatchEvent(new Event("change"));
     }
@@ -201,13 +204,13 @@ async function loadListingForEdit(listingId) {
     // Pre-fill hide price checkbox
     const hidePricePfCheckbox = document.getElementById("hidePricePf");
     if (hidePricePfCheckbox) {
-      const isHidden = listing.hide_price_pf === true || 
-                       listing.hide_price_pf === 1 || 
-                       listing.hide_price_pf === '1' ||
-                       listing.hide_price_pf === 'Y';
+      const isHidden =
+        listing.hide_price_pf === true ||
+        listing.hide_price_pf === 1 ||
+        listing.hide_price_pf === "1" ||
+        listing.hide_price_pf === "Y";
       hidePricePfCheckbox.checked = isHidden;
     }
-
 
     const portalsSelect = document.getElementById("portals");
     if (
@@ -296,7 +299,6 @@ async function loadListingForEdit(listingId) {
       { id: "purposeType", field: "purpose" },
     ];
 
-
     const valueLabels = {
       category: {
         residential: { label: "Residential", icon: "fa-solid fa-house" },
@@ -375,26 +377,52 @@ async function loadListingForEdit(listingId) {
       },
       property_type_bayut: {
         apartment: { label: "Apartment", icon: "fa-solid fa-building" },
-        commercial_building: { label: "Commercial Building", icon: "fa-solid fa-city" },
-        commercial_floor: { label: "Commercial Floor", icon: "fa-solid fa-layer-group" },
-        commercial_land: { label: "Commercial Land", icon: "fa-solid fa-mountain-sun" },
+        commercial_building: {
+          label: "Commercial Building",
+          icon: "fa-solid fa-city",
+        },
+        commercial_floor: {
+          label: "Commercial Floor",
+          icon: "fa-solid fa-layer-group",
+        },
+        commercial_land: {
+          label: "Commercial Land",
+          icon: "fa-solid fa-mountain-sun",
+        },
         duplex: { label: "Duplex", icon: "fa-solid fa-building" },
         factory: { label: "Factory", icon: "fa-solid fa-industry" },
-        hotel_apartment: { label: "Hotel Apartment", icon: "fa-solid fa-hotel" },
+        hotel_apartment: {
+          label: "Hotel Apartment",
+          icon: "fa-solid fa-hotel",
+        },
         labour_camp: { label: "Labour Camp", icon: "fa-solid fa-people-roof" },
-        loft_apartment: { label: "Loft Apartment", icon: "fa-solid fa-building" },
+        loft_apartment: {
+          label: "Loft Apartment",
+          icon: "fa-solid fa-building",
+        },
         office: { label: "Office", icon: "fa-solid fa-briefcase" },
-        other_commercial: { label: "Other Commercial", icon: "fa-solid fa-store-large" },
+        other_commercial: {
+          label: "Other Commercial",
+          icon: "fa-solid fa-store-large",
+        },
         pent_house: { label: "Penthouse", icon: "fa-solid fa-building-user" },
-        residential_building: { label: "Residential Building", icon: "fa-solid fa-building" },
-        residential_floor: { label: "Residential Floor", icon: "fa-solid fa-layer-group" },
-        residential_land: { label: "Residential Land", icon: "fa-solid fa-mountain-sun" },
+        residential_building: {
+          label: "Residential Building",
+          icon: "fa-solid fa-building",
+        },
+        residential_floor: {
+          label: "Residential Floor",
+          icon: "fa-solid fa-layer-group",
+        },
+        residential_land: {
+          label: "Residential Land",
+          icon: "fa-solid fa-mountain-sun",
+        },
         shop: { label: "Shop", icon: "fa-solid fa-store" },
         townhouse: { label: "Townhouse", icon: "fa-solid fa-house" },
         villa: { label: "Villa", icon: "fa-solid fa-house-chimney" },
-        warehouse: { label: "Warehouse", icon: "fa-solid fa-warehouse" }
+        warehouse: { label: "Warehouse", icon: "fa-solid fa-warehouse" },
       },
-
 
       purpose: {
         "For Sale": { label: "Buy", icon: "fa-solid fa-bag-shopping" },

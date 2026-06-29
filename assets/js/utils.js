@@ -87,7 +87,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Make permit fields non-mandatory
-  const permitFields = ["permitType", "advertisement_number", "license_date"];
+  const permitFields = [
+    "permitType",
+    "advertisement_number",
+    "permit_issue_date",
+  ];
 
   permitFields.forEach((nameOrId) => {
     const field =
