@@ -25,13 +25,9 @@
                 <select id="statusFilter"
                     class="w-full px-4 py-2 text-md bg-slate-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
                     <option value="">All</option>
-                    <option value="Start">Start</option>
-                    <option value="Photographer Booking">Photographer Booking</option>
-                    <option value="Pending Approval">Pending Approval</option>
-                    <option value="Draft at Portals">Draft at Portals</option>
-                    <option value="Published">Published</option>
-                    <option value="Unpublished">Unpublished</option>
-                    <option value="Deleted from Portals">Deleted from Portals</option>
+                    <option value="Active">Active - published stage only</option>
+                    <option value="Inactive">Inactive - all except published and pocket</option>
+                    <option value="Pocket">Pocket - pocket listings</option>
                 </select>
             </div>
 
@@ -145,13 +141,9 @@
                         <select id="f_status"
                             class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">Please select</option>
-                            <option value="Start">Start</option>
-                            <option value="Photographer Booking">Photographer Booking</option>
-                            <option value="Pending Approval">Pending Approval</option>
-                            <option value="Draft at Portals">Draft</option>
-                            <option value="Published">Published</option>
-                            <option value="Unpublished">Unpublished</option>
-                            <option value="Deleted from Portals">Deleted</option>
+                            <option value="Active">Active - published stage only</option>
+                            <option value="Inactive">Inactive - everything except published and pocket</option>
+                            <option value="Pocket">Pocket - pocket</option>
                         </select>
                     </div>
 

@@ -468,8 +468,34 @@ if ($method === 'GET') {
         jsonResponse($item);
     }
 
+    // Extract status filter and handle manually
+    $statusFilterVal = null;
+    if (isset($_GET['status'])) {
+        $statusVal = $_GET['status'];
+        if ($statusVal === 'Active') {
+            $statusFilterVal = 'DT1052_11:SUCCESS';
+        } elseif ($statusVal === 'Pocket') {
+            $statusFilterVal = 'DT1052_11:UC_BDKHAU';
+        } elseif ($statusVal === 'Inactive') {
+            $statusFilterVal = [
+                'DT1052_11:NEW',
+                'DT1052_11:PREPARATION',
+                'DT1052_11:CLIENT',
+                'DT1052_11:UC_5FRJTE',
+                'DT1052_11:FAIL',
+                'DT1052_11:1',
+                'DT1052_11:UC_8EQUQH'
+            ];
+        }
+        unset($_GET['status']);
+    }
+
     // list items
     $filter = mapFilters($_GET, $map, $enums);
+
+    if ($statusFilterVal !== null) {
+        $filter['stageId'] = $statusFilterVal;
+    }
 
     // Pagination parameters - Bitrix default limit is 50
     $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;

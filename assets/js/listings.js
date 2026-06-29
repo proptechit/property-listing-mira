@@ -313,7 +313,18 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   if (f.title && !title.includes(normStr(f.title))) return false;
   if (f.location && !location.includes(normStr(f.location))) return false;
 
-  if (f.status && normStr(f.status) !== status) return false;
+  if (f.status) {
+    const fStatus = normStr(f.status);
+    if (fStatus === 'active') {
+      if (status !== 'published') return false;
+    } else if (fStatus === 'pocket') {
+      if (status !== 'pocket listing') return false;
+    } else if (fStatus === 'inactive') {
+      if (status === 'published' || status === 'pocket listing') return false;
+    } else {
+      if (fStatus !== status) return false;
+    }
+  }
 
   if (f.purpose && normStr(f.purpose) !== purpose) return false;
 
@@ -641,7 +652,14 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                 />
               </div>
               <div>
-                <div class="text-lg font-bold text-slate-800">${escapeHtml(l.title || "")}</div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-lg font-bold text-slate-800">${escapeHtml(l.title || "")}</span>
+                  ${
+                    (l.status === "Pocket Listing" || l.pocket_listing === "yes" || String(l.status).toLowerCase().includes("pocket"))
+                      ? `<span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-lg text-xs font-extrabold border border-amber-200/60 uppercase tracking-wider"><i class="fa-solid fa-lock text-[10px]"></i> Pocket</span>`
+                      : ""
+                  }
+                </div>
                 <div class="text-sm text-slate-500">${escapeHtml(l.reference || "")}</div>
               </div>
             </div>
@@ -862,7 +880,14 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
               </div>
 
               <div class="p-4">
-                <div class="text-md font-bold text-slate-800 line-clamp-2">${escapeHtml(
+                ${
+                  (l.status === "Pocket Listing" || l.pocket_listing === "yes" || String(l.status).toLowerCase().includes("pocket"))
+                    ? `<div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-lg text-xs font-extrabold border border-amber-200/60 uppercase tracking-wider"><i class="fa-solid fa-lock text-[10px]"></i> Pocket</span>
+                       </div>`
+                    : ""
+                }
+                <div class="text-md font-bold text-slate-800 line-clamp-2" title="${escapeHtml(l.title || "")}">${escapeHtml(
                   l.title || "",
                 )}</div>
                 <div class="text-sm text-slate-500 mt-1 flex items-center justify-between gap-2">

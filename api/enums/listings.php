@@ -432,7 +432,8 @@ return [
         'Draft at Portals' => 'DT1052_11:UC_5FRJTE',
         'Published' => 'DT1052_11:SUCCESS',
         'Unpublished'  => 'DT1052_11:FAIL',
-        'Deleted from Portals'  => 'DT1052_11:1'
+        'Deleted from Portals'  => 'DT1052_11:1',
+        'Publish Failed' => 'DT1052_11:UC_8EQUQH'
     ],
 
     /*
