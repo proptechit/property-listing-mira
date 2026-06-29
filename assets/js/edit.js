@@ -114,7 +114,6 @@ async function loadListingForEdit(listingId) {
       "cheques",
       "mortgage_years",
       "developer",
-      "permit_expiry_date",
       "ownership",
     ];
 
@@ -137,6 +136,13 @@ async function loadListingForEdit(listingId) {
       const dateInput = document.querySelector('[name="permit_issue_date"]');
       if (dateInput) {
         dateInput.value = listing.permit_issue_date.split("T")[0];
+      }
+    }
+
+    if (listing.permit_expiry_date) {
+      const dateInput = document.querySelector('[name="permit_expiry_date"]');
+      if (dateInput) {
+        dateInput.value = listing.permit_expiry_date.split("T")[0];
       }
     }
 
