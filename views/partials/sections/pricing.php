@@ -69,6 +69,14 @@
                     <i class="fa-solid fa-tag absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
             </div>
+
+            <div class="flex items-center gap-3 pt-6">
+                <input type="checkbox" id="hidePricePf" name="hide_price_pf" value="1"
+                    class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-5 w-5 cursor-pointer">
+                <label for="hidePricePf" class="text-md font-semibold text-slate-700 cursor-pointer select-none">
+                    Hide Price in PF
+                </label>
+            </div>
         </div>
     </div>
 </section>

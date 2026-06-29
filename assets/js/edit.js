@@ -114,6 +114,7 @@ async function loadListingForEdit(listingId) {
       "cheques",
       "mortgage_years",
       "developer",
+      "permit_issue_date",
     ];
 
     fieldsToFill.forEach((field) => {
@@ -194,6 +195,16 @@ async function loadListingForEdit(listingId) {
       
       // Trigger change event to show/hide the conditional Bayut Type select field
       differentTypeCheckbox.dispatchEvent(new Event("change"));
+    }
+
+    // Pre-fill hide price checkbox
+    const hidePricePfCheckbox = document.getElementById("hidePricePf");
+    if (hidePricePfCheckbox) {
+      const isHidden = listing.hide_price_pf === true || 
+                       listing.hide_price_pf === 1 || 
+                       listing.hide_price_pf === '1' ||
+                       listing.hide_price_pf === 'Y';
+      hidePricePfCheckbox.checked = isHidden;
     }
 
 

@@ -1891,6 +1891,7 @@ function attachFormSubmissionHandler(id) {
 
       // Explicitly set checkbox state (since unchecked checkboxes are omitted from FormData)
       data.different_type_bayut_pf = document.getElementById("differentTypeBayutPf")?.checked ? "Y" : "N";
+      data.hide_price_pf = document.getElementById("hidePricePf")?.checked ? "Y" : "N";
 
 
 

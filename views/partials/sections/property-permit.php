@@ -41,13 +41,24 @@
                 </div>
             </div>
 
+            <!-- License Date -->
+            <div>
+                <label class="block text-md font-semibold text-slate-500">License Date</label>
+                <div class="mt-1 relative">
+                    <input
+                        type="date"
+                        name="license_date"
+                        class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+            </div>
+
             <!-- Permit Issue Date -->
             <div>
                 <label class="block text-md font-semibold text-slate-500">Permit Issue Date</label>
                 <div class="mt-1 relative">
                     <input
                         type="date"
-                        name="license_date"
+                        name="permit_issue_date"
                         class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
             </div>

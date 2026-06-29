@@ -293,13 +293,24 @@ if (!$id) {
                     </div>
                 </div>
 
+                <!-- License Date -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">License Date</label>
+                    <div class="mt-1 relative">
+                        <input
+                            type="date"
+                            name="license_date"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                </div>
+
                 <!-- Permit Issue Date -->
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Permit Issue Date</label>
                     <div class="mt-1 relative">
                         <input
                             type="date"
-                            name="license_date"
+                            name="permit_issue_date"
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                 </div>
@@ -373,6 +384,14 @@ if (!$id) {
                             placeholder="0.00">
                         <i class="fa-solid fa-tag absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-6">
+                    <input type="checkbox" id="hidePricePf" name="hide_price_pf" value="1"
+                        class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-5 w-5 cursor-pointer">
+                    <label for="hidePricePf" class="text-md font-semibold text-slate-700 cursor-pointer select-none">
+                        Hide Price in PF
+                    </label>
                 </div>
             </div>
         </section>

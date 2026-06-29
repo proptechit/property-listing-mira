@@ -16,6 +16,7 @@ return [
     'reference'       => 'ufCrm5_1752571265', // Listing reference number
     'price'           => 'ufCrm5_1754555234', // Price in AED
     'price_type'      => 'ufCrm5_1752569908', // sale / yearly / monthly etc
+    'hide_price_pf'   => 'ufCrm7_1782714582',
     'status'          => 'stageId',
     'assigned_to'     => 'assignedById',
 
@@ -93,6 +94,7 @@ return [
     */
     'advertisement_number' => 'ufCrm5_1752508269',
     'license_date'         => 'ufCrm5_1752508197',
+    'permit_issue_date'    => 'ufCrm7_1782714700',
     'compliance_type'      => 'ufCrm5_1752570656',
     'photoshoot_required'  => 'ufCrm5_1760883578',
 
