@@ -115,6 +115,7 @@ async function loadListingForEdit(listingId) {
       "mortgage_years",
       "developer",
       "permit_issue_date",
+      "ownership",
     ];
 
     fieldsToFill.forEach((field) => {

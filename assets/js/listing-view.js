@@ -21,11 +21,12 @@ function formatPrice(price) {
 }
 
 function prettyLabel(v) {
-  return String(v ?? "")
+  const str = String(v ?? "")
     .trim()
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")
     .replace(/\b\w/g, (m) => m.toUpperCase());
+  return str === 'Gcc' ? 'GCC' : str;
 }
 
 function getImageUrl(img) {
@@ -229,6 +230,7 @@ function renderListingDetails(container, listing) {
             ${buildDetailRow("Agent", agent, "fa-user-tie")}
             ${buildDetailRow("Owner", owner, "fa-id-card")}
             ${buildDetailRow("Developer", developer, "fa-helmet-safety")}
+            ${buildDetailRow("Ownership", listing?.ownership ? prettyLabel(listing.ownership) : "", "fa-key")}
             ${buildDetailRow("Created At", formatDate(listing?.created_at), "fa-clock")}
             ${buildDetailRow("Updated At", formatDate(listing?.updated_at), "fa-clock")}
           </div>
