@@ -79,6 +79,12 @@
                             Owners
                         </a>
 
+                        <a href="?page=developers&action=list"
+                            class="block px-4 py-2 text-sm transition-colors
+                       <?php echo ($page === 'developers') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'; ?>">
+                            Developers
+                        </a>
+
                         <a href="?page=reports"
                             class="block px-4 py-2 text-sm transition-colors
                        <?php echo ($page === 'reports') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'; ?>">
