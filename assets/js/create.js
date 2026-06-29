@@ -774,7 +774,7 @@ function setupCreatePageUI() {
 
 // Called by the page if present
 async function loadFormOptions() {
-  await Promise.allSettled([loadAgentsDropdown(), loadOwnersDropdown()]);
+  await Promise.allSettled([loadAgentsDropdown(), loadOwnersDropdown(), loadDevelopersDropdown()]);
 }
 
 // Called by the page if present
@@ -834,6 +834,29 @@ async function loadOwnersDropdown() {
     });
   } catch (err) {
     console.error("Failed to load owners:", err);
+  }
+}
+
+async function loadDevelopersDropdown() {
+  try {
+    const response = await api("/?resource=developers&all=true");
+    const developers = response.data || [];
+    const developerSelect = qs("#developerSelect");
+
+    if (!developerSelect) return;
+
+    // Clear existing options except "Please select"
+    developerSelect.innerHTML = '<option value="">Please select</option>';
+
+    // Add developer options
+    developers.forEach((developer) => {
+      const option = document.createElement("option");
+      option.value = developer.id; // Use ID as value
+      option.textContent = developer.name || "Unknown"; // Display name
+      developerSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Failed to load developers:", err);
   }
 }
 

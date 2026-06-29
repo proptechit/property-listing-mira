@@ -6,6 +6,7 @@ require 'helpers/bitrix.php';
 require 'helpers/transform.php';
 require 'helpers/location-cache.php';
 require 'helpers/user-cache.php';
+require 'helpers/developer-cache.php';
 
 $map = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
@@ -378,10 +379,11 @@ if ($method === 'GET') {
         $item = fromBitrixFields($res['result']['item'], $map, $enums);
         hydrateListingMediaFields($item);
 
-        // Hydrate location + agent + owner (same behavior as list endpoint)
+        // Hydrate location + agent + owner + developer (same behavior as list endpoint)
         $locationIds = [];
         $bayutLocationIds = [];
         $userIds = [];
+        $developerIds = [];
 
         if (!empty($item['location'])) {
             $locationIds[] = $item['location'];
@@ -399,25 +401,34 @@ if ($method === 'GET') {
             $userIds[] = $item['listing_owner'];
         }
 
+        if (!empty($item['developer'])) {
+            $developerIds[] = $item['developer'];
+        }
+
         $locationIds = array_values(array_unique($locationIds));
         $bayutLocationIds = array_values(array_unique($bayutLocationIds));
         $userIds = array_values(array_unique($userIds));
+        $developerIds = array_values(array_unique($developerIds));
 
         $locationCache = getLocationCache('pf');
         $bayutLocationCache = getLocationCache('bayut');
         $userCache = getUserCache();
+        $developerCache = getDeveloperCache();
 
         $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
         $missingBayutLocationIds = array_diff($bayutLocationIds, array_keys($bayutLocationCache));
         $missingUserIds = array_diff($userIds, array_keys($userCache));
+        $missingDeveloperIds = array_diff($developerIds, array_keys($developerCache));
 
         fetchLocationsByIds($missingLocationIds, $locationCache, 'pf');
         fetchLocationsByIds($missingBayutLocationIds, $bayutLocationCache, 'bayut');
         fetchUsersByIds($missingUserIds, $userCache);
+        fetchDevelopersByIds($missingDeveloperIds, $developerCache);
 
         saveLocationCache($locationCache, 'pf');
         saveLocationCache($bayutLocationCache, 'bayut');
         saveUserCache($userCache);
+        saveDeveloperCache($developerCache);
 
         if (!empty($item['location']) && isset($locationCache[$item['location']])) {
             $item['location'] = [
@@ -444,6 +455,13 @@ if ($method === 'GET') {
             $item['listing_owner'] = [
                 'id' => $item['listing_owner'],
                 'name' => $userCache[$item['listing_owner']],
+            ];
+        }
+
+        if (!empty($item['developer']) && isset($developerCache[$item['developer']])) {
+            $item['developer'] = [
+                'id' => $item['developer'],
+                'name' => $developerCache[$item['developer']],
             ];
         }
 
@@ -482,6 +500,7 @@ if ($method === 'GET') {
     $locationIds = [];
     $bayutLocationIds = [];
     $userIds = [];
+    $developerIds = [];
 
     foreach ($output as $item) {
         if (!empty($item['location'])) {
@@ -499,28 +518,37 @@ if ($method === 'GET') {
         if (!empty($item['listing_owner'])) {
             $userIds[] = $item['listing_owner'];
         }
+
+        if (!empty($item['developer'])) {
+            $developerIds[] = $item['developer'];
+        }
     }
 
     $locationIds = array_values(array_unique($locationIds));
     $bayutLocationIds = array_values(array_unique($bayutLocationIds));
     $userIds = array_values(array_unique($userIds));
+    $developerIds = array_values(array_unique($developerIds));
 
     $locationCache = getLocationCache('pf');
     $bayutLocationCache = getLocationCache('bayut');
     $userCache = getUserCache();
+    $developerCache = getDeveloperCache();
 
     $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
     $missingBayutLocationIds = array_diff($bayutLocationIds, array_keys($bayutLocationCache));
     $missingUserIds = array_diff($userIds, array_keys($userCache));
+    $missingDeveloperIds = array_diff($developerIds, array_keys($developerCache));
 
 
     fetchLocationsByIds($missingLocationIds, $locationCache, 'pf');
     fetchLocationsByIds($missingBayutLocationIds, $bayutLocationCache, 'bayut');
     fetchUsersByIds($missingUserIds, $userCache);
+    fetchDevelopersByIds($missingDeveloperIds, $developerCache);
 
     saveLocationCache($locationCache, 'pf');
     saveLocationCache($bayutLocationCache, 'bayut');
     saveUserCache($userCache);
+    saveDeveloperCache($developerCache);
 
     foreach ($output as &$item) {
         if (!empty($item['location']) && isset($locationCache[$item['location']])) {
@@ -548,6 +576,13 @@ if ($method === 'GET') {
             $item['listing_owner'] = [
                 'id' => $item['listing_owner'],
                 'name' => $userCache[$item['listing_owner']],
+            ];
+        }
+
+        if (!empty($item['developer']) && isset($developerCache[$item['developer']])) {
+            $item['developer'] = [
+                'id' => $item['developer'],
+                'name' => $developerCache[$item['developer']],
             ];
         }
     }

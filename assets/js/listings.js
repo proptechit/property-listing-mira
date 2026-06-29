@@ -6,6 +6,7 @@ const PLACEHOLDER_IMAGE = "https://placehold.co/600x400?text=No+Image";
 
 const agentMap = {}; // Store agent ID-to-name mapping
 const ownerMap = {}; // Store owner ID-to-name mapping
+const developerMap = {}; // Store developer ID-to-name mapping
 
 const state = {
   searchTerm: "",
@@ -20,6 +21,7 @@ const state = {
     purpose: "",
     agent: "",
     owner: "",
+    developer: "",
     type: "",
     bedrooms: "",
     bathrooms: "",
@@ -236,6 +238,7 @@ function buildQueryParams(page, searchTerm, filters) {
     purpose: "purpose",
     agent: "listing_agent",
     owner: "listing_owner",
+    developer: "developer",
     type: "property_type",
     bedrooms: "bedrooms_min",
     bathrooms: "bathrooms_min",
@@ -336,6 +339,11 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
     if (!idMatch && !nameMatch) return false;
   }
 
+  if (f.developer) {
+    const listingDevId = listing?.developer?.id || listing?.developer;
+    if (listingDevId == null || String(listingDevId) !== String(f.developer)) return false;
+  }
+
   if (f.type && !type.includes(normStr(f.type))) return false;
 
   const minP = toNum(f.minPrice);
@@ -386,6 +394,13 @@ function getActiveChips(filters, searchTerm) {
       ? ownerMap[filters.owner]
       : filters.owner;
   push("owner", "Owner", ownerValue);
+
+  // For developer, display name from developerMap if available, otherwise show ID
+  const developerValue =
+    filters.developer && developerMap[filters.developer]
+      ? developerMap[filters.developer]
+      : filters.developer;
+  push("developer", "Developer", developerValue);
 
   push("minPrice", "Min Price", filters.minPrice);
   push("maxPrice", "Max Price", filters.maxPrice);
@@ -462,6 +477,7 @@ function syncFiltersToUI() {
   set("#f_type", state.filters.property_type_pf);
   set("#f_bedrooms", state.filters.bedrooms);
   set("#f_bathrooms", state.filters.bathrooms);
+  set("#f_developer", state.filters.developer);
   set("#f_minSize", state.filters.minSize);
   set("#f_maxSize", state.filters.maxSize);
 }
@@ -482,6 +498,7 @@ function readFiltersFromUI() {
     type: get("#f_type"),
     bedrooms: get("#f_bedrooms"),
     bathrooms: get("#f_bathrooms"),
+    developer: get("#f_developer"),
     minSize: get("#f_minSize"),
     maxSize: get("#f_maxSize"),
   };
@@ -1288,6 +1305,7 @@ function wireFilters() {
         status: "",
         agent: "",
         owner: "",
+        developer: "",
         type: "",
         bedrooms: "",
         bathrooms: "",
@@ -1324,6 +1342,7 @@ function wireFilters() {
         status: "",
         agent: "",
         owner: "",
+        developer: "",
         type: "",
         bedrooms: "",
         bathrooms: "",
@@ -1394,6 +1413,32 @@ async function loadOwnersDropdown() {
   }
 }
 
+async function loadDevelopersDropdown() {
+  try {
+    const response = await api("/?resource=developers&all=true");
+    const developers = response.data || [];
+    const developerSelect = qs("#f_developer");
+
+    if (!developerSelect) return;
+
+    // Clear existing options except "Please select"
+    developerSelect.innerHTML = '<option value="">Please select</option>';
+
+    // Add developer options and populate developerMap
+    developers.forEach((developer) => {
+      const option = document.createElement("option");
+      option.value = developer.id; // Use ID as value for API filtering
+      option.textContent = developer.name || "Unknown"; // Display name to user
+      developerSelect.appendChild(option);
+
+      // Store ID-to-name mapping for chip display
+      developerMap[developer.id] = developer.name || "Unknown";
+    });
+  } catch (err) {
+    console.error("Failed to load developers:", err);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const hasListingsUI = !!qs("#listingsTable") || !!qs("#listingsGrid");
   if (!hasListingsUI) return;
@@ -1403,8 +1448,8 @@ document.addEventListener("DOMContentLoaded", () => {
   wireViewToggle();
   wireListingClicks();
 
-  // Load dropdowns first, then listings (avoids agentMap being empty)
-  Promise.all([loadAgentsDropdown(), loadOwnersDropdown()]).finally(() => {
+  // Load dropdowns first, then listings (avoids agentMap/developerMap being empty)
+  Promise.all([loadAgentsDropdown(), loadOwnersDropdown(), loadDevelopersDropdown()]).finally(() => {
     loadListings(1, state.searchTerm, state.filters);
   });
 });

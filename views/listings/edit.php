@@ -239,6 +239,18 @@ if (!$id) {
                             class="absolute z-20 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"></div>
                     </div>
                 </div>
+
+                <!-- Developer -->
+                <div>
+                    <label class="block text-md font-semibold text-slate-500">Developer</label>
+                    <div class="mt-1 relative">
+                        <select name="developer" id="developerSelect"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                            <option value="">Please select</option>
+                        </select>
+                        <i class="fa-solid fa-helmet-safety absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
             </div>
         </section>
 

@@ -7,5 +7,6 @@ define('BITRIX_WEBHOOK', 'https://crm.mira-international.com/rest/1/egxjcopwiiz4
 define('LISTINGS_ENTITY_ID', 1052);
 define('LOCATIONS_ENTITY_ID', 1056);
 define('BAYUT_LOCATIONS_ENTITY_ID', 1074);
+define('DEVELOPERS_ENTITY_ID', 1078);
 
 $CUSTOM_USERS_API = "https://crm.mira-international.com/pub/endpoints/users/";

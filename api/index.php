@@ -78,6 +78,10 @@ switch ($resource) {
         require __DIR__ . '/controllers/bayut-locations.php';
         break;
 
+    case 'developers':
+        require __DIR__ . '/controllers/developers.php';
+        break;
+
     case 'reports':
         require __DIR__ . '/controllers/reports.php';
         break;

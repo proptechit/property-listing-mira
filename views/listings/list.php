@@ -204,6 +204,14 @@
                     </div>
 
                     <div>
+                        <label class="text-md font-semibold text-slate-500">Developer</label>
+                        <select id="f_developer"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Please select</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label class="text-md font-semibold text-slate-500">Min Size (sqft)</label>
                         <input id="f_minSize" type="number" inputmode="numeric"
                             class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500"

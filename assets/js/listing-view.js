@@ -139,6 +139,11 @@ function renderListingDetails(container, listing) {
       ? listing.listing_owner.name
       : listing.listing_owner
     : "-";
+  const developer = listing?.developer
+    ? typeof listing.developer === "object"
+      ? listing.developer.name
+      : listing.developer
+    : "-";
 
   const desc = listing?.description_en || listing?.description_ar || "";
 
@@ -223,6 +228,7 @@ function renderListingDetails(container, listing) {
             ${buildDetailRow("Location", location, "fa-location-dot")}
             ${buildDetailRow("Agent", agent, "fa-user-tie")}
             ${buildDetailRow("Owner", owner, "fa-id-card")}
+            ${buildDetailRow("Developer", developer, "fa-helmet-safety")}
             ${buildDetailRow("Created At", formatDate(listing?.created_at), "fa-clock")}
             ${buildDetailRow("Updated At", formatDate(listing?.updated_at), "fa-clock")}
           </div>

@@ -113,6 +113,7 @@ async function loadListingForEdit(listingId) {
       "reference",
       "cheques",
       "mortgage_years",
+      "developer",
     ];
 
     fieldsToFill.forEach((field) => {
