@@ -470,12 +470,13 @@ if ($method === 'GET') {
 
     // Extract status filter and handle manually
     $statusFilterVal = null;
+    $isPocketVal = false;
     if (isset($_GET['status'])) {
         $statusVal = $_GET['status'];
         if ($statusVal === 'Active') {
             $statusFilterVal = 'DT1052_11:SUCCESS';
         } elseif ($statusVal === 'Pocket') {
-            $statusFilterVal = 'DT1052_11:UC_BDKHAU';
+            $isPocketVal = true;
         } elseif ($statusVal === 'Inactive') {
             $statusFilterVal = [
                 'DT1052_11:NEW',
@@ -495,6 +496,20 @@ if ($method === 'GET') {
 
     if ($statusFilterVal !== null) {
         $filter['stageId'] = $statusFilterVal;
+    }
+
+    if ($isPocketVal) {
+        $pocketField = $map['pocket_listing'] ?? 'ufCrm7_1770201260';
+        $pocketYesVal = $enums['pocket_listing']['yes'] ?? '472';
+        $filter['0'] = [
+            'logic' => 'OR',
+            '0' => [
+                'stageId' => 'DT1052_11:UC_BDKHAU'
+            ],
+            '1' => [
+                $pocketField => $pocketYesVal
+            ]
+        ];
     }
 
     // Pagination parameters - Bitrix default limit is 50

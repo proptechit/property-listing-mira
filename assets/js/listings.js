@@ -315,12 +315,13 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
 
   if (f.status) {
     const fStatus = normStr(f.status);
+    const isPocket = status === 'pocket listing' || status === 'pocket' || listing?.pocket_listing === 'yes' || status.includes('pocket');
     if (fStatus === 'active') {
       if (status !== 'published') return false;
     } else if (fStatus === 'pocket') {
-      if (status !== 'pocket listing') return false;
+      if (!isPocket) return false;
     } else if (fStatus === 'inactive') {
-      if (status === 'published' || status === 'pocket listing') return false;
+      if (status === 'published' || isPocket) return false;
     } else {
       if (fStatus !== status) return false;
     }
