@@ -1643,6 +1643,8 @@ function renderImageGallery() {
   if (typeof refreshCollapsibleHeights === "function") {
     requestAnimationFrame(refreshCollapsibleHeights);
   }
+
+  document.dispatchEvent(new CustomEvent("imagesRendered"));
 }
 
 function removeImage(id) {

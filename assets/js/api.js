@@ -12,8 +12,15 @@ async function api(url, options = {}) {
     ...options,
   };
 
+  // Resolve USER_ID at call time (it is set as a global by header.php)
+  const _userId =
+    typeof USER_ID !== "undefined" && Number.isFinite(USER_ID)
+      ? USER_ID
+      : parseInt(atob(localStorage.getItem("user_id") || ""), 10) || 0;
+
   config.headers = {
     "Content-Type": "application/json",
+    "X-User-ID": String(_userId),
     ...(options.headers || {}),
   };
 

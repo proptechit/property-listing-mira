@@ -606,9 +606,121 @@ async function loadListingForEdit(listingId) {
     if (descriptionInput) {
       descriptionInput.dispatchEvent(new Event("input", { bubbles: true }));
     }
+
+    // Restrict price & images for non-admins on published listings
+    applyPublishedListingRestrictions(listing);
   } catch (error) {
     console.error("Error loading listing:", error);
     alert("Error loading listing: " + (error.message || "Unknown error"));
+  }
+}
+
+/**
+ * Lock price and image fields for non-admin users when the listing is published.
+ * Admins bypass this restriction entirely.
+ */
+function applyPublishedListingRestrictions(listing) {
+  const isAdmin = atob(localStorage.getItem("is_admin") || "0") === "1";
+  const isPublished = listing?.status === "Published";
+
+  if (isAdmin || !isPublished) return;
+
+  // ── Price section ─────────────────────────────────────────────────────────
+  const priceInput = document.querySelector('[name="price"]');
+  if (priceInput) {
+    priceInput.disabled = true;
+    priceInput.title = "Only admins can change the price of a published listing.";
+    priceInput.classList.add("opacity-50", "cursor-not-allowed");
+  }
+
+  // ── Images section ────────────────────────────────────────────────────────
+  // Disable file input
+  const imageInput = document.getElementById("imageInput");
+  if (imageInput) {
+    imageInput.disabled = true;
+  }
+
+  // Hide / disable the Add Images button
+  const addImageBtn = document.getElementById("addImageBtn");
+  if (addImageBtn) {
+    addImageBtn.classList.add("opacity-50", "cursor-not-allowed", "pointer-events-none");
+    addImageBtn.setAttribute("tabindex", "-1");
+  }
+
+  // Hide Clear All Images button
+  const clearAllBtn = document.getElementById("clearAllImagesBtn");
+  if (clearAllBtn) {
+    clearAllBtn.disabled = true;
+    clearAllBtn.classList.add("hidden");
+  }
+  const clearAllWrap = document.getElementById("clearAllImagesWrap");
+  if (clearAllWrap) {
+    clearAllWrap.classList.add("hidden");
+  }
+
+  // Hide shuffle button if present
+  const shuffleBtn = document.getElementById("shuffleImagesBtn");
+  if (shuffleBtn) {
+    shuffleBtn.classList.add("hidden");
+  }
+
+  // Disable delete / drag controls on already-rendered image cards
+  // (renderImageGallery runs after this — patch it to disable controls too)
+  document.addEventListener("imagesRendered", () => {
+    _lockRenderedImageControls();
+  });
+  _lockRenderedImageControls(); // also run immediately for any already-rendered cards
+
+  // ── Warning banners ───────────────────────────────────────────────────────
+  _insertPublishedWarning(
+    '[name="price"]',
+    'price-admin-warning',
+    'Price',
+  );
+  _insertPublishedWarning(
+    '#imageInput',
+    'images-admin-warning',
+    'Images',
+  );
+}
+
+/** Disable delete / drag icons on image cards already in the DOM. */
+function _lockRenderedImageControls() {
+  document.querySelectorAll("#imagePreviewGrid .remove-image-btn, #imagePreviewGrid .move-up-btn, #imagePreviewGrid .move-down-btn").forEach((btn) => {
+    btn.disabled = true;
+    btn.classList.add("hidden");
+  });
+  // Prevent drag-to-reorder
+  document.querySelectorAll("#imagePreviewGrid [draggable]").forEach((el) => {
+    el.draggable = false;
+    el.classList.remove("cursor-move");
+  });
+}
+
+/**
+ * Insert a small admin-only warning banner near a field.
+ * @param {string} anchorSelector  CSS selector for the field to anchor near.
+ * @param {string} bannerId        Unique id for the banner (prevents duplicates).
+ * @param {string} label           Human-readable field name shown in the message.
+ */
+function _insertPublishedWarning(anchorSelector, bannerId, label) {
+  if (document.getElementById(bannerId)) return; // already inserted
+
+  const anchor = document.querySelector(anchorSelector);
+  if (!anchor) return;
+
+  const banner = document.createElement("p");
+  banner.id = bannerId;
+  banner.className = "mt-1 flex items-center gap-1.5 text-sm font-medium text-amber-600";
+  banner.innerHTML = `
+    <i class="fa-solid fa-lock"></i>
+    <span>${label} can only be changed by an admin on a published listing.</span>
+  `;
+
+  // Insert after the anchor's parent wrapper (the relative div)
+  const wrapper = anchor.closest("div") || anchor.parentElement;
+  if (wrapper) {
+    wrapper.after(banner);
   }
 }
 

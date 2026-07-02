@@ -692,6 +692,28 @@ if ($method === 'PUT') {
 
     $input  = getRequestBody();
 
+    // ── Published-listing field restriction ───────────────────────────────────
+    // Only admins may change `price` or `images` on a published listing.
+    // The ADMIN_IDS list lives in the root config.php (loaded by index.php).
+    $callerId = (int) ($_SERVER['HTTP_X_USER_ID'] ?? 0);
+    $adminIds = defined('ADMIN_IDS') ? ADMIN_IDS : ($GLOBALS['ADMIN_IDS'] ?? []);
+    $callerIsAdmin = in_array($callerId, $adminIds, true);
+
+    if (!$callerIsAdmin) {
+        $currentRes = bitrixRequest('crm.item.get', [
+            'entityTypeId' => LISTINGS_ENTITY_ID,
+            'id'           => $id,
+        ]);
+        $currentItem = $currentRes['result']['item'] ?? null;
+        $currentStage = $currentItem['stageId'] ?? '';
+
+        if ($currentStage === 'DT1052_11:SUCCESS') {
+            // Published listing – strip restricted fields for non-admins
+            unset($input['price'], $input['images']);
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // reformat images
     $input['images'] = normalizeFiles($input['images'] ?? []);
     normalizeDocumentFields($input);
