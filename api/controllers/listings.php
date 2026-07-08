@@ -500,7 +500,7 @@ if ($method === 'GET') {
 
     if ($isPocketVal) {
         $pocketField = $map['pocket_listing'] ?? 'ufCrm7_1770201260';
-        $pocketYesVal = $enums['pocket_listing']['yes'] ?? '472';
+        $pocketYesVal = $enums['pocket_listing']['yes'] ?? '1027';
         $filter['0'] = [
             'logic' => 'OR',
             '0' => [
