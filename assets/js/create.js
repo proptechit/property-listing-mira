@@ -59,6 +59,7 @@ function setupIconSelect({
         <span class="text-slate-800">${escapeHtml(opt.label)}</span>
       </span>
     `;
+    hidden.dispatchEvent(new Event("change", { bubbles: true }));
   };
 
   if (!hidden.value) {
@@ -761,6 +762,49 @@ function setupCreatePageUI() {
     handleToggle();
   }
 
+  // Dynamic bedroom requirement for commercial listings
+  const categoryInput = document.getElementById("propertyCategory");
+  const typeInput = document.getElementById("propertyType");
+  if (categoryInput && typeInput) {
+    const handleBedroomRequirement = () => {
+      const bedroomSelect = document.querySelector('select[name="bedrooms"]');
+      if (!bedroomSelect) return;
+
+      const category = categoryInput.value;
+      const type = typeInput.value;
+
+      const commercialTypes = [
+        'farm', 'land', 'bulk-rent-unit', 'bulk-sale-unit', 'business-center',
+        'co-working-space', 'factory', 'full-floor', 'half-floor', 'labor-camp',
+        'office-space', 'retail', 'shop', 'show-room', 'staff-accommodation',
+        'villa', 'warehouse', 'whole-building'
+      ];
+
+      const isCommercial = (category === "commercial") || commercialTypes.includes(type);
+
+      if (isCommercial) {
+        bedroomSelect.removeAttribute("required");
+        const container = bedroomSelect.closest('div').parentElement;
+        if (container) {
+          const asterisk = container.querySelector('label span.text-red-500');
+          if (asterisk) asterisk.style.display = 'none';
+        }
+      } else {
+        bedroomSelect.setAttribute("required", "");
+        const container = bedroomSelect.closest('div').parentElement;
+        if (container) {
+          const asterisk = container.querySelector('label span.text-red-500');
+          if (asterisk) asterisk.style.display = 'inline';
+        }
+      }
+    };
+
+    categoryInput.addEventListener("change", handleBedroomRequirement);
+    typeInput.addEventListener("change", handleBedroomRequirement);
+    
+    // Initial run
+    handleBedroomRequirement();
+  }
 
   document.addEventListener("click", (e) => {
     const inside = e.target.closest("[data-icon-menu]");

@@ -500,7 +500,10 @@ async function loadListingForEdit(listingId) {
         const hidden = document.getElementById(id);
         const label = document.getElementById(id + "Label");
 
-        if (hidden) hidden.value = listing[field];
+        if (hidden) {
+          hidden.value = listing[field];
+          hidden.dispatchEvent(new Event("change", { bubbles: true }));
+        }
 
         if (label) {
           const option = valueLabels[field]?.[listing[field]];
