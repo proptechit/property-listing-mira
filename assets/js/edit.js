@@ -456,6 +456,7 @@ async function loadListingForEdit(listingId) {
       compliance_type: {
         rera: { label: "RERA (Dubai)", icon: "fa-solid fa-building-shield" },
         dtcm: { label: "DTCM (Dubai)", icon: "fa-solid fa-building-columns" },
+        difc: { label: "DIFC (Dubai)", icon: "fa-solid fa-landmark" },
         adrec: { label: "ABREC (Abu Dhabi)", icon: "fa-solid fa-landmark" },
       },
 

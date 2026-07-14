@@ -650,6 +650,11 @@ function setupCreatePageUI() {
         icon: "fa-solid fa-building-columns",
       },
       {
+        value: "difc",
+        label: "DIFC (Dubai)",
+        icon: "fa-solid fa-landmark",
+      },
+      {
         value: "adrec",
         label: "ABREC (Abu Dhabi)",
         icon: "fa-solid fa-landmark",
