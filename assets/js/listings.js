@@ -484,9 +484,9 @@ function syncFiltersToUI() {
   set("#f_purpose", state.filters.purpose);
   set("#statusFilter", state.filters.status);
   set("#saleTypeFilter", state.filters.purpose);
-  set("#f_agent", state.filters.listing_agent);
-  set("#f_owner", state.filters.listing_owner);
-  set("#f_type", state.filters.property_type_pf);
+  set("#f_agent", state.filters.agent);
+  set("#f_owner", state.filters.owner);
+  set("#f_type", state.filters.type);
   set("#f_bedrooms", state.filters.bedrooms);
   set("#f_bathrooms", state.filters.bathrooms);
   set("#f_developer", state.filters.developer);
@@ -585,28 +585,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
 
     if (!Array.isArray(data)) data = [];
 
-    const apiDoesNotSupportFilters =
-      query.includes("min_price") ||
-      query.includes("max_price") ||
-      query.includes("bedrooms_min") ||
-      query.includes("bathrooms_min") ||
-      query.includes("min_size") ||
-      query.includes("max_size") ||
-      query.includes("status") ||
-      query.includes("purpose") ||
-      query.includes("agent") ||
-      query.includes("owner") ||
-      query.includes("property_type") ||
-      query.includes("reference") ||
-      query.includes("title") ||
-      query.includes("location") ||
-      query.includes("search");
-
-    if (apiDoesNotSupportFilters) {
-      data = data.filter((l) =>
-        matchesSearchAndFiltersLocal(l, searchTerm, filters),
-      );
-    }
+    const apiDoesNotSupportFilters = false;
 
     if (!data.length) {
       const emptyHtml = `

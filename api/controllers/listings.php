@@ -491,6 +491,73 @@ if ($method === 'GET') {
         unset($_GET['status']);
     }
 
+    // Extract other parameters for custom backend mapping
+    $searchVal = null;
+    if (isset($_GET['search'])) {
+        $searchVal = trim($_GET['search']);
+        unset($_GET['search']);
+    }
+
+    $referenceVal = null;
+    if (isset($_GET['reference'])) {
+        $referenceVal = trim($_GET['reference']);
+        unset($_GET['reference']);
+    }
+
+    $titleVal = null;
+    if (isset($_GET['title'])) {
+        $titleVal = trim($_GET['title']);
+        unset($_GET['title']);
+    }
+
+    $locationVal = null;
+    if (isset($_GET['location'])) {
+        $locationVal = trim($_GET['location']);
+        unset($_GET['location']);
+    }
+
+    $propertyTypeVal = null;
+    if (isset($_GET['property_type'])) {
+        $propertyTypeVal = trim($_GET['property_type']);
+        unset($_GET['property_type']);
+    }
+
+    $bedroomsMinVal = null;
+    if (isset($_GET['bedrooms_min']) && $_GET['bedrooms_min'] !== '') {
+        $bedroomsMinVal = (int)$_GET['bedrooms_min'];
+        unset($_GET['bedrooms_min']);
+    }
+
+    $bathroomsMinVal = null;
+    if (isset($_GET['bathrooms_min']) && $_GET['bathrooms_min'] !== '') {
+        $bathroomsMinVal = (int)$_GET['bathrooms_min'];
+        unset($_GET['bathrooms_min']);
+    }
+
+    $minPriceVal = null;
+    if (isset($_GET['min_price']) && $_GET['min_price'] !== '') {
+        $minPriceVal = (float)$_GET['min_price'];
+        unset($_GET['min_price']);
+    }
+
+    $maxPriceVal = null;
+    if (isset($_GET['max_price']) && $_GET['max_price'] !== '') {
+        $maxPriceVal = (float)$_GET['max_price'];
+        unset($_GET['max_price']);
+    }
+
+    $minSizeVal = null;
+    if (isset($_GET['min_size']) && $_GET['min_size'] !== '') {
+        $minSizeVal = (float)$_GET['min_size'];
+        unset($_GET['min_size']);
+    }
+
+    $maxSizeVal = null;
+    if (isset($_GET['max_size']) && $_GET['max_size'] !== '') {
+        $maxSizeVal = (float)$_GET['max_size'];
+        unset($_GET['max_size']);
+    }
+
     // list items
     $filter = mapFilters($_GET, $map, $enums);
 
@@ -498,10 +565,11 @@ if ($method === 'GET') {
         $filter['stageId'] = $statusFilterVal;
     }
 
+    $subFilterIndex = 0;
     if ($isPocketVal) {
         $pocketField = $map['pocket_listing'] ?? 'ufCrm7_1770201260';
         $pocketYesVal = $enums['pocket_listing']['yes'] ?? '1027';
-        $filter['0'] = [
+        $filter[(string)$subFilterIndex++] = [
             'logic' => 'OR',
             '0' => [
                 'stageId' => 'DT1052_11:UC_BDKHAU'
@@ -510,6 +578,126 @@ if ($method === 'GET') {
                 $pocketField => $pocketYesVal
             ]
         ];
+    }
+
+    // Reference (partial/wildcard match)
+    if ($referenceVal !== null && $referenceVal !== '') {
+        $filter['%ufCrm5_1752571265'] = $referenceVal;
+    }
+
+    // Title (partial/wildcard match)
+    if ($titleVal !== null && $titleVal !== '') {
+        $filter['%title'] = $titleVal;
+    }
+
+    // Location (search matching locations and use list of IDs)
+    if ($locationVal !== null && $locationVal !== '') {
+        $locRes = bitrixRequest('crm.item.list', [
+            'entityTypeId' => LOCATIONS_ENTITY_ID,
+            'filter' => ['%title' => $locationVal],
+            'select' => ['id']
+        ]);
+        $locItems = $locRes['result']['items'] ?? [];
+        $locIds = array_column($locItems, 'id');
+        if (!empty($locIds)) {
+            $filter['parentId1056'] = $locIds;
+        } else {
+            $filter['parentId1056'] = -1; // force empty results
+        }
+    }
+
+    // Property Type (search matching enums and use allowed list)
+    if ($propertyTypeVal !== null && $propertyTypeVal !== '') {
+        $allowedEnumIds = [];
+        if (isset($enums['property_type_pf'])) {
+            foreach ($enums['property_type_pf'] as $key => $enumId) {
+                if (strpos(strtolower($key), strtolower($propertyTypeVal)) !== false) {
+                    $allowedEnumIds[] = $enumId;
+                }
+            }
+        }
+        if (!empty($allowedEnumIds)) {
+            $filter['ufCrm5_1752571572'] = $allowedEnumIds;
+        } else {
+            $filter['ufCrm5_1752571572'] = -1; // force empty results
+        }
+    }
+
+    // Bedrooms (Resolve min bedrooms to allowed enum ID array)
+    if ($bedroomsMinVal !== null) {
+        $allowedEnumIds = [];
+        if (isset($enums['bedrooms'])) {
+            foreach ($enums['bedrooms'] as $bedNum => $enumId) {
+                if ((int)$bedNum >= $bedroomsMinVal) {
+                    $allowedEnumIds[] = $enumId;
+                }
+            }
+        }
+        if (!empty($allowedEnumIds)) {
+            $filter['ufCrm5_1752508051'] = $allowedEnumIds;
+        } else {
+            $filter['ufCrm5_1752508051'] = -1; // force empty results
+        }
+    }
+
+    // Bathrooms (Resolve min bathrooms to allowed enum ID array)
+    if ($bathroomsMinVal !== null) {
+        $allowedEnumIds = [];
+        if (isset($enums['bathrooms'])) {
+            foreach ($enums['bathrooms'] as $bathNum => $enumId) {
+                if ((int)$bathNum >= $bathroomsMinVal) {
+                    $allowedEnumIds[] = $enumId;
+                }
+            }
+        }
+        if (!empty($allowedEnumIds)) {
+            $filter['ufCrm5_1752507949'] = $allowedEnumIds;
+        } else {
+            $filter['ufCrm5_1752507949'] = -1; // force empty results
+        }
+    }
+
+    // Price Range
+    if ($minPriceVal !== null) {
+        $filter['>=ufCrm5_1754555234'] = $minPriceVal;
+    }
+    if ($maxPriceVal !== null) {
+        $filter['<=ufCrm5_1754555234'] = $maxPriceVal;
+    }
+
+    // Size Range
+    if ($minSizeVal !== null) {
+        $filter['>=ufCrm5_1752571276'] = $minSizeVal;
+    }
+    if ($maxSizeVal !== null) {
+        $filter['<=ufCrm5_1752571276'] = $maxSizeVal;
+    }
+
+    // Global Search
+    if ($searchVal !== null && $searchVal !== '') {
+        $searchOr = [
+            'logic' => 'OR',
+            '0' => [ '%title' => $searchVal ],
+            '1' => [ '%ufCrm5_1752571265' => $searchVal ] // reference
+        ];
+        $orIdx = 2;
+        if (is_numeric($searchVal)) {
+            $searchOr[(string)$orIdx++] = [ 'id' => (int)$searchVal ];
+        }
+
+        // Also search matching locations and include in search OR logic
+        $locRes = bitrixRequest('crm.item.list', [
+            'entityTypeId' => LOCATIONS_ENTITY_ID,
+            'filter' => ['%title' => $searchVal],
+            'select' => ['id']
+        ]);
+        $locItems = $locRes['result']['items'] ?? [];
+        $locIds = array_column($locItems, 'id');
+        if (!empty($locIds)) {
+            $searchOr[(string)$orIdx++] = [ 'parentId1056' => $locIds ];
+        }
+
+        $filter[(string)$subFilterIndex++] = $searchOr;
     }
 
     // Pagination parameters - Bitrix default limit is 50
