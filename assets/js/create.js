@@ -1226,7 +1226,7 @@ function toImageId(id) {
   return String(id ?? "");
 }
 
-const MAX_REQUEST_BYTES = 200 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 500 * 1024 * 1024;
 
 function setImageUploadFeedback(messages = [], tone = "info") {
   const feedback = document.getElementById("imageUploadFeedback");
