@@ -1227,6 +1227,7 @@ function toImageId(id) {
 }
 
 const MAX_REQUEST_BYTES = 500 * 1024 * 1024;
+const MAX_IMAGE_FILE_SIZE = 15 * 1024 * 1024; // 15 MB in bytes
 
 function setImageUploadFeedback(messages = [], tone = "info") {
   const feedback = document.getElementById("imageUploadFeedback");
@@ -1284,11 +1285,24 @@ async function buildListingImage(file) {
   };
 }
 
-async function handleImageInputChange(e) {
-  const files = Array.from(e?.target?.files || []);
-  let addedCount = 0;
+async function processAndAddImageFiles(files) {
+  const fileList = Array.from(files || []);
+  if (fileList.length === 0) return;
 
-  for (const file of files) {
+  let addedCount = 0;
+  const errorMessages = [];
+
+  for (const file of fileList) {
+    if (!file) continue;
+
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      errorMessages.push(
+        `Image "${file.name}" (${fileSizeMB} MB) exceeds the maximum allowed size of 15 MB per image.`
+      );
+      continue;
+    }
+
     const imageData = await buildListingImage(file);
     imageGallery.push(imageData);
     addedCount += 1;
@@ -1298,7 +1312,16 @@ async function handleImageInputChange(e) {
     renderImageGallery();
   }
 
-  setImageUploadFeedback();
+  if (errorMessages.length > 0) {
+    setImageUploadFeedback(errorMessages, "error");
+  } else if (addedCount > 0) {
+    setImageUploadFeedback();
+  }
+}
+
+async function handleImageInputChange(e) {
+  const files = Array.from(e?.target?.files || []);
+  await processAndAddImageFiles(files);
 
   if (e?.target) {
     e.target.value = ""; // Reset input so selecting same file again still triggers change
@@ -1306,6 +1329,7 @@ async function handleImageInputChange(e) {
 }
 
 window.handleImageInputChange = handleImageInputChange;
+window.processAndAddImageFiles = processAndAddImageFiles;
 
 function initializeImageManagement() {
   const addImageBtn = document.getElementById("addImageBtn");
@@ -1334,6 +1358,33 @@ function initializeImageManagement() {
         return;
       }
       imageInput.click();
+    });
+  }
+
+  const dropzone = document.getElementById("imageDropzone") || imageInput.closest(".border-dashed");
+  if (dropzone && dropzone.dataset.fileDropBound !== "1") {
+    dropzone.dataset.fileDropBound = "1";
+    dropzone.addEventListener("dragover", (e) => {
+      if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes("Files")) {
+        e.preventDefault();
+        dropzone.classList.add("border-blue-500", "bg-blue-50");
+      }
+    });
+    dropzone.addEventListener("dragleave", (e) => {
+      dropzone.classList.remove("border-blue-500", "bg-blue-50");
+    });
+    dropzone.addEventListener("drop", async (e) => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove("border-blue-500", "bg-blue-50");
+        const files = Array.from(e.dataTransfer.files).filter((file) =>
+          file.type.startsWith("image/")
+        );
+        if (files.length > 0) {
+          await processAndAddImageFiles(files);
+        }
+      }
     });
   }
 
@@ -1529,6 +1580,16 @@ function initializeDocumentManagement() {
     input.addEventListener("change", (e) => {
       const file = e?.target?.files?.[0];
       if (!file || !file.name) {
+        documentRemovalState[fieldName] = false;
+        documentPreviewState[fieldName] = [];
+        renderDocumentPreview(fieldName, null);
+        return;
+      }
+
+      if (file.size > MAX_IMAGE_FILE_SIZE) {
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        alert(`Document "${file.name}" (${fileSizeMB} MB) exceeds the maximum allowed file size of 15 MB.`);
+        e.target.value = "";
         documentRemovalState[fieldName] = false;
         documentPreviewState[fieldName] = [];
         renderDocumentPreview(fieldName, null);

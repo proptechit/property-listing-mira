@@ -18,7 +18,7 @@
                 <label class="block text-md font-semibold text-slate-900 mb-4">Photos</label>
 
                 <!-- Image Input Area -->
-                <div class="mb-4 p-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50">
+                <div class="mb-4 p-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50" id="imageDropzone">
                     <div class="flex items-center justify-center flex-col gap-2">
                         <input type="file" id="imageInput" multiple accept="image/*" class="sr-only" onchange="window.handleImageInputChange && window.handleImageInputChange(event)">
                         <label for="imageInput" id="addImageBtn" role="button" tabindex="0"
@@ -26,7 +26,7 @@
                             <i class="fa-solid fa-plus"></i>
                             Add Images
                         </label>
-                        <p class="text-sm text-slate-500">Select images to add to the gallery or drag & drop to reorder</p>
+                        <p class="text-sm text-slate-500">Select images to add to the gallery (max 15 MB per image) or drag & drop to reorder</p>
                     </div>
                 </div>
 
