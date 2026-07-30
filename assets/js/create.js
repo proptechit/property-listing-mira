@@ -1863,13 +1863,22 @@ async function serializeImageGalleryForSubmission() {
     if (!image) continue;
 
     if (image.isExistingImage) {
-      serialized.push({
-        name: image.name || "Image",
-        src: image.src || image.previewUrl || "",
-        ...(image.existingFileId !== null && image.existingFileId !== undefined
-          ? { existingFileId: image.existingFileId }
-          : {}),
-      });
+      const existingFileId =
+        typeof getExistingImageFileId === "function"
+          ? getExistingImageFileId(image)
+          : image.existingFileId ?? image.fileId ?? image.id ?? null;
+
+      if (existingFileId !== null && existingFileId !== undefined) {
+        serialized.push({
+          existingFileId: existingFileId,
+          name: image.name || "Image",
+        });
+      } else {
+        serialized.push({
+          name: image.name || "Image",
+          src: image.src || image.previewUrl || "",
+        });
+      }
       continue;
     }
 

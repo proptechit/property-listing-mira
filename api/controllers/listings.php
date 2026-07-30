@@ -52,6 +52,13 @@ function normalizeFiles(array $files): array
     $result = [];
 
     foreach ($files as $file) {
+        // Check for existing Bitrix file ID FIRST to avoid re-downloading or re-uploading existing images
+        $existingId = extractExistingFileId($file);
+        if ($existingId !== null) {
+            $result[] = ['id' => $existingId];
+            continue;
+        }
+
         $name = is_object($file) ? ($file->name ?? null) : ($file['name'] ?? null);
         $src  = is_object($file) ? ($file->src ?? null)  : ($file['src'] ?? null);
 
@@ -65,7 +72,7 @@ function normalizeFiles(array $files): array
             continue;
         }
 
-        // Prefer src-based conversion to tuple (create-style) whenever src exists.
+        // Prefer src-based conversion to tuple (create-style) for NEW files whenever src exists.
         if (is_string($src) && trim($src) !== '') {
             if (!$name || !is_string($name) || trim($name) === '') {
                 $name = isLikelyUrl($src) ? inferFileNameFromUrl($src) : ('image-' . uniqid() . '.jpg');
@@ -82,14 +89,6 @@ function normalizeFiles(array $files): array
             $result[] = [$name, cleanBase64($src)];
             continue;
         }
-
-        // Fallback: if no src is present, preserve existing Bitrix file id.
-        $existingId = extractExistingFileId($file);
-        if ($existingId !== null) {
-            $result[] = ['id' => $existingId];
-            continue;
-        }
-
     }
 
     return $result;
@@ -97,12 +96,28 @@ function normalizeFiles(array $files): array
 
 function extractExistingFileId($file): ?int
 {
+    if ($file === null || $file === '') {
+        return null;
+    }
+
+    if (is_int($file)) {
+        return $file;
+    }
+
+    if (is_float($file)) {
+        return (int)$file;
+    }
+
+    if (is_string($file) && preg_match('/^\d+$/', trim($file))) {
+        return (int)trim($file);
+    }
+
     $candidate = null;
 
     if (is_object($file)) {
-        $candidate = $file->existingFileId ?? $file->existing_file_id ?? $file->fileId ?? $file->file_id ?? null;
+        $candidate = $file->existingFileId ?? $file->existing_file_id ?? $file->fileId ?? $file->file_id ?? $file->id ?? null;
     } elseif (is_array($file)) {
-        $candidate = $file['existingFileId'] ?? $file['existing_file_id'] ?? $file['fileId'] ?? $file['file_id'] ?? null;
+        $candidate = $file['existingFileId'] ?? $file['existing_file_id'] ?? $file['fileId'] ?? $file['file_id'] ?? $file['id'] ?? null;
     }
 
     if ($candidate === null || $candidate === '') {
