@@ -101,7 +101,7 @@ function formatPriceWithType(price, priceType) {
 }
 
 function setViewMode(mode) {
-  const m = mode === "grid" ? "grid" : "list";
+  const m = mode === "list" ? "list" : "grid";
   state.viewMode = m;
   try {
     localStorage.setItem("listings_view_mode", m);
@@ -140,11 +140,8 @@ function wireViewToggle() {
   const listBtn = qs("#viewListBtn");
   const gridBtn = qs("#viewGridBtn");
 
-  // restore
-  let saved = "grid";
-  try {
-    saved = localStorage.getItem("listings_view_mode") || state.viewMode || "grid";
-  } catch (_) {}
+  // Default to grid unless explicitly restored from state
+  let saved = state.viewMode || "grid";
   setViewMode(saved);
 
   if (listBtn) {
