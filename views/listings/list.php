@@ -45,13 +45,13 @@
             <!-- View Toggle -->
             <div class="flex items-center gap-2">
                 <button id="viewListBtn" type="button"
-                    class="px-3 py-2 text-md font-semibold rounded-xl transition bg-blue-600 text-white shadow-md shadow-blue-100 flex items-center gap-2"
-                    aria-pressed="true">
+                    class="px-3 py-2 text-md font-semibold rounded-xl transition bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-2"
+                    aria-pressed="false">
                     <i class="fa-solid fa-list"></i> List
                 </button>
                 <button id="viewGridBtn" type="button"
-                    class="px-3 py-2 text-md font-semibold rounded-xl transition bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-2"
-                    aria-pressed="false">
+                    class="px-3 py-2 text-md font-semibold rounded-xl transition bg-blue-600 text-white shadow-md shadow-blue-100 flex items-center gap-2"
+                    aria-pressed="true">
                     <i class="fa-solid fa-border-all"></i> Grid
                 </button>
             </div>
@@ -166,9 +166,36 @@
                     </div>
                     <div>
                         <label class="text-md font-semibold text-slate-500">Type</label>
-                        <input id="f_type" type="text"
-                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Apartment / Villa..." />
+                        <select id="f_type"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Please select</option>
+                            <option value="Apartment">Apartment</option>
+                            <option value="Villa">Villa</option>
+                            <option value="Townhouse">Townhouse</option>
+                            <option value="Penthouse">Penthouse</option>
+                            <option value="Duplex">Duplex</option>
+                            <option value="Compound">Compound</option>
+                            <option value="Bungalow">Bungalow</option>
+                            <option value="Chalet">Chalet</option>
+                            <option value="Full Floor">Full Floor</option>
+                            <option value="Half Floor">Half Floor</option>
+                            <option value="Hotel Apartment">Hotel Apartment</option>
+                            <option value="Land">Land</option>
+                            <option value="Office Space">Office Space</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Shop">Shop</option>
+                            <option value="Show Room">Show Room</option>
+                            <option value="Warehouse">Warehouse</option>
+                            <option value="Whole Building">Whole Building</option>
+                            <option value="Labor Camp">Labor Camp</option>
+                            <option value="Factory">Factory</option>
+                            <option value="Commercial Building">Commercial Building</option>
+                            <option value="Commercial Floor">Commercial Floor</option>
+                            <option value="Commercial Land">Commercial Land</option>
+                            <option value="Residential Building">Residential Building</option>
+                            <option value="Residential Floor">Residential Floor</option>
+                            <option value="Residential Land">Residential Land</option>
+                        </select>
                     </div>
 
                     <div>
@@ -244,16 +271,16 @@
     <!-- listings view container -->
     <div class="w-full rounded-lg border border-gray-200 bg-white overflow-hidden">
         <!-- list view -->
-        <div id="listingsListView" class="w-full overflow-x-auto">
+        <div id="listingsListView" class="w-full overflow-x-auto hidden">
             <table class="w-full min-w-[1100px] table-auto border-collapse text-md">
                 <thead class="sticky top-0 z-10 bg-gray-50">
                     <tr class="bg-slate-50/50 border-b border-slate-100">
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Title</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Price (AED)</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Type</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Sale/Rent</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Specifications</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Location</th>
-                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Price (AED)</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Status</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Agent</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Owner</th>
@@ -272,7 +299,7 @@
         </div>
 
         <!-- grid view -->
-        <div id="listingsGridView" class="hidden p-4">
+        <div id="listingsGridView" class="p-4">
             <div id="listingsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
         </div>
 

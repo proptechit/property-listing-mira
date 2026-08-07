@@ -10,7 +10,7 @@ const developerMap = {}; // Store developer ID-to-name mapping
 
 const state = {
   searchTerm: "",
-  viewMode: "list", // 'list' | 'grid'
+  viewMode: "grid", // 'grid' | 'list'
   filters: {
     reference: "",
     title: "",
@@ -29,6 +29,36 @@ const state = {
     maxSize: "",
   },
 };
+
+function saveStateToSession() {
+  try {
+    const data = {
+      currentPage,
+      searchTerm: state.searchTerm,
+      filters: state.filters,
+      viewMode: state.viewMode,
+    };
+    sessionStorage.setItem("listings_state", JSON.stringify(data));
+  } catch (_) {}
+}
+
+function restoreStateFromSession() {
+  try {
+    const raw = sessionStorage.getItem("listings_state");
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data && typeof data === "object") {
+      if (data.currentPage) currentPage = data.currentPage;
+      if (typeof data.searchTerm === "string") state.searchTerm = data.searchTerm;
+      if (data.filters && typeof data.filters === "object") {
+        state.filters = { ...state.filters, ...data.filters };
+      }
+      if (data.viewMode) state.viewMode = data.viewMode;
+      return true;
+    }
+  } catch (_) {}
+  return false;
+}
 
 let searchTimer;
 
@@ -111,21 +141,23 @@ function wireViewToggle() {
   const gridBtn = qs("#viewGridBtn");
 
   // restore
-  let saved = "list";
+  let saved = "grid";
   try {
-    saved = localStorage.getItem("listings_view_mode") || "list";
+    saved = localStorage.getItem("listings_view_mode") || state.viewMode || "grid";
   } catch (_) {}
   setViewMode(saved);
 
   if (listBtn) {
     listBtn.addEventListener("click", () => {
       setViewMode("list");
+      saveStateToSession();
       loadListings(1, state.searchTerm, state.filters);
     });
   }
   if (gridBtn) {
     gridBtn.addEventListener("click", () => {
       setViewMode("grid");
+      saveStateToSession();
       loadListings(1, state.searchTerm, state.filters);
     });
   }
@@ -200,7 +232,21 @@ function formatDate(dateString) {
   });
 }
 
-function renderPortals(portals = []) {
+function getPortalUrl(portal, listing = {}) {
+  const p = String(portal || "").toLowerCase();
+  if (p === "propertyfinder" && listing.propertyfinder_id) {
+    return `https://propertyfinder.ae/go/${encodeURIComponent(listing.propertyfinder_id)}`;
+  }
+  if ((p === "bayut" || p === "dubizzle") && listing.bayut_id) {
+    return `https://www.bayut.com/property/details-${encodeURIComponent(listing.bayut_id)}.html`;
+  }
+  if (p === "website" && listing.brochure_url) {
+    return listing.brochure_url;
+  }
+  return null;
+}
+
+function renderPortals(portals = [], listing = {}) {
   const portalIcons = {
     propertyfinder: "./assets/images/propertyfinder.webp",
     bayut: "./assets/images/bayut.png",
@@ -210,13 +256,21 @@ function renderPortals(portals = []) {
 
   return portals
     .filter((p) => portalIcons[p])
-    .map(
-      (p) => `
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm" title="${escapeHtml(prettyLabel(p))}">
+    .map((p) => {
+      const url = getPortalUrl(p, listing);
+      if (url) {
+        return `
+          <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md transition" title="${escapeHtml(prettyLabel(p))}">
+            <img src="${portalIcons[p]}" alt="${p}" class="w-5 h-5 object-contain"/>
+          </a>
+        `;
+      }
+      return `
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm opacity-60 cursor-not-allowed" title="${escapeHtml(prettyLabel(p))}">
           <img src="${portalIcons[p]}" alt="${p}" class="w-5 h-5 object-contain"/>
         </span>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 
@@ -534,6 +588,7 @@ function closeFiltersDrawer() {
 async function loadListings(page = 1, searchTerm = "", filters = {}) {
   try {
     currentPage = page;
+    saveStateToSession();
 
     const tbody = qs("#listingsTable");
     const grid = qs("#listingsGrid");
@@ -646,6 +701,12 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
           </td>
 
           <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+            <div class="text-sm font-bold text-slate-700">${escapeHtml(
+              formatPriceWithType(l.price || 0, l.price_type),
+            )}</div>
+          </td>
+
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-sm text-gray-500">
               <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full  font-bold uppercase">
                 ${escapeHtml(l.property_type_pf || l.property_type || "")}
@@ -681,12 +742,6 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
           </td>
 
           <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-            <div class="text-sm font-bold text-slate-700">${escapeHtml(
-              formatPriceWithType(l.price || 0, l.price_type),
-            )}</div>
-          </td>
-
-          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <span class="px-2.5 py-1 inline-flex text-sm px-3 py-1 rounded-full  font-bold uppercase ${
               l.status === "Published"
                 ? "bg-green-100 text-green-800"
@@ -702,11 +757,9 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             </span>
           </td>
 
-
           <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-sm font-bold text-slate-700"> ${escapeHtml(displayName(l.listing_agent) || "")}</div>
           </td>
-
 
           <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="text-sm font-bold text-slate-700"> ${escapeHtml(displayName(l.listing_owner) || "")}</div>
@@ -722,7 +775,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
 
           <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
             <div class="flex items-center gap-2">
-              ${renderPortals(l.portals)}
+              ${renderPortals(l.portals, l)}
             </div>
           </td>
 
@@ -878,7 +931,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                 </div>
 
                 <div class="mt-2 flex items-center gap-2">
-                  ${renderPortals(l.portals)}
+                  ${renderPortals(l.portals, l)}
                 </div>
 
                 <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
@@ -1448,6 +1501,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const hasListingsUI = !!qs("#listingsTable") || !!qs("#listingsGrid");
   if (!hasListingsUI) return;
 
+  restoreStateFromSession();
+
+  const searchInput = qs("#searchInput");
+  if (searchInput && state.searchTerm) {
+    searchInput.value = state.searchTerm;
+  }
+
   wireSearch();
   wireFilters();
   wireViewToggle();
@@ -1455,6 +1515,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load dropdowns first, then listings (avoids agentMap/developerMap being empty)
   Promise.all([loadAgentsDropdown(), loadOwnersDropdown(), loadDevelopersDropdown()]).finally(() => {
-    loadListings(1, state.searchTerm, state.filters);
+    syncFiltersToUI();
+    loadListings(currentPage, state.searchTerm, state.filters);
   });
 });

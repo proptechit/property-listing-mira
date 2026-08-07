@@ -34,12 +34,16 @@ function fetchUsersByIds(array $ids, array &$cache): void
         'filter' => [
             '@ID' => $ids
         ],
-        'select' => ['ID', 'NAME', 'LAST_NAME']
+        'select' => ['ID', 'NAME', 'LAST_NAME', 'PERSONAL_MOBILE', 'WORK_PHONE']
     ]);
 
     $items = $res['result'] ?? [];
 
     foreach ($items as $item) {
-        $cache[$item['ID']] = trim($item['NAME'] . ' ' . $item['LAST_NAME']);
+        $phone = !empty($item['PERSONAL_MOBILE']) ? $item['PERSONAL_MOBILE'] : (!empty($item['WORK_PHONE']) ? $item['WORK_PHONE'] : '');
+        $cache[$item['ID']] = [
+            'name' => trim($item['NAME'] . ' ' . $item['LAST_NAME']),
+            'phone' => $phone,
+        ];
     }
 }

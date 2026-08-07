@@ -9,7 +9,7 @@ if (!$id) {
 <div>
     <div class="flex flex-col lg:flex-row justify-between gap-4 mb-6">
         <div>
-            <a href="?page=listings&action=list" class="text-blue-600 hover:text-blue-800 mb-2 inline-block text-sm font-semibold transition-colors">
+            <a href="?page=listings&action=list" onclick="if(window.history.length > 1){ history.back(); return false; }" class="text-blue-600 hover:text-blue-800 mb-2 inline-block text-sm font-semibold transition-colors">
                 ← Back to Listings
             </a>
             <h1 class="text-2xl font-bold text-slate-800">Listing Details</h1>

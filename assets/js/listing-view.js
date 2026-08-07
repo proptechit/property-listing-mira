@@ -72,11 +72,15 @@ function formatDate(dateString) {
   });
 }
 
-function buildDetailRowHtml(label, html) {
+function buildDetailRowHtml(label, html, icon = null) {
   const has = html !== undefined && html !== null && String(html).trim() !== "";
+  const iconClass = icon ? (icon.includes("fa-") ? icon : `fa-solid ${icon}`) : "";
   return `
     <div class="flex items-start justify-between gap-4 py-2 border-b border-slate-100 last:border-b-0">
-      <div class="text-md font-semibold text-slate-500">${escapeHtml(label)}</div>
+      <div class="flex items-center gap-2 text-md font-semibold text-slate-500">
+        ${icon ? `<i class="${iconClass} text-slate-400"></i>` : ""}
+        <span>${escapeHtml(label)}</span>
+      </div>
       <div class="text-md font-bold text-slate-800 text-right">${has ? html : "-"}</div>
     </div>
   `;
@@ -135,11 +139,38 @@ function renderListingDetails(container, listing) {
       ? listing.listing_agent.name
       : listing.listing_agent
     : "-";
-  const owner = listing?.listing_owner
-    ? typeof listing.listing_owner === "object"
-      ? listing.listing_owner.name
-      : listing.listing_owner
-    : "-";
+
+  const ownerObj = listing?.listing_owner;
+  let ownerName = "-";
+  let ownerId = null;
+  let ownerPhone = null;
+
+  if (ownerObj) {
+    if (typeof ownerObj === "object") {
+      ownerName = ownerObj.name || String(ownerObj.id || "-");
+      ownerId = ownerObj.id || null;
+      ownerPhone = ownerObj.phone || null;
+    } else {
+      ownerName = String(ownerObj);
+      if (!isNaN(ownerObj) && Number(ownerObj) > 0) {
+        ownerId = ownerObj;
+      }
+    }
+  }
+
+  let ownerHtml = escapeHtml(ownerName);
+  if (ownerId) {
+    const bitrixProfileUrl = `https://crm.mira-international.com/company/personal/user/${encodeURIComponent(ownerId)}/`;
+    ownerHtml = `<a href="${escapeHtml(bitrixProfileUrl)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline font-bold transition inline-flex items-center gap-1 justify-end">${escapeHtml(ownerName)} <i class="fa-solid fa-arrow-up-right-from-square text-xs text-blue-400"></i></a>`;
+  }
+
+  const cleanPhone = ownerPhone ? String(ownerPhone).replace(/\D/g, "") : null;
+  let ownerWhatsappHtml = '<span class="text-slate-400 font-normal">Not available</span>';
+  if (cleanPhone) {
+    const waUrl = `https://wa.me/${encodeURIComponent(cleanPhone)}`;
+    ownerWhatsappHtml = `<a href="${escapeHtml(waUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-bold transition"><i class="fa-brands fa-whatsapp text-lg text-emerald-500"></i> ${escapeHtml(ownerPhone)}</a>`;
+  }
+
   const developer = listing?.developer
     ? typeof listing.developer === "object"
       ? listing.developer.name
@@ -228,7 +259,8 @@ function renderListingDetails(container, listing) {
             ${buildDetailRow("Size", size, "fa-ruler-combined")}
             ${buildDetailRow("Location", location, "fa-location-dot")}
             ${buildDetailRow("Agent", agent, "fa-user-tie")}
-            ${buildDetailRow("Owner", owner, "fa-id-card")}
+            ${buildDetailRowHtml("Owner", ownerHtml, "fa-id-card")}
+            ${buildDetailRowHtml("Owner WhatsApp", ownerWhatsappHtml, "fa-brands fa-whatsapp text-emerald-500")}
             ${buildDetailRow("Developer", developer, "fa-helmet-safety")}
             ${buildDetailRow("Ownership", listing?.ownership ? prettyLabel(listing.ownership) : "", "fa-key")}
             ${buildDetailRow("Created At", formatDate(listing?.created_at), "fa-clock")}

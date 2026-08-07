@@ -432,7 +432,9 @@ if ($method === 'GET') {
 
         $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
         $missingBayutLocationIds = array_diff($bayutLocationIds, array_keys($bayutLocationCache));
-        $missingUserIds = array_diff($userIds, array_keys($userCache));
+        $missingUserIds = array_values(array_filter($userIds, function ($uId) use ($userCache) {
+            return empty($userCache[$uId]) || !is_array($userCache[$uId]) || !array_key_exists('phone', $userCache[$uId]);
+        }));
         $missingDeveloperIds = array_diff($developerIds, array_keys($developerCache));
 
         fetchLocationsByIds($missingLocationIds, $locationCache, 'pf');
@@ -460,16 +462,20 @@ if ($method === 'GET') {
         }
 
         if (!empty($item['listing_agent']) && isset($userCache[$item['listing_agent']])) {
+            $u = $userCache[$item['listing_agent']];
             $item['listing_agent'] = [
                 'id' => $item['listing_agent'],
-                'name' => $userCache[$item['listing_agent']],
+                'name' => is_array($u) ? ($u['name'] ?? '') : $u,
+                'phone' => is_array($u) ? ($u['phone'] ?? '') : '',
             ];
         }
 
         if (!empty($item['listing_owner']) && isset($userCache[$item['listing_owner']])) {
+            $u = $userCache[$item['listing_owner']];
             $item['listing_owner'] = [
                 'id' => $item['listing_owner'],
-                'name' => $userCache[$item['listing_owner']],
+                'name' => is_array($u) ? ($u['name'] ?? '') : $u,
+                'phone' => is_array($u) ? ($u['phone'] ?? '') : '',
             ];
         }
 
@@ -780,7 +786,9 @@ if ($method === 'GET') {
 
     $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
     $missingBayutLocationIds = array_diff($bayutLocationIds, array_keys($bayutLocationCache));
-    $missingUserIds = array_diff($userIds, array_keys($userCache));
+    $missingUserIds = array_values(array_filter($userIds, function ($uId) use ($userCache) {
+        return empty($userCache[$uId]) || !is_array($userCache[$uId]) || !array_key_exists('phone', $userCache[$uId]);
+    }));
     $missingDeveloperIds = array_diff($developerIds, array_keys($developerCache));
 
 
@@ -810,16 +818,20 @@ if ($method === 'GET') {
         }
 
         if (!empty($item['listing_agent']) && isset($userCache[$item['listing_agent']])) {
+            $u = $userCache[$item['listing_agent']];
             $item['listing_agent'] = [
                 'id' => $item['listing_agent'],
-                'name' => $userCache[$item['listing_agent']],
+                'name' => is_array($u) ? ($u['name'] ?? '') : $u,
+                'phone' => is_array($u) ? ($u['phone'] ?? '') : '',
             ];
         }
 
         if (!empty($item['listing_owner']) && isset($userCache[$item['listing_owner']])) {
+            $u = $userCache[$item['listing_owner']];
             $item['listing_owner'] = [
                 'id' => $item['listing_owner'],
-                'name' => $userCache[$item['listing_owner']],
+                'name' => is_array($u) ? ($u['name'] ?? '') : $u,
+                'phone' => is_array($u) ? ($u['phone'] ?? '') : '',
             ];
         }
 
