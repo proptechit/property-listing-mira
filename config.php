@@ -9,11 +9,12 @@ $ADMIN_IDS = [
     157, // Alex Jordan Devenport (Admin of ST5)
     29, // Ma. Betty (Admin of ST4 and PO)
     249, // Daniela Ramos (Admin of PO)
+    585, // Aram Mnatsakanian (Admin of HS)
     134, // Moh'D Barakat
     5, // Kristina Boeva
     7, // Abinas Subair
     123, // Aldo De Jager
-    28, // Daphne Varghese
+    28, // Daphne Varghese,
 ];
 
 $ENV = 'development';
