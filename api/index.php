@@ -1,5 +1,5 @@
 <?php
-require 'config.php';
+require __DIR__ . '/config.php';
 
 /**
  * ======================
@@ -84,6 +84,10 @@ switch ($resource) {
 
     case 'reports':
         require __DIR__ . '/controllers/reports.php';
+        break;
+
+    case 'verify-permit':
+        require __DIR__ . '/controllers/verify-permit.php';
         break;
 
     default:

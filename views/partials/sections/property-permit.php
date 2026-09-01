@@ -31,13 +31,23 @@
             <!-- Permit Number -->
             <div>
                 <label class="block text-md font-semibold text-slate-500">Permit Number</label>
-                <div class="mt-1 relative">
-                    <input
-                        type="text"
-                        name="advertisement_number"
-                        class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter permit number" />
-                    <i class="fa-solid fa-hashtag absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                <div class="mt-1 flex gap-2">
+                    <div class="relative flex-1">
+                        <input
+                            type="text"
+                            name="advertisement_number"
+                            id="permitNumberInput"
+                            class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Enter permit number" />
+                        <i class="fa-solid fa-hashtag absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    </div>
+                    <button
+                        type="button"
+                        id="verifyPermitBtn"
+                        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold rounded-xl transition shadow-sm whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Verify Permit</span>
+                    </button>
                 </div>
             </div>
 
@@ -63,5 +73,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Verification Result Container -->
+        <div id="permitVerificationResult" class="hidden px-5 pb-5"></div>
     </div>
 </section>

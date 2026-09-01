@@ -62,6 +62,7 @@
 
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/create.js"></script>
+<script src="assets/js/permit-verifier.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
         initCollapsibleSections();
