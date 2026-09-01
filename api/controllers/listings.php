@@ -433,7 +433,7 @@ if ($method === 'GET') {
         $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
         $missingBayutLocationIds = array_diff($bayutLocationIds, array_keys($bayutLocationCache));
         $missingUserIds = array_values(array_filter($userIds, function ($uId) use ($userCache) {
-            return empty($userCache[$uId]) || !is_array($userCache[$uId]) || !array_key_exists('phone', $userCache[$uId]);
+            return !isUserCacheValid($userCache[$uId] ?? null);
         }));
         $missingDeveloperIds = array_diff($developerIds, array_keys($developerCache));
 
@@ -787,7 +787,7 @@ if ($method === 'GET') {
     $missingLocationIds = array_diff($locationIds, array_keys($locationCache));
     $missingBayutLocationIds = array_diff($bayutLocationIds, array_keys($bayutLocationCache));
     $missingUserIds = array_values(array_filter($userIds, function ($uId) use ($userCache) {
-        return empty($userCache[$uId]) || !is_array($userCache[$uId]) || !array_key_exists('phone', $userCache[$uId]);
+        return !isUserCacheValid($userCache[$uId] ?? null);
     }));
     $missingDeveloperIds = array_diff($developerIds, array_keys($developerCache));
 

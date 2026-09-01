@@ -1,5 +1,7 @@
 <?php
 
+const USER_CACHE_TTL = 3600; // 1 hour
+
 function getUserCache(): array
 {
     $file = __DIR__ . '/../cache/users.json';
@@ -23,6 +25,20 @@ function saveUserCache(array $cache): void
     file_put_contents($file, json_encode($cache));
 }
 
+function isUserCacheValid(?array $userEntry): bool
+{
+    if (empty($userEntry) || !is_array($userEntry) || !array_key_exists('phone', $userEntry)) {
+        return false;
+    }
+
+    $cachedAt = $userEntry['cached_at'] ?? 0;
+    if (empty($cachedAt) || (time() - $cachedAt > USER_CACHE_TTL)) {
+        return false;
+    }
+
+    return true;
+}
+
 function fetchUsersByIds(array $ids, array &$cache): void
 {
     if (empty($ids)) {
@@ -30,7 +46,6 @@ function fetchUsersByIds(array $ids, array &$cache): void
     }
 
     $res = bitrixRequest('user.get', [
-
         'filter' => [
             '@ID' => $ids
         ],
@@ -44,6 +59,7 @@ function fetchUsersByIds(array $ids, array &$cache): void
         $cache[$item['ID']] = [
             'name' => trim($item['NAME'] . ' ' . $item['LAST_NAME']),
             'phone' => $phone,
+            'cached_at' => time(),
         ];
     }
 }
