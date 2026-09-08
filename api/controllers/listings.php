@@ -579,11 +579,21 @@ if ($method === 'GET') {
         unset($_GET['max_size']);
     }
 
+    $branchVal = null;
+    if (isset($_GET['branch']) && $_GET['branch'] !== '') {
+        $branchVal = trim(strtolower($_GET['branch']));
+        unset($_GET['branch']);
+    }
+
     // list items
     $filter = mapFilters($_GET, $map, $enums);
 
     if ($statusFilterVal !== null) {
         $filter['stageId'] = $statusFilterVal;
+    }
+
+    if ($branchVal !== null && $branchVal !== '') {
+        $filter[$map['branch'] ?? 'ufCrm7_1772708634'] = $branchVal;
     }
 
     $subFilterIndex = 0;

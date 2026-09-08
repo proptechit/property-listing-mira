@@ -33,6 +33,8 @@ define('ADMIN_IDS', [
     157, // Alex Jordan Devenport (Admin of ST5)
     29,  // Ma. Betty (Admin of ST4 and PO)
     249, // Daniela Ramos (Admin of PO)
+    900, // Syed Abdul Moiz (Admin of Eva)
+    1395, // Danikka Guevara (Admin of Eva)
     134, // Moh'D Barakat
     5,   // Kristina Boeva
     7,   // Abinas Subair

@@ -41,6 +41,22 @@
                 </select>
             </div>
 
+            <!-- Branch Filter -->
+            <div class="relative w-full sm:w-36">
+                <select id="branchFilter"
+                    class="w-full px-4 py-2 text-md bg-slate-50 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                    <option value="">All Branches</option>
+                    <option value="main">Main</option>
+                    <option value="st1">ST1</option>
+                    <option value="st2">ST2</option>
+                    <option value="st3">ST3</option>
+                    <option value="st4">ST4</option>
+                    <option value="st5">ST5</option>
+                    <option value="po">PO</option>
+                    <option value="eva">Eva</option>
+                </select>
+            </div>
+
             <div class="h-6 w-[1px] bg-slate-200 mx-1"></div>
             <!-- View Toggle -->
             <div class="flex items-center gap-2">
@@ -144,6 +160,22 @@
                             <option value="Active">Active - published stage only</option>
                             <option value="Inactive">Inactive - everything except published and pocket</option>
                             <option value="Pocket">Pocket - pocket</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-md font-semibold text-slate-500">Branch</label>
+                        <select id="f_branch"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Please select</option>
+                            <option value="main">Main</option>
+                            <option value="st1">ST1</option>
+                            <option value="st2">ST2</option>
+                            <option value="st3">ST3</option>
+                            <option value="st4">ST4</option>
+                            <option value="st5">ST5</option>
+                            <option value="po">PO</option>
+                            <option value="eva">Eva</option>
                         </select>
                     </div>
 

@@ -11,6 +11,17 @@ function escapeHtml(text) {
 // Fallback placeholder when listings have no images
 const PLACEHOLDER_IMAGE = "https://placehold.co/800x600?text=No+Image";
 
+const BRANCH_LABELS = {
+  main: "Main",
+  st1: "ST1",
+  st2: "ST2",
+  st3: "ST3",
+  st4: "ST4",
+  st5: "ST5",
+  po: "PO",
+  eva: "Eva",
+};
+
 function formatPrice(price) {
   const n = Number(price || 0);
   if (!Number.isFinite(n)) return "-";
@@ -259,6 +270,7 @@ function renderListingDetails(container, listing) {
             ${buildDetailRow("Size", size, "fa-ruler-combined")}
             ${buildDetailRow("Location", location, "fa-location-dot")}
             ${buildDetailRow("Agent", agent, "fa-user-tie")}
+            ${buildDetailRow("Branch", listing?.branch ? (BRANCH_LABELS[String(listing.branch).toLowerCase()] || listing.branch) : "", "fa-code-branch")}
             ${buildDetailRowHtml("Owner", ownerHtml, "fa-id-card")}
             ${buildDetailRowHtml("Owner WhatsApp", ownerWhatsappHtml, "fa-brands fa-whatsapp text-emerald-500")}
             ${buildDetailRow("Developer", developer, "fa-helmet-safety")}

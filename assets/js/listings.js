@@ -8,6 +8,17 @@ const agentMap = {}; // Store agent ID-to-name mapping
 const ownerMap = {}; // Store owner ID-to-name mapping
 const developerMap = {}; // Store developer ID-to-name mapping
 
+const BRANCH_LABELS = {
+  main: "Main",
+  st1: "ST1",
+  st2: "ST2",
+  st3: "ST3",
+  st4: "ST4",
+  st5: "ST5",
+  po: "PO",
+  eva: "Eva",
+};
+
 const state = {
   searchTerm: "",
   viewMode: "grid", // 'grid' | 'list'
@@ -19,6 +30,7 @@ const state = {
     location: "",
     status: "",
     purpose: "",
+    branch: "",
     agent: "",
     owner: "",
     developer: "",
@@ -287,6 +299,7 @@ function buildQueryParams(page, searchTerm, filters) {
     location: "location",
     status: "status",
     purpose: "purpose",
+    branch: "branch",
     agent: "listing_agent",
     owner: "listing_owner",
     developer: "developer",
@@ -350,6 +363,7 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
       type,
       agent,
       owner,
+      normStr(listing?.branch),
       String(price ?? ""),
       String(size ?? ""),
       String(bedrooms ?? ""),
@@ -379,6 +393,8 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   }
 
   if (f.purpose && normStr(f.purpose) !== purpose) return false;
+
+  if (f.branch && normStr(listing?.branch) !== normStr(f.branch)) return false;
 
   // For agent, convert ID to name if it's stored as ID
   if (f.agent) {
@@ -442,6 +458,11 @@ function getActiveChips(filters, searchTerm) {
   push("location", "Location", filters.location);
   push("status", "Status", filters.status);
   push("purpose", "Sale/Rent", filters.purpose);
+  const branchValue =
+    filters.branch && BRANCH_LABELS[String(filters.branch).toLowerCase()]
+      ? BRANCH_LABELS[String(filters.branch).toLowerCase()]
+      : filters.branch;
+  push("branch", "Branch", branchValue);
   push("type", "Type", filters.type);
 
   // For agent, display name from agentMap if available, otherwise show ID
@@ -535,6 +556,8 @@ function syncFiltersToUI() {
   set("#f_purpose", state.filters.purpose);
   set("#statusFilter", state.filters.status);
   set("#saleTypeFilter", state.filters.purpose);
+  set("#branchFilter", state.filters.branch);
+  set("#f_branch", state.filters.branch);
   set("#f_agent", state.filters.agent);
   set("#f_owner", state.filters.owner);
   set("#f_type", state.filters.type);
@@ -556,6 +579,7 @@ function readFiltersFromUI() {
     location: get("#f_location"),
     status: get("#f_status"),
     purpose: get("#f_purpose"),
+    branch: get("#f_branch"),
     agent: get("#f_agent"),
     owner: get("#f_owner"),
     type: get("#f_type"),
@@ -689,6 +713,13 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                   ${
                     (l.status === "Pocket Listing" || l.pocket_listing === "yes" || String(l.status).toLowerCase().includes("pocket"))
                       ? `<span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-lg text-xs font-extrabold border border-amber-200/60 uppercase tracking-wider"><i class="fa-solid fa-lock text-[10px]"></i> Pocket</span>`
+                      : ""
+                  }
+                  ${
+                    l.branch
+                      ? `<span class="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg text-xs font-extrabold border border-slate-200 uppercase tracking-wider">${escapeHtml(
+                          BRANCH_LABELS[String(l.branch).toLowerCase()] || l.branch,
+                        )}</span>`
                       : ""
                   }
                 </div>
@@ -943,6 +974,13 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                     purpose
                       ? `<span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold uppercase">${escapeHtml(
                           purpose,
+                        )}</span>`
+                      : ""
+                  }
+                  ${
+                    l.branch
+                      ? `<span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold uppercase">${escapeHtml(
+                          BRANCH_LABELS[String(l.branch).toLowerCase()] || l.branch,
                         )}</span>`
                       : ""
                   }
@@ -1325,6 +1363,7 @@ function wireFilters() {
   const backdrop = qs("#filtersBackdrop");
   const quickStatusFilter = qs("#statusFilter");
   const quickSaleTypeFilter = qs("#saleTypeFilter");
+  const quickBranchFilter = qs("#branchFilter");
 
   if (openBtn) openBtn.addEventListener("click", openFiltersDrawer);
   if (closeBtn) closeBtn.addEventListener("click", closeFiltersDrawer);
@@ -1349,6 +1388,16 @@ function wireFilters() {
     });
   }
 
+  // Wire up quick branch filter
+  if (quickBranchFilter) {
+    quickBranchFilter.addEventListener("change", (e) => {
+      state.filters.branch = e.target.value || "";
+      syncFiltersToUI();
+      renderChips();
+      loadListings(1, state.searchTerm, state.filters);
+    });
+  }
+
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
       state.filters = {
@@ -1358,6 +1407,8 @@ function wireFilters() {
         maxPrice: "",
         location: "",
         status: "",
+        purpose: "",
+        branch: "",
         agent: "",
         owner: "",
         developer: "",
@@ -1375,6 +1426,7 @@ function wireFilters() {
   if (applyBtn) {
     applyBtn.addEventListener("click", () => {
       state.filters = readFiltersFromUI();
+      syncFiltersToUI();
       closeFiltersDrawer();
       renderChips();
       loadListings(1, state.searchTerm, state.filters);
@@ -1395,6 +1447,8 @@ function wireFilters() {
         maxPrice: "",
         location: "",
         status: "",
+        purpose: "",
+        branch: "",
         agent: "",
         owner: "",
         developer: "",

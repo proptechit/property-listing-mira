@@ -129,6 +129,7 @@ return [
     'ownership'      => 'ufCrm7_1782715351',
     'listing_agent'  => 'assignedById',
     'listing_owner'  => 'ufCrm5_1766132923',
+    'branch'         => 'ufCrm7_1772708634',
 
     /*
     |--------------------------------------------------------------------------
