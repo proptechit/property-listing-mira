@@ -107,7 +107,13 @@ function openSyncLocationsModal() {
   modal.style.display = "flex";
 }
 
+let isLocationSyncing = false;
+
 function closeSyncLocationsModal() {
+  if (isLocationSyncing) {
+    alert("Location sync is in progress. This will take some time to complete, please don't refresh or close the page while loading.");
+    return;
+  }
   const modal = document.getElementById("syncLocationsModal");
   if (!modal) return;
 
@@ -136,11 +142,27 @@ function initSyncLocationsModal() {
 
       const btn = document.getElementById("startSyncBtn");
       const btnText = document.getElementById("startSyncBtnText");
+      const closeBtn = document.getElementById("closeSyncModalBtn");
+      const loadingNotice = document.getElementById("syncLoadingNotice");
       const originalText = btnText.textContent;
+      const formControls = form.querySelectorAll("input, select, button");
+
+      // Warn user if they attempt to refresh or close while sync is running
+      const unloadHandler = (event) => {
+        event.preventDefault();
+        event.returnValue = "Location sync is in progress. This location sync will take some time to be completed, please don't refresh the page while loading.";
+        return event.returnValue;
+      };
 
       try {
-        btn.disabled = true;
+        isLocationSyncing = true;
+        formControls.forEach((el) => (el.disabled = true));
+        if (closeBtn) closeBtn.disabled = true;
+        if (loadingNotice) loadingNotice.classList.remove("hidden");
+
         btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Syncing Locations...`;
+        showStatusAlert("info", `Syncing locations for ${city}... This location sync will take some time to be completed, please don't refresh the page while loading.`);
+        window.addEventListener("beforeunload", unloadHandler);
 
         const res = await api("/?resource=locations&action=sync", {
           method: "POST",
@@ -152,6 +174,7 @@ function initSyncLocationsModal() {
           },
         });
 
+        isLocationSyncing = false;
         closeSyncLocationsModal();
 
         if (res && res.success) {
@@ -175,7 +198,11 @@ function initSyncLocationsModal() {
         const errMsg = err.error || err.message || "Failed to sync locations.";
         showStatusAlert("error", `Location sync failed: ${errMsg}`);
       } finally {
-        btn.disabled = false;
+        isLocationSyncing = false;
+        window.removeEventListener("beforeunload", unloadHandler);
+        formControls.forEach((el) => (el.disabled = false));
+        if (closeBtn) closeBtn.disabled = false;
+        if (loadingNotice) loadingNotice.classList.add("hidden");
         btnText.textContent = originalText;
       }
     });

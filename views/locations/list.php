@@ -82,7 +82,7 @@
                 </h2>
                 <p class="text-xs text-gray-500 mt-0.5">Synchronize locations from Property Finder and Bayut</p>
             </div>
-            <button onclick="closeSyncLocationsModal()"
+            <button id="closeSyncModalBtn" onclick="closeSyncLocationsModal()"
                 class="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -98,13 +98,33 @@
                 <div class="flex items-center gap-2.5">
                     <i class="fa-solid fa-clock-rotate-left text-blue-600 text-sm"></i>
                     <div>
-                        <div class="text-xs font-medium text-blue-900">Last Synced Time (SPA 1056)</div>
+                        <div class="text-xs font-medium text-blue-900">Last Synced Time</div>
                         <div id="modalLastSyncText" class="text-xs text-blue-700 mt-0.5 font-medium">Checking...</div>
                     </div>
                 </div>
                 <button type="button" onclick="loadLastSyncTime()" class="text-xs text-blue-600 hover:text-blue-800 bg-white border border-blue-200 rounded px-2 py-1 shadow-2xs hover:bg-blue-50 transition">
                     Refresh
                 </button>
+            </div>
+
+            <!-- Sync Time Warning Notice -->
+            <div class="p-3.5 bg-amber-50 border border-amber-300/80 rounded-lg flex items-start gap-3 text-amber-950 text-xs leading-relaxed shadow-xs">
+                <div class="p-1 bg-amber-100 rounded-md text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-amber-900">Note:</span> This location sync will take some time to be completed, please don't refresh the page while loading.
+                </div>
+            </div>
+
+            <!-- Active Sync Loading Banner (Visible only while sync is in progress) -->
+            <div id="syncLoadingNotice" class="hidden p-3.5 bg-blue-50 border border-blue-300 rounded-lg flex items-start gap-3 text-blue-950 text-xs leading-relaxed animate-pulse">
+                <div class="p-1 bg-blue-100 rounded-md text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <i class="fa-solid fa-spinner fa-spin text-sm"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-blue-900">Syncing locations...</span> This location sync will take some time to be completed, please don't refresh the page while loading.
+                </div>
             </div>
 
             <!-- City Selection (Required) -->
@@ -163,7 +183,7 @@
 
             <!-- Modal Footer Buttons -->
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-                <button type="button" onclick="closeSyncLocationsModal()"
+                <button type="button" id="syncLocationsCancelBtn" onclick="closeSyncLocationsModal()"
                     class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     Cancel
                 </button>
