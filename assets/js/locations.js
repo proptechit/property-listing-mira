@@ -79,8 +79,9 @@ async function loadLastSyncTime() {
       lastSyncTimestamp = res.last_sync_time;
       const formatted = formatDateTime(res.last_sync_time);
       const relative = formatRelativeTime(res.last_sync_time);
+      const cityTag = res.city ? ` (${res.city})` : "";
 
-      const displayStr = relative ? `${formatted} (${relative})` : formatted;
+      const displayStr = relative ? `${formatted} (${relative})${cityTag}` : `${formatted}${cityTag}`;
 
       if (badgeText) badgeText.textContent = `Last Synced: ${displayStr}`;
       if (modalText) modalText.textContent = displayStr;
@@ -183,7 +184,8 @@ function initSyncLocationsModal() {
             lastSyncTimestamp = res.last_sync_time;
             const formatted = formatDateTime(res.last_sync_time);
             const relative = formatRelativeTime(res.last_sync_time);
-            const displayStr = relative ? `${formatted} (${relative})` : formatted;
+            const cityTag = (res.city || city) ? ` (${res.city || city})` : "";
+            const displayStr = relative ? `${formatted} (${relative})${cityTag}` : `${formatted}${cityTag}`;
             const badgeText = document.getElementById("lastSyncBadgeText");
             if (badgeText) badgeText.textContent = `Last Synced: ${displayStr}`;
           } else {

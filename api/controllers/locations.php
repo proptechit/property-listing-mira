@@ -14,27 +14,90 @@ $map = require __DIR__ . '/../mappings/locations.php';
 $action = $_GET['action'] ?? null;
 
 /**
- * FETCH LAST SYNC TIME (most recent updatedTime in locations SPA 1056)
+ * Helper to get the recorded location sync metadata
  */
-if ($method === 'GET' && $action === 'last-sync') {
+function getLocationSyncMeta(): array
+{
+    // 1. Try Bitrix Option
+    if (class_exists('\Bitrix\Main\Config\Option')) {
+        try {
+            $metaJson = \Bitrix\Main\Config\Option::get('webmatrik.integrations', 'locations_last_sync_meta', '');
+            if (!empty($metaJson)) {
+                $data = json_decode($metaJson, true);
+                if (is_array($data) && !empty($data['last_sync_time'])) {
+                    return $data;
+                }
+            }
+            $time = \Bitrix\Main\Config\Option::get('webmatrik.integrations', 'locations_last_sync_time', '');
+            if (!empty($time)) {
+                return ['last_sync_time' => $time];
+            }
+        } catch (\Throwable $e) {
+            // ignore option read errors
+        }
+    }
+
+    // 2. Try local cache file
+    $cacheFile = __DIR__ . '/../cache/locations_sync_meta.json';
+    if (file_exists($cacheFile)) {
+        $data = json_decode(file_get_contents($cacheFile), true);
+        if (is_array($data) && !empty($data['last_sync_time'])) {
+            return $data;
+        }
+    }
+
+    // 3. Fallback to latest updatedTime in SPA 1056
     $res = bitrixRequest('crm.item.list', [
         'entityTypeId' => LOCATIONS_ENTITY_ID,
         'order'        => ['updatedTime' => 'DESC'],
         'limit'        => 1,
         'select'       => ['id', 'title', 'updatedTime', 'createdTime'],
     ]);
-
     $item = $res['result']['items'][0] ?? null;
     $updatedTime = $item['updatedTime'] ?? $item['createdTime'] ?? null;
 
+    return [
+        'last_sync_time' => $updatedTime,
+        'source'         => 'spa_item',
+    ];
+}
+
+/**
+ * Helper to record the location sync execution metadata
+ */
+function saveLocationSyncMeta(array $meta): void
+{
+    $meta['last_sync_time'] = $meta['last_sync_time'] ?? date('c');
+
+    // 1. Save to Bitrix Option
+    if (class_exists('\Bitrix\Main\Config\Option')) {
+        try {
+            \Bitrix\Main\Config\Option::set('webmatrik.integrations', 'locations_last_sync_time', $meta['last_sync_time']);
+            \Bitrix\Main\Config\Option::set('webmatrik.integrations', 'locations_last_sync_meta', json_encode($meta));
+        } catch (\Throwable $e) {
+            // ignore option save error
+        }
+    }
+
+    // 2. Save to local cache file
+    $cacheFile = __DIR__ . '/../cache/locations_sync_meta.json';
+    if (!is_dir(dirname($cacheFile))) {
+        mkdir(dirname($cacheFile), 0777, true);
+    }
+    file_put_contents($cacheFile, json_encode($meta, JSON_PRETTY_PRINT));
+}
+
+/**
+ * FETCH LAST SYNC TIME (True execution timestamp with fallback to SPA 1056)
+ */
+if ($method === 'GET' && $action === 'last-sync') {
+    $meta = getLocationSyncMeta();
+
     jsonResponse([
         'success'        => true,
-        'last_sync_time' => $updatedTime,
-        'last_item'      => $item ? [
-            'id'          => $item['id'],
-            'title'       => $item['title'] ?? '',
-            'updatedTime' => $updatedTime,
-        ] : null,
+        'last_sync_time' => $meta['last_sync_time'] ?? null,
+        'city'           => $meta['city'] ?? null,
+        'meta'           => $meta,
     ]);
     exit;
 }
@@ -91,15 +154,16 @@ if ($method === 'POST' && $action === 'sync') {
                 $errors[] = "FeedBayut class not found";
             }
 
-            // Fetch the updated latest sync timestamp from entity 1056
-            $lastSyncRes = bitrixRequest('crm.item.list', [
-                'entityTypeId' => LOCATIONS_ENTITY_ID,
-                'order'        => ['updatedTime' => 'DESC'],
-                'limit'        => 1,
-                'select'       => ['id', 'title', 'updatedTime', 'createdTime'],
-            ]);
-            $latestItem = $lastSyncRes['result']['items'][0] ?? null;
-            $lastSyncTime = $latestItem['updatedTime'] ?? $latestItem['createdTime'] ?? date('c');
+            // Record exact sync completion time and metadata (independent of whether items changed)
+            $now = date('c');
+            $syncMeta = [
+                'last_sync_time' => $now,
+                'city'           => $city,
+                'community'      => $community ?: null,
+                'subcommunity'   => $subcommunity ?: null,
+                'building'       => $building ?: null,
+            ];
+            saveLocationSyncMeta($syncMeta);
 
             jsonResponse([
                 'success'        => true,
@@ -108,7 +172,7 @@ if ($method === 'POST' && $action === 'sync') {
                 'community'      => $community ?: null,
                 'subcommunity'   => $subcommunity ?: null,
                 'building'       => $building ?: null,
-                'last_sync_time' => $lastSyncTime,
+                'last_sync_time' => $now,
                 'pf_result'      => $pfResult,
                 'bayut_result'   => $bayutResult,
                 'warnings'       => $errors,
