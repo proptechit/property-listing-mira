@@ -32,8 +32,13 @@ if ($method === 'POST' && $action === 'sync-portal-users') {
             $syncedBranches = [];
             foreach ($branches as $branch) {
                 $Pf = new \Webmatrik\Integrations\FeedPf(true, $branch);
-                $Pf->getPfUsers();
-                $syncedBranches[] = $branch;
+                $Bayut = new \Webmatrik\Integrations\FeedBayut($branch);
+                $PfUsers = $Pf->getPfUsers();
+                $BayutUsers = $Bayut->getBayutUsers();
+                $syncedBranches[$branch] = [
+                    'pf_users_count' => count($PfUsers),
+                    'bayut_users_count' => count($BayutUsers),
+                ];
             }
 
             jsonResponse([
