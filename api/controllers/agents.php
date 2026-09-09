@@ -31,14 +31,44 @@ if ($method === 'POST' && $action === 'sync-portal-users') {
 
             $syncedBranches = [];
             foreach ($branches as $branch) {
-                $Pf = new \Webmatrik\Integrations\FeedPf(true, $branch);
-                $Bayut = new \Webmatrik\Integrations\FeedBayut($branch);
-                $PfUsers = $Pf->getPfUsers();
-                $BayutUsers = $Bayut->getBayutUsers();
-                $syncedBranches[$branch] = [
-                    'pf_users_count' => count($PfUsers),
-                    'bayut_users_count' => count($BayutUsers),
+                $pfCount = 0;
+                $bayutCount = 0;
+                $branchError = null;
+
+                try {
+                    $Pf = new \Webmatrik\Integrations\FeedPf(true, $branch);
+                    $PfUsers = $Pf->getPfUsers();
+                    if (is_countable($PfUsers)) {
+                        $pfCount = count($PfUsers);
+                    } elseif (is_int($PfUsers)) {
+                        $pfCount = $PfUsers;
+                    }
+                } catch (\Throwable $pe) {
+                    $branchError = ($branchError ? $branchError . '; ' : '') . 'PF: ' . $pe->getMessage();
+                }
+
+                try {
+                    $Bayut = new \Webmatrik\Integrations\FeedBayut($branch);
+                    $BayutUsers = $Bayut->getBayutUsers();
+                    if (is_countable($BayutUsers)) {
+                        $bayutCount = count($BayutUsers);
+                    } elseif (is_int($BayutUsers)) {
+                        $bayutCount = $BayutUsers;
+                    }
+                } catch (\Throwable $be) {
+                    $branchError = ($branchError ? $branchError . '; ' : '') . 'Bayut: ' . $be->getMessage();
+                }
+
+                $branchResult = [
+                    'pf_users_count' => $pfCount,
+                    'bayut_users_count' => $bayutCount,
                 ];
+
+                if ($branchError) {
+                    $branchResult['error'] = $branchError;
+                }
+
+                $syncedBranches[$branch] = $branchResult;
             }
 
             jsonResponse([
@@ -130,20 +160,51 @@ if ($method === 'GET' && (isset($_GET['all_users']) && $_GET['all_users'] === 't
     );
 
     $allUsers = $res['result'] ?? [];
-    $users = array_map(
-        fn($u) => fromBitrixFields($u, $map),
-        $allUsers
-    );
+    $filteredUsers = [];
 
-    usort($users, function ($a, $b) {
-        $nameA = trim(($a['name'] ?? '') . ' ' . ($a['last_name'] ?? ''));
-        $nameB = trim(($b['name'] ?? '') . ' ' . ($b['last_name'] ?? ''));
+    foreach ($allUsers as $u) {
+        $email = strtolower(trim($u['EMAIL'] ?? ''));
+        $pos = trim($u['WORK_POSITION'] ?? '');
+        $name = trim(html_entity_decode($u['NAME'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $lastName = trim(html_entity_decode($u['LAST_NAME'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $branch = trim($u['BRANCH'] ?? '');
+        $agentCode = trim($u['UF_USR_1770017892768'] ?? '');
+        $pfId = trim($u['UF_PFID'] ?? '');
+        $bayutId = trim($u['UF_BAYUTID'] ?? '');
+
+        // Exclude bots, anonymous user, and whatsapp/example leads
+        if ($u['ID'] == 2 || $pos === 'Chat bot' || $pos === 'TEMPLATE' || $pos === 'Voice') {
+            continue;
+        }
+        if (str_contains($email, 'whatsapp.wazzup') || str_contains($email, '@example.com')) {
+            continue;
+        }
+
+        $hasEmail = !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
+        $hasAffiliation = !empty($branch) || !empty($agentCode) || !empty($pfId) || !empty($bayutId) || (!empty($pos) && $pos !== 'PC');
+
+        if (!$hasEmail && !$hasAffiliation) {
+            // Exclude phone-number-only names or symbol-only names
+            if (preg_match('/^[+0-9\s()-]+$/', $name) || preg_match('/^["\'.{}?]+/', $name) || empty($name)) {
+                continue;
+            }
+        }
+
+        $transformed = fromBitrixFields($u, $map);
+        $transformed['name'] = $name;
+        $transformed['last_name'] = $lastName;
+        $filteredUsers[] = $transformed;
+    }
+
+    usort($filteredUsers, function ($a, $b) {
+        $nameA = preg_replace('/^[^a-zA-Z0-9]+/', '', trim(($a['name'] ?? '') . ' ' . ($a['last_name'] ?? '')));
+        $nameB = preg_replace('/^[^a-zA-Z0-9]+/', '', trim(($b['name'] ?? '') . ' ' . ($b['last_name'] ?? '')));
         return strcasecmp($nameA, $nameB);
     });
 
     jsonResponse([
-        'data' => $users,
-        'total' => count($users),
+        'data' => $filteredUsers,
+        'total' => count($filteredUsers),
     ]);
 }
 

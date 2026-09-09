@@ -127,7 +127,7 @@
 
                     <!-- Search Results Dropdown List -->
                     <div id="userSearchResults"
-                        class="hidden absolute z-30 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto divide-y divide-gray-100">
+                        class="hidden absolute z-50 left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-52 overflow-y-auto divide-y divide-gray-100">
                         <!-- Populated by JS -->
                     </div>
                 </div>

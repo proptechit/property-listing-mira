@@ -328,6 +328,14 @@ function hideUserSelectError() {
   if (err) err.classList.add("hidden");
 }
 
+// Decode HTML entities
+function decodeHtml(html) {
+  if (!html) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}
+
 // Setup Modal interactions & search
 function initAgentModal() {
   const searchInput = document.getElementById("userSearchInput");
@@ -340,31 +348,43 @@ function initAgentModal() {
 
     const performSearch = async () => {
       const q = searchInput.value.trim().toLowerCase();
-      const users = await fetchBitrixUsers();
 
+      // Only search and show dropdown when user has typed something
       if (!q) {
-        // Show recent / top 10 users if query is empty
-        renderSearchResults(users.slice(0, 10));
+        if (resultsContainer) {
+          resultsContainer.innerHTML = "";
+          resultsContainer.classList.add("hidden");
+        }
         return;
       }
 
+      const users = await fetchBitrixUsers();
       const filtered = users.filter((u) => {
         const name = `${u.name || ""} ${u.last_name || ""}`.toLowerCase();
         const email = (u.email || "").toLowerCase();
         const pos = (u.position || "").toLowerCase();
-        return name.includes(q) || email.includes(q) || pos.includes(q);
+        const branch = (u.branch || "").toLowerCase();
+        return name.includes(q) || email.includes(q) || pos.includes(q) || branch.includes(q);
       });
 
-      renderSearchResults(filtered.slice(0, 20));
+      renderSearchResults(filtered.slice(0, 15));
     };
-
-    searchInput.addEventListener("focus", () => {
-      performSearch();
-    });
 
     searchInput.addEventListener("input", () => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(performSearch, 150);
+    });
+
+    searchInput.addEventListener("focus", () => {
+      if (searchInput.value.trim().length > 0) {
+        performSearch();
+      }
+    });
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && resultsContainer) {
+        resultsContainer.classList.add("hidden");
+      }
     });
   }
 
@@ -383,7 +403,9 @@ function initAgentModal() {
 
     resultsContainer.innerHTML = users
       .map((u) => {
-        const fullName = [u.name, u.last_name].filter(Boolean).join(" ") || "Unknown";
+        const name = decodeHtml(u.name || "");
+        const lastName = decodeHtml(u.last_name || "");
+        const fullName = [name, lastName].filter(Boolean).join(" ") || "Unknown";
         const initials = fullName
           .split(" ")
           .map((n) => n.charAt(0))
@@ -496,7 +518,7 @@ function initAgentModal() {
 // Sync portal user accounts with Bitrix by email
 async function syncPortalUsers() {
   const confirmed = confirm(
-    "Sync portal user accounts with Bitrix by email?\n\nThis will synchronize users from Property Finder across all branches (main, st1, st2, st3, st4, st5, po, eva)."
+    "Sync PF and Bayut user accounts with Bitrix based on email?\n\nThis will synchronize users from Property Finder and Bayut across all branches (main, st1, st2, st3, st4, st5, po, eva)."
   );
   if (!confirmed) return;
 
@@ -509,8 +531,8 @@ async function syncPortalUsers() {
   try {
     btn.disabled = true;
     icon.classList.add("fa-spin");
-    text.textContent = "Syncing with Bitrix...";
-    showStatusAlert("info", "Syncing portal user accounts across all branches... Please wait.");
+    text.textContent = "Syncing Users...";
+    showStatusAlert("info", "Syncing Property Finder and Bayut users across all branches... Please wait.");
 
     const res = await api("/?resource=agents&action=sync-portal-users", {
       method: "POST",
