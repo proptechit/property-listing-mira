@@ -142,7 +142,7 @@
                 <input type="text" id="pfPublicProfileId" name="pf_id"
                     placeholder="e.g. 365125"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <p class="text-xs text-gray-400 mt-1">Property Finder public user identifier (stored in <code class="text-gray-500">UF_PFID</code>)</p>
+                <p class="text-xs text-gray-400 mt-1">Property Finder public user identifier</p>
             </div>
 
             <!-- Bayut User ID -->
@@ -153,7 +153,7 @@
                 <input type="text" id="bayutUserId" name="bayut_id"
                     placeholder="e.g. 2701191"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <p class="text-xs text-gray-400 mt-1">Bayut agent identifier (stored in <code class="text-gray-500">UF_BAYUTID</code>)</p>
+                <p class="text-xs text-gray-400 mt-1">Bayut agent identifier</p>
             </div>
 
             <!-- Super Agent Toggle Card -->
@@ -163,7 +163,7 @@
                         <i class="fa-solid fa-award text-blue-600 text-xs"></i>
                         Super Agent
                     </span>
-                    <p class="text-xs text-gray-500 mt-0.5">Mark this agent as a Super Agent (stored in <code class="text-gray-500">UF_PFSUPERAGENT</code>)</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Mark this agent as a Super Agent</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer ml-3 flex-shrink-0">
                     <input type="checkbox" id="isSuperAgent" name="super_agent" class="sr-only peer">
