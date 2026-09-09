@@ -1,5 +1,6 @@
 let currentEditingId = null;
 let currentPage = 1;
+let lastSyncTimestamp = null;
 
 // Load all locations
 async function loadLocations(page = 1) {
@@ -15,7 +16,13 @@ async function loadLocations(page = 1) {
     if (!data || data.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="2" class="px-6 py-4 text-center text-gray-500">No locations found</td>
+          <td colspan="3" class="px-6 py-8 text-center text-gray-500">
+            <div class="flex flex-col items-center justify-center">
+              <i class="fa-solid fa-location-dot text-3xl text-gray-300 mb-2"></i>
+              <p class="text-sm font-medium text-gray-600">No locations found</p>
+              <p class="text-xs text-gray-400 mt-0.5">Click "Sync Locations" or "Add Location" to get started.</p>
+            </div>
+          </td>
         </tr>
       `;
       if (paginationContainer) paginationContainer.innerHTML = "";
@@ -26,21 +33,24 @@ async function loadLocations(page = 1) {
       .map(
         (loc) => `
         <tr class="hover:bg-gray-50 transition-colors">
-          <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm font-medium text-gray-900">${escapeHtml(loc.location_id || "")}</div>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-700">
+            ${escapeHtml(loc.location_id || "-")}
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="text-sm font-medium text-gray-900">${escapeHtml(loc.name || "")}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <button onclick="editLocation(${loc.id})" class="text-blue-600 hover:text-blue-800 transition-colors">Edit</button>
+            <button onclick="editLocation(${loc.id})" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors px-2 py-1 rounded hover:bg-blue-50">
+              <i class="fa-solid fa-pen-to-square text-xs"></i>
+              <span>Edit</span>
+            </button>
           </td>
         </tr>
       `,
       )
       .join("");
 
-    // Render pagination - always show if we have pagination data
+    // Render pagination
     if (paginationContainer && pagination.total && pagination.total > 0) {
       renderPagination(paginationContainer, pagination, loadLocations);
     } else if (paginationContainer) {
@@ -51,9 +61,133 @@ async function loadLocations(page = 1) {
     const tbody = document.getElementById("locationsList");
     tbody.innerHTML = `
       <tr>
-        <td colspan="2" class="px-6 py-4 text-center text-red-500">Error loading locations</td>
+        <td colspan="3" class="px-6 py-4 text-center text-red-500">Error loading locations. Please try again.</td>
       </tr>
     `;
+  }
+}
+
+// Load last sync time from locations SPA 1056
+async function loadLastSyncTime() {
+  const badge = document.getElementById("lastSyncBadge");
+  const badgeText = document.getElementById("lastSyncBadgeText");
+  const modalText = document.getElementById("modalLastSyncText");
+
+  try {
+    const res = await api("/?resource=locations&action=last-sync");
+    if (res && res.success && res.last_sync_time) {
+      lastSyncTimestamp = res.last_sync_time;
+      const formatted = formatDateTime(res.last_sync_time);
+      const relative = formatRelativeTime(res.last_sync_time);
+
+      const displayStr = relative ? `${formatted} (${relative})` : formatted;
+
+      if (badgeText) badgeText.textContent = `Last Synced: ${displayStr}`;
+      if (modalText) modalText.textContent = displayStr;
+      if (badge) badge.classList.remove("hidden");
+    } else {
+      if (badgeText) badgeText.textContent = "Last Synced: Never";
+      if (modalText) modalText.textContent = "No previous sync record found";
+      if (badge) badge.classList.remove("hidden");
+    }
+  } catch (err) {
+    console.warn("Could not load last sync time:", err);
+    if (modalText) modalText.textContent = "Unable to fetch sync time";
+  }
+}
+
+// Sync Locations Modal Controls
+function openSyncLocationsModal() {
+  const modal = document.getElementById("syncLocationsModal");
+  if (!modal) return;
+
+  loadLastSyncTime();
+
+  modal.classList.remove("hidden");
+  modal.style.display = "flex";
+}
+
+function closeSyncLocationsModal() {
+  const modal = document.getElementById("syncLocationsModal");
+  if (!modal) return;
+
+  modal.classList.add("hidden");
+  modal.style.display = "none";
+}
+
+// Initialize Sync Locations Form handler
+function initSyncLocationsModal() {
+  const form = document.getElementById("syncLocationsForm");
+  const modal = document.getElementById("syncLocationsModal");
+
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const city = document.getElementById("syncCitySelect").value.trim();
+      const community = document.getElementById("syncCommunity").value.trim();
+      const subcommunity = document.getElementById("syncSubcommunity").value.trim();
+      const building = document.getElementById("syncBuilding").value.trim();
+
+      if (!city) {
+        alert("Please select a city to synchronize.");
+        return;
+      }
+
+      const btn = document.getElementById("startSyncBtn");
+      const btnText = document.getElementById("startSyncBtnText");
+      const originalText = btnText.textContent;
+
+      try {
+        btn.disabled = true;
+        btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Syncing Locations...`;
+
+        const res = await api("/?resource=locations&action=sync", {
+          method: "POST",
+          body: {
+            city: city,
+            community: community,
+            subcommunity: subcommunity,
+            building: building,
+          },
+        });
+
+        closeSyncLocationsModal();
+
+        if (res && res.success) {
+          showStatusAlert("success", res.message || `Locations for ${city} synchronized successfully!`);
+          if (res.last_sync_time) {
+            lastSyncTimestamp = res.last_sync_time;
+            const formatted = formatDateTime(res.last_sync_time);
+            const relative = formatRelativeTime(res.last_sync_time);
+            const displayStr = relative ? `${formatted} (${relative})` : formatted;
+            const badgeText = document.getElementById("lastSyncBadgeText");
+            if (badgeText) badgeText.textContent = `Last Synced: ${displayStr}`;
+          } else {
+            loadLastSyncTime();
+          }
+          loadLocations(currentPage);
+        } else {
+          showStatusAlert("warning", (res && res.error) || "Sync completed with warnings.");
+        }
+      } catch (err) {
+        console.error("Location sync error:", err);
+        const errMsg = err.error || err.message || "Failed to sync locations.";
+        showStatusAlert("error", `Location sync failed: ${errMsg}`);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = originalText;
+      }
+    });
+  }
+
+  // Close modal when clicking outside
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeSyncLocationsModal();
+      }
+    });
   }
 }
 
@@ -66,7 +200,6 @@ function openLocationModal() {
   const modal = document.getElementById("locationModal");
   modal.classList.remove("hidden");
   modal.style.display = "flex";
-  modal.classList.add("items-center", "justify-center");
 }
 
 // Open modal for editing location
@@ -83,7 +216,6 @@ async function editLocation(id) {
     const modal = document.getElementById("locationModal");
     modal.classList.remove("hidden");
     modal.style.display = "flex";
-    modal.classList.add("items-center", "justify-center");
   } catch (error) {
     console.error("Error loading location:", error);
     alert("Error loading location data. Please try again.");
@@ -95,12 +227,11 @@ function closeLocationModal() {
   const modal = document.getElementById("locationModal");
   modal.classList.add("hidden");
   modal.style.display = "none";
-  modal.classList.remove("items-center", "justify-center");
   currentEditingId = null;
   document.getElementById("locationForm").reset();
 }
 
-// Setup form handler
+// Setup form handler for manual location add/edit
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("locationForm");
   if (form) {
@@ -116,22 +247,22 @@ document.addEventListener("DOMContentLoaded", () => {
           // Update existing location
           await api(`/?resource=locations&id=${id}`, {
             method: "PUT",
-            body: JSON.stringify({
+            body: {
               name: data.name,
               location_id: data.pf_id,
-            }),
+            },
           });
-          alert("Location updated successfully!");
+          showStatusAlert("success", "Location updated successfully!");
         } else {
           // Create new location
           await api("/?resource=locations", {
             method: "POST",
-            body: JSON.stringify({
+            body: {
               name: data.name,
               location_id: data.pf_id,
-            }),
+            },
           });
-          alert("Location created successfully!");
+          showStatusAlert("success", "Location created successfully!");
         }
 
         closeLocationModal();
@@ -154,8 +285,90 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// Alert banner helper
+function showStatusAlert(type, message) {
+  const alert = document.getElementById("statusAlert");
+  const icon = document.getElementById("statusAlertIcon");
+  const msg = document.getElementById("statusAlertMessage");
+
+  if (!alert || !icon || !msg) return;
+
+  alert.className = "mb-6 rounded-lg p-4 transition-all duration-300 border block";
+
+  if (type === "success") {
+    alert.classList.add("bg-emerald-50", "border-emerald-200", "text-emerald-800");
+    icon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>`;
+  } else if (type === "info") {
+    alert.classList.add("bg-blue-50", "border-blue-200", "text-blue-800");
+    icon.innerHTML = `<i class="fa-solid fa-circle-info text-blue-600 text-lg"></i>`;
+  } else if (type === "warning") {
+    alert.classList.add("bg-amber-50", "border-amber-200", "text-amber-800");
+    icon.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg"></i>`;
+  } else {
+    alert.classList.add("bg-red-50", "border-red-200", "text-red-800");
+    icon.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-600 text-lg"></i>`;
+  }
+
+  msg.textContent = message;
+  alert.classList.remove("hidden");
+
+  // Auto hide success/info after 6 seconds
+  if (type === "success" || type === "info") {
+    setTimeout(() => {
+      hideStatusAlert();
+    }, 6000);
+  }
+}
+
+function hideStatusAlert() {
+  const alert = document.getElementById("statusAlert");
+  if (alert) alert.classList.add("hidden");
+}
+
+// Date and Relative Time helpers
+function formatDateTime(isoString) {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return isoString;
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch (e) {
+    return isoString;
+  }
+}
+
+function formatRelativeTime(isoString) {
+  if (!isoString) return "";
+  try {
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return "";
+    const now = new Date();
+    const diffSec = Math.floor((now - date) / 1000);
+
+    if (diffSec < 60) return "just now";
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return "yesterday";
+    if (diffDays < 30) return `${diffDays}d ago`;
+    return "";
+  } catch (e) {
+    return "";
+  }
+}
+
 // Helper function
 function escapeHtml(text) {
+  if (text === null || text === undefined) return "";
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
@@ -165,7 +378,6 @@ function escapeHtml(text) {
 function renderPagination(container, pagination, loadFunction) {
   const { page = 1, total_pages = 1, total = 0, limit = 50 } = pagination;
 
-  // Always show pagination if we have items
   if (total <= 0) {
     container.innerHTML = "";
     return;
@@ -246,7 +458,6 @@ function renderPagination(container, pagination, loadFunction) {
 
   container.innerHTML = html;
 
-  // Add event listeners to pagination buttons
   container.querySelectorAll("[data-page]").forEach((button) => {
     button.addEventListener("click", (e) => {
       e.preventDefault();
