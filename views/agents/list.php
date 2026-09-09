@@ -24,12 +24,14 @@
     </div>
 
     <!-- Status / Notification Alert Banner -->
-    <div id="statusAlert" class="hidden mb-6 rounded-lg p-4 transition-all duration-300">
-        <div class="flex items-start">
-            <div class="flex-shrink-0" id="statusAlertIcon"></div>
-            <div class="ml-3 flex-1" id="statusAlertMessage"></div>
-            <button type="button" onclick="hideStatusAlert()" class="ml-auto text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-xmark"></i>
+    <div id="statusAlert" class="hidden mb-6 rounded-lg p-4 transition-all duration-300 border">
+        <div class="flex items-center justify-between w-full gap-3">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+                <div class="flex-shrink-0" id="statusAlertIcon"></div>
+                <div class="text-sm font-medium leading-5" id="statusAlertMessage"></div>
+            </div>
+            <button type="button" onclick="hideStatusAlert()" class="flex-shrink-0 text-gray-400 hover:text-gray-600 p-1 rounded-md transition-colors ml-auto" title="Dismiss">
+                <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
     </div>

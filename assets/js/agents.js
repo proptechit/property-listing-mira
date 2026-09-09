@@ -569,23 +569,23 @@ function showStatusAlert(type, message) {
 
   if (!alert || !icon || !msg) return;
 
-  alert.className = "mb-6 rounded-lg p-4 transition-all duration-300 flex items-start";
+  alert.className = "mb-6 rounded-lg p-4 transition-all duration-300 border block";
 
   if (type === "success") {
-    alert.classList.add("bg-emerald-50", "border", "border-emerald-200", "text-emerald-800");
+    alert.classList.add("bg-emerald-50", "border-emerald-200", "text-emerald-800");
     icon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>`;
   } else if (type === "info") {
-    alert.classList.add("bg-blue-50", "border", "border-blue-200", "text-blue-800");
+    alert.classList.add("bg-blue-50", "border-blue-200", "text-blue-800");
     icon.innerHTML = `<i class="fa-solid fa-circle-info text-blue-600 text-lg"></i>`;
   } else if (type === "warning") {
-    alert.classList.add("bg-amber-50", "border", "border-amber-200", "text-amber-800");
+    alert.classList.add("bg-amber-50", "border-amber-200", "text-amber-800");
     icon.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg"></i>`;
   } else {
-    alert.classList.add("bg-red-50", "border", "border-red-200", "text-red-800");
+    alert.classList.add("bg-red-50", "border-red-200", "text-red-800");
     icon.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-600 text-lg"></i>`;
   }
 
-  msg.innerHTML = `<p class="text-sm font-medium leading-5">${escapeHtml(message)}</p>`;
+  msg.textContent = message;
   alert.classList.remove("hidden");
 
   // Auto hide success/info after 6 seconds
