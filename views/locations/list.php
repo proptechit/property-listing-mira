@@ -127,6 +127,36 @@
                 </div>
             </div>
 
+            <!-- Portal Selection (PF, Bayut, or Both) -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Portals to Sync <span class="text-red-500">*</span>
+                </label>
+                <div class="grid grid-cols-3 gap-2.5">
+                    <label id="portalOptionBoth"
+                        class="relative flex flex-col items-center justify-center p-3 border-2 border-blue-600 bg-blue-50/60 rounded-xl cursor-pointer transition-all text-center shadow-xs">
+                        <input type="radio" name="syncPortal" value="both" checked class="sr-only" onchange="onSyncPortalChange('both')">
+                        <i class="fa-solid fa-layer-group text-blue-600 text-lg mb-1"></i>
+                        <span class="text-xs font-semibold text-blue-900">Both Portals</span>
+                        <span class="text-[10px] text-gray-500 mt-0.5">PF & Bayut</span>
+                    </label>
+                    <label id="portalOptionPf"
+                        class="relative flex flex-col items-center justify-center p-3 border border-gray-200 bg-white hover:bg-gray-50 rounded-xl cursor-pointer transition-all text-center">
+                        <input type="radio" name="syncPortal" value="pf" class="sr-only" onchange="onSyncPortalChange('pf')">
+                        <i class="fa-solid fa-house-circle-check text-red-500 text-lg mb-1"></i>
+                        <span class="text-xs font-semibold text-gray-800">Property Finder</span>
+                        <span class="text-[10px] text-gray-500 mt-0.5">PF only</span>
+                    </label>
+                    <label id="portalOptionBayut"
+                        class="relative flex flex-col items-center justify-center p-3 border border-gray-200 bg-white hover:bg-gray-50 rounded-xl cursor-pointer transition-all text-center">
+                        <input type="radio" name="syncPortal" value="bayut" class="sr-only" onchange="onSyncPortalChange('bayut')">
+                        <i class="fa-solid fa-building text-green-600 text-lg mb-1"></i>
+                        <span class="text-xs font-semibold text-gray-800">Bayut</span>
+                        <span class="text-[10px] text-gray-500 mt-0.5">Bayut only</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- City Selection (Required) -->
             <div>
                 <label for="syncCitySelect" class="block text-sm font-medium text-gray-700 mb-1">
@@ -147,7 +177,7 @@
             </div>
 
             <!-- Bayut Optional Parameters Card -->
-            <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3.5">
+            <div id="bayutFiltersCard" class="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3.5 transition-all">
                 <div class="flex items-center gap-2 border-b border-gray-200 pb-2">
                     <i class="fa-solid fa-filter text-gray-500 text-xs"></i>
                     <span class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Bayut Filters (Optional)</span>

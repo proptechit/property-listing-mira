@@ -79,7 +79,9 @@ async function loadLastSyncTime() {
       lastSyncTimestamp = res.last_sync_time;
       const formatted = formatDateTime(res.last_sync_time);
       const relative = formatRelativeTime(res.last_sync_time);
-      const cityTag = res.city ? ` (${res.city})` : "";
+      const portalNames = { pf: "PF", bayut: "Bayut", both: "PF & Bayut" };
+      const pText = res.portal && portalNames[res.portal] ? ` · ${portalNames[res.portal]}` : "";
+      const cityTag = res.city ? ` (${res.city}${pText})` : (pText ? ` (${pText.trim()})` : "");
 
       const displayStr = relative ? `${formatted} (${relative})${cityTag}` : `${formatted}${cityTag}`;
 
@@ -97,12 +99,49 @@ async function loadLastSyncTime() {
   }
 }
 
+// Portal selection toggler (PF, Bayut, or Both)
+function onSyncPortalChange(selectedVal) {
+  const portalBoth = document.getElementById("portalOptionBoth");
+  const portalPf = document.getElementById("portalOptionPf");
+  const portalBayut = document.getElementById("portalOptionBayut");
+  const bayutCard = document.getElementById("bayutFiltersCard");
+
+  const options = [
+    { el: portalBoth, val: "both", activeBorder: "border-blue-600", activeBg: "bg-blue-50/60", titleClass: "text-blue-900" },
+    { el: portalPf, val: "pf", activeBorder: "border-red-500", activeBg: "bg-red-50/50", titleClass: "text-red-900" },
+    { el: portalBayut, val: "bayut", activeBorder: "border-green-600", activeBg: "bg-green-50/50", titleClass: "text-green-900" },
+  ];
+
+  options.forEach(({ el, val, activeBorder, activeBg, titleClass }) => {
+    if (!el) return;
+    const titleSpan = el.querySelector("span:not(.text-\\[10px\\])");
+    if (val === selectedVal) {
+      el.className = `relative flex flex-col items-center justify-center p-3 border-2 ${activeBorder} ${activeBg} rounded-xl cursor-pointer transition-all text-center shadow-xs`;
+      if (titleSpan) titleSpan.className = `text-xs font-bold ${titleClass}`;
+    } else {
+      el.className = `relative flex flex-col items-center justify-center p-3 border border-gray-200 bg-white hover:bg-gray-50 rounded-xl cursor-pointer transition-all text-center`;
+      if (titleSpan) titleSpan.className = `text-xs font-semibold text-gray-800`;
+    }
+  });
+
+  if (bayutCard) {
+    if (selectedVal === "pf") {
+      bayutCard.classList.add("hidden");
+    } else {
+      bayutCard.classList.remove("hidden");
+    }
+  }
+}
+
 // Sync Locations Modal Controls
 function openSyncLocationsModal() {
   const modal = document.getElementById("syncLocationsModal");
   if (!modal) return;
 
   loadLastSyncTime();
+
+  const checkedRadio = document.querySelector('input[name="syncPortal"]:checked');
+  onSyncPortalChange(checkedRadio ? checkedRadio.value : "both");
 
   modal.classList.remove("hidden");
   modal.style.display = "flex";
@@ -136,6 +175,11 @@ function initSyncLocationsModal() {
       const subcommunity = document.getElementById("syncSubcommunity").value.trim();
       const building = document.getElementById("syncBuilding").value.trim();
 
+      const portalRadio = document.querySelector('input[name="syncPortal"]:checked');
+      const portal = portalRadio ? portalRadio.value : "both";
+      const portalLabels = { both: "PF & Bayut", pf: "Property Finder", bayut: "Bayut" };
+      const portalName = portalLabels[portal] || "Portals";
+
       if (!city) {
         alert("Please select a city to synchronize.");
         return;
@@ -161,17 +205,18 @@ function initSyncLocationsModal() {
         if (closeBtn) closeBtn.disabled = true;
         if (loadingNotice) loadingNotice.classList.remove("hidden");
 
-        btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Syncing Locations...`;
-        showStatusAlert("info", `Syncing locations for ${city}... This location sync will take some time to be completed, please don't refresh the page while loading.`);
+        btnText.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Syncing ${portalName}...`;
+        showStatusAlert("info", `Syncing ${portalName} locations for ${city}... This location sync will take some time to be completed, please don't refresh the page while loading.`);
         window.addEventListener("beforeunload", unloadHandler);
 
         const res = await api("/?resource=locations&action=sync", {
           method: "POST",
           body: {
             city: city,
-            community: community,
-            subcommunity: subcommunity,
-            building: building,
+            portal: portal,
+            community: portal !== "pf" ? community : "",
+            subcommunity: portal !== "pf" ? subcommunity : "",
+            building: portal !== "pf" ? building : "",
           },
         });
 
@@ -184,7 +229,9 @@ function initSyncLocationsModal() {
             lastSyncTimestamp = res.last_sync_time;
             const formatted = formatDateTime(res.last_sync_time);
             const relative = formatRelativeTime(res.last_sync_time);
-            const cityTag = (res.city || city) ? ` (${res.city || city})` : "";
+            const portalNames = { pf: "PF", bayut: "Bayut", both: "PF & Bayut" };
+            const pText = (res.portal || portal) && portalNames[res.portal || portal] ? ` · ${portalNames[res.portal || portal]}` : "";
+            const cityTag = (res.city || city) ? ` (${res.city || city}${pText})` : (pText ? ` (${pText.trim()})` : "");
             const displayStr = relative ? `${formatted} (${relative})${cityTag}` : `${formatted}${cityTag}`;
             const badgeText = document.getElementById("lastSyncBadgeText");
             if (badgeText) badgeText.textContent = `Last Synced: ${displayStr}`;

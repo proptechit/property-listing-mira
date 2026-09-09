@@ -97,13 +97,14 @@ if ($method === 'GET' && $action === 'last-sync') {
         'success'        => true,
         'last_sync_time' => $meta['last_sync_time'] ?? null,
         'city'           => $meta['city'] ?? null,
+        'portal'         => $meta['portal'] ?? null,
         'meta'           => $meta,
     ]);
     exit;
 }
 
 /**
- * SYNC LOCATIONS (PF & Bayut for main branch)
+ * SYNC LOCATIONS (PF, Bayut, or Both for main branch)
  */
 if ($method === 'POST' && $action === 'sync') {
     $input = getRequestBody();
@@ -113,6 +114,11 @@ if ($method === 'POST' && $action === 'sync') {
         jsonResponse([
             'error' => 'City is required for location sync'
         ], 400);
+    }
+
+    $portal = trim((string)($input['portal'] ?? 'both')); // 'both', 'pf', or 'bayut'
+    if (!in_array($portal, ['both', 'pf', 'bayut'], true)) {
+        $portal = 'both';
     }
 
     $community = trim((string)($input['community'] ?? ''));
@@ -125,39 +131,44 @@ if ($method === 'POST' && $action === 'sync') {
             $bayutResult = null;
             $errors = [];
 
-            // Sync Property Finder locations
-            if (class_exists('\Webmatrik\Integrations\FeedPf')) {
-                try {
-                    $Pf = new \Webmatrik\Integrations\FeedPf(true, 'main');
-                    $pfResult = $Pf->syncLocations($city);
-                } catch (\Throwable $pe) {
-                    $errors[] = 'PF: ' . $pe->getMessage();
+            // Sync Property Finder locations if selected
+            if ($portal === 'both' || $portal === 'pf') {
+                if (class_exists('\Webmatrik\Integrations\FeedPf')) {
+                    try {
+                        $Pf = new \Webmatrik\Integrations\FeedPf(true, 'main');
+                        $pfResult = $Pf->syncLocations($city);
+                    } catch (\Throwable $pe) {
+                        $errors[] = 'PF: ' . $pe->getMessage();
+                    }
+                } else {
+                    $errors[] = "FeedPf class not found";
                 }
-            } else {
-                $errors[] = "FeedPf class not found";
             }
 
-            // Sync Bayut locations
-            if (class_exists('\Webmatrik\Integrations\FeedBayut')) {
-                try {
-                    $Bayut = new \Webmatrik\Integrations\FeedBayut('main');
-                    $bayutResult = $Bayut->syncLocations(
-                        $city,
-                        $community !== '' ? $community : null,
-                        $subcommunity !== '' ? $subcommunity : null,
-                        $building !== '' ? $building : null
-                    );
-                } catch (\Throwable $be) {
-                    $errors[] = 'Bayut: ' . $be->getMessage();
+            // Sync Bayut locations if selected
+            if ($portal === 'both' || $portal === 'bayut') {
+                if (class_exists('\Webmatrik\Integrations\FeedBayut')) {
+                    try {
+                        $Bayut = new \Webmatrik\Integrations\FeedBayut('main');
+                        $bayutResult = $Bayut->syncLocations(
+                            $city,
+                            $community !== '' ? $community : null,
+                            $subcommunity !== '' ? $subcommunity : null,
+                            $building !== '' ? $building : null
+                        );
+                    } catch (\Throwable $be) {
+                        $errors[] = 'Bayut: ' . $be->getMessage();
+                    }
+                } else {
+                    $errors[] = "FeedBayut class not found";
                 }
-            } else {
-                $errors[] = "FeedBayut class not found";
             }
 
             // Record exact sync completion time and metadata (independent of whether items changed)
             $now = date('c');
             $syncMeta = [
                 'last_sync_time' => $now,
+                'portal'         => $portal,
                 'city'           => $city,
                 'community'      => $community ?: null,
                 'subcommunity'   => $subcommunity ?: null,
@@ -165,9 +176,18 @@ if ($method === 'POST' && $action === 'sync') {
             ];
             saveLocationSyncMeta($syncMeta);
 
+            $portalLabels = [
+                'both'  => 'Property Finder & Bayut',
+                'pf'    => 'Property Finder',
+                'bayut' => 'Bayut',
+            ];
+            $portalLabel = $portalLabels[$portal] ?? 'Portals';
+
             jsonResponse([
                 'success'        => true,
-                'message'        => "Locations synced successfully for {$city}." . (!empty($errors) ? ' (' . implode('; ', $errors) . ')' : ''),
+                'message'        => "Locations synced successfully for {$city} ({$portalLabel})." . (!empty($errors) ? ' (' . implode('; ', $errors) . ')' : ''),
+                'portal'         => $portal,
+                'portal_label'   => $portalLabel,
                 'city'           => $city,
                 'community'      => $community ?: null,
                 'subcommunity'   => $subcommunity ?: null,
