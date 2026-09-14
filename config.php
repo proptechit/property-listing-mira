@@ -10,6 +10,8 @@ $ADMIN_IDS = [
     29, // Ma. Betty (Admin of ST4 and PO)
     249, // Daniela Ramos (Admin of PO)
     585, // Aram Mnatsakanian (Admin of HS)
+    900, // Admin of Eva
+    1395, // Admin of Eva
     134, // Moh'D Barakat
     5, // Kristina Boeva
     7, // Abinas Subair
