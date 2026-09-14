@@ -292,8 +292,7 @@ function renderListingDetails(container, listing) {
             <div class="flex items-center gap-2 text-lg font-bold text-slate-800">
               <i class="fa-solid fa-cloud-arrow-up text-slate-400"></i>
               <span>Portal Sync Dates</span>
-            </div>
-            <span class="text-xs font-semibold uppercase px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">Read Only</span>
+            </div>            
           </div>
 
           <div class="space-y-4">
