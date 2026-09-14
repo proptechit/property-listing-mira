@@ -71,7 +71,14 @@ function buildDetailRow(label, value, icon = null) {
 }
 
 function formatDate(dateString) {
-  const date = new Date(dateString);
+  if (!dateString) return "-";
+  let str = String(dateString).trim();
+  if (!str) return "-";
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(str)) {
+    str = str.replace(" ", "T");
+  }
+  const date = new Date(str);
+  if (isNaN(date.getTime())) return escapeHtml(str);
 
   return date.toLocaleString("en-IN", {
     year: "numeric",
@@ -277,6 +284,60 @@ function renderListingDetails(container, listing) {
             ${buildDetailRow("Ownership", listing?.ownership ? prettyLabel(listing.ownership) : "", "fa-key")}
             ${buildDetailRow("Created At", formatDate(listing?.created_at), "fa-clock")}
             ${buildDetailRow("Updated At", formatDate(listing?.updated_at), "fa-clock")}
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2 text-lg font-bold text-slate-800">
+              <i class="fa-solid fa-cloud-arrow-up text-slate-400"></i>
+              <span>Portal Sync Dates</span>
+            </div>
+            <span class="text-xs font-semibold uppercase px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">Read Only</span>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Property Finder -->
+            <div class="border border-slate-100 rounded-xl p-3.5 bg-slate-50/60">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2 font-bold text-slate-800 text-sm">
+                  <img src="./assets/images/propertyfinder.webp" alt="Property Finder" class="w-4 h-4 object-contain" />
+                  Property Finder
+                </div>
+                ${
+                  listing?.propertyfinder_id
+                    ? `<a href="https://propertyfinder.ae/go/${escapeHtml(listing.propertyfinder_id)}" target="_blank" class="text-xs text-blue-600 hover:underline font-bold inline-flex items-center gap-1">
+                        ID: ${escapeHtml(listing.propertyfinder_id)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                      </a>`
+                    : '<span class="text-xs text-slate-400 font-medium">No ID</span>'
+                }
+              </div>
+              <div class="space-y-0 text-sm">
+                ${buildDetailRow("Created At", formatDate(listing?.pf_created_at), "fa-calendar-plus")}
+                ${buildDetailRow("Updated At", formatDate(listing?.pf_updated_at), "fa-clock-rotate-left")}
+              </div>
+            </div>
+
+            <!-- Bayut -->
+            <div class="border border-slate-100 rounded-xl p-3.5 bg-slate-50/60">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2 font-bold text-slate-800 text-sm">
+                  <img src="./assets/images/bayut.png" alt="Bayut" class="w-4 h-4 object-contain" />
+                  Bayut
+                </div>
+                ${
+                  listing?.bayut_id
+                    ? `<a href="https://www.bayut.com/property/details-${escapeHtml(listing.bayut_id)}.html" target="_blank" class="text-xs text-blue-600 hover:underline font-bold inline-flex items-center gap-1">
+                        ID: ${escapeHtml(listing.bayut_id)} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                      </a>`
+                    : '<span class="text-xs text-slate-400 font-medium">No ID</span>'
+                }
+              </div>
+              <div class="space-y-0 text-sm">
+                ${buildDetailRow("Created At", formatDate(listing?.bayut_created_at), "fa-calendar-plus")}
+                ${buildDetailRow("Updated At", formatDate(listing?.bayut_updated_at), "fa-clock-rotate-left")}
+              </div>
+            </div>
           </div>
         </div>
 

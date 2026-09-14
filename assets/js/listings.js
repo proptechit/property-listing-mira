@@ -229,7 +229,14 @@ function displayName(v) {
 }
 
 function formatDate(dateString) {
-  const date = new Date(dateString);
+  if (!dateString) return "-";
+  let str = String(dateString).trim();
+  if (!str) return "-";
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(str)) {
+    str = str.replace(" ", "T");
+  }
+  const date = new Date(str);
+  if (isNaN(date.getTime())) return escapeHtml(str);
 
   return date.toLocaleString("en-IN", {
     year: "numeric",
@@ -807,6 +814,28 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             </div>
           </td>
 
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+            ${
+              !l.pf_created_at && !l.pf_updated_at
+                ? `<span class="text-slate-400 font-sans">-</span>`
+                : `<div class="text-xs space-y-1">
+                    <div class="text-slate-600"><span class="font-semibold text-slate-400">Created:</span> <span class="font-medium text-slate-700">${escapeHtml(formatDate(l.pf_created_at))}</span></div>
+                    <div class="text-slate-600"><span class="font-semibold text-slate-400">Updated:</span> <span class="font-medium text-slate-700">${escapeHtml(formatDate(l.pf_updated_at))}</span></div>
+                  </div>`
+            }
+          </td>
+
+          <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+            ${
+              !l.bayut_created_at && !l.bayut_updated_at
+                ? `<span class="text-slate-400 font-sans">-</span>`
+                : `<div class="text-xs space-y-1">
+                    <div class="text-slate-600"><span class="font-semibold text-slate-400">Created:</span> <span class="font-medium text-slate-700">${escapeHtml(formatDate(l.bayut_created_at))}</span></div>
+                    <div class="text-slate-600"><span class="font-semibold text-slate-400">Updated:</span> <span class="font-medium text-slate-700">${escapeHtml(formatDate(l.bayut_updated_at))}</span></div>
+                  </div>`
+            }
+          </td>
+
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
             <div class="relative inline-block text-left" data-menu>
               <button
@@ -1002,6 +1031,8 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                   <div><span class="font-semibold">Agent:</span> ${escapeHtml(displayName(l.listing_agent) || "")}</div>
                   <div><span class="font-semibold">Owner:</span> ${escapeHtml(displayName(l.listing_owner) || "")}</div>
                   <div><span class="font-semibold">Updated:</span> ${escapeHtml(formatDate(l.updated_at || ""))}</div>
+                  ${(l.pf_created_at || l.pf_updated_at) ? `<div><span class="font-semibold">PF:</span> C: ${escapeHtml(formatDate(l.pf_created_at))} | U: ${escapeHtml(formatDate(l.pf_updated_at))}</div>` : ""}
+                  ${(l.bayut_created_at || l.bayut_updated_at) ? `<div><span class="font-semibold">Bayut:</span> C: ${escapeHtml(formatDate(l.bayut_created_at))} | U: ${escapeHtml(formatDate(l.bayut_updated_at))}</div>` : ""}
                 </div>
               </div>
             </div>
@@ -1034,7 +1065,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading listings</td>
+          <td colspan="15" class="px-6 py-4 text-center text-red-500">Error loading listings</td>
         </tr>
       `;
     }

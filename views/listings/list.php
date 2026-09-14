@@ -319,12 +319,14 @@
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Created At</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Updated At</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Portals</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">PF Dates</th>
+                        <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-left">Bayut Dates</th>
                         <th class="px-6 py-4 text-md font-bold uppercase text-slate-400 tracking-wider text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="listingsTable" class="bg-white divide-y divide-gray-200">
                     <tr>
-                        <td colspan="13" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+                        <td colspan="15" class="px-6 py-4 text-center text-gray-500">Loading...</td>
                     </tr>
                 </tbody>
             </table>

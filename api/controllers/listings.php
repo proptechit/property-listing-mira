@@ -876,6 +876,16 @@ if ($method === 'POST') {
     $input['images'] = normalizeFiles($input['images'] ?? []);
     normalizeDocumentFields($input);
 
+    // Strip read-only date fields
+    unset(
+        $input['bayut_created_at'],
+        $input['bayut_updated_at'],
+        $input['pf_created_at'],
+        $input['pf_updated_at'],
+        $input['created_at'],
+        $input['updated_at']
+    );
+
     $fields = toBitrixFields($input, $map, $enums);
 
     if (empty($fields)) {
@@ -942,6 +952,16 @@ if ($method === 'PUT') {
     // reformat images
     $input['images'] = normalizeFiles($input['images'] ?? []);
     normalizeDocumentFields($input);
+
+    // Strip read-only date fields
+    unset(
+        $input['bayut_created_at'],
+        $input['bayut_updated_at'],
+        $input['pf_created_at'],
+        $input['pf_updated_at'],
+        $input['created_at'],
+        $input['updated_at']
+    );
 
     $fields = toBitrixFields($input, $map, $enums);
 

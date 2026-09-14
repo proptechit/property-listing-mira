@@ -119,6 +119,10 @@ return [
     'bayut_id'          => 'ufCrm7_1773047782',
     'pocket_listing'    => 'ufCrm7_1770201260',
     'different_type_bayut_pf' => 'ufCrm7_1780385120830',
+    'bayut_created_at'  => 'ufCrm7_1789377397',
+    'bayut_updated_at'  => 'ufCrm7_1789377425',
+    'pf_created_at'     => 'ufCrm7_1789377437',
+    'pf_updated_at'     => 'ufCrm7_1789377455',
 
 
     /*
