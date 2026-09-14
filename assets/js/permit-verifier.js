@@ -330,12 +330,12 @@
   /**
    * Main Render Function
    */
-  function renderVerificationResult(container, data) {
+  function renderVerificationResult(container, data, licenseInfo = null) {
     if (!container) return;
 
     const records = Array.isArray(data?.data) ? data.data : (data?.data ? [data.data] : []);
     if (!records.length) {
-      renderErrorResult(container, "No permit records returned for this permit number.");
+      renderErrorResult(container, "No permit records returned for this permit number.", licenseInfo);
       return;
     }
 
@@ -343,6 +343,9 @@
     if (activeRecordIndex >= records.length) {
       activeRecordIndex = 0;
     }
+
+    const licenseNum = licenseInfo?.licenseNumber || data?.verifiedLicense || (document.getElementById("permitLicenseNumber")?.value || "881995").trim();
+    const licenseName = licenseInfo?.licenseName || data?.verifiedLicenseName || (licenseNum === "931105" ? "Eva DXB" : "Mira International");
 
     const item = records[activeRecordIndex];
     const prop = item.property || {};
@@ -379,6 +382,9 @@
             <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">
               <i class="fa-solid fa-circle-check text-emerald-600"></i>
               DLD / RERA Verified
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-full shadow-2xs">
+              <i class="fa-solid fa-building text-slate-400"></i> ${escapeHtml(licenseName)} <span class="font-mono text-[11px] text-slate-500">(${escapeHtml(licenseNum)})</span>
             </span>
             <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-xs font-semibold rounded-full">
               <i class="fa-solid fa-hashtag text-slate-400"></i> Status ID: ${escapeHtml(String(statusId))}
@@ -576,8 +582,12 @@
     }
   }
 
-  function renderErrorResult(container, errorMessage) {
+  function renderErrorResult(container, errorMessage, licenseInfo = null) {
     if (!container) return;
+
+    const licenseNum = licenseInfo?.licenseNumber || (document.getElementById("permitLicenseNumber")?.value || "881995").trim();
+    const licenseName = licenseInfo?.licenseName || (licenseNum === "931105" ? "Eva DXB" : "Mira International");
+    const otherChoice = licenseNum === "931105" ? "Mira International (881995)" : "Eva DXB (931105)";
 
     container.innerHTML = `
       <div class="mt-4 p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start justify-between gap-3 text-rose-800">
@@ -586,6 +596,10 @@
           <div>
             <div class="font-bold text-sm">Permit Verification Failed</div>
             <div class="text-xs text-rose-600 mt-1">${escapeHtml(errorMessage || "Invalid permit number or not found in DLD/RERA records.")}</div>
+            <div class="text-[11px] text-slate-600 mt-2 bg-white/80 rounded-lg p-2 border border-rose-100 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-info text-blue-500 shrink-0"></i>
+              <span>Checked under <strong>${escapeHtml(licenseName)} (${escapeHtml(licenseNum)})</strong>. If registered with another client, switch to <strong>${escapeHtml(otherChoice)}</strong> above and verify again.</span>
+            </div>
           </div>
         </div>
         <button type="button" class="text-rose-400 hover:text-rose-600 p-1 cursor-pointer" onclick="this.closest('#permitVerificationResult').classList.add('hidden')">
@@ -605,11 +619,65 @@
     const verifyBtn = document.getElementById("verifyPermitBtn");
     const permitInput = document.querySelector('[name="advertisement_number"]');
     const resultContainer = document.getElementById("permitVerificationResult");
+    const licenseInput = document.getElementById("permitLicenseNumber");
+    const licenseButtons = document.querySelectorAll(".permit-license-btn");
+
+    function setLicense(license) {
+      if (licenseInput) {
+        licenseInput.value = license;
+      }
+      try {
+        localStorage.setItem("pf_preferred_permit_license", license);
+      } catch (e) {}
+
+      licenseButtons.forEach((btn) => {
+        const isSelected = btn.dataset.license === license;
+        if (isSelected) {
+          btn.classList.add("bg-white", "text-blue-700", "shadow-xs", "font-bold");
+          btn.classList.remove("text-slate-600", "font-semibold");
+          const icon = btn.querySelector("i");
+          if (icon) {
+            icon.classList.remove("text-slate-400");
+            icon.classList.add("text-blue-600");
+          }
+        } else {
+          btn.classList.remove("bg-white", "text-blue-700", "shadow-xs", "font-bold");
+          btn.classList.add("text-slate-600", "font-semibold");
+          const icon = btn.querySelector("i");
+          if (icon) {
+            icon.classList.remove("text-blue-600");
+            icon.classList.add("text-slate-400");
+          }
+        }
+      });
+    }
+
+    // Initialize saved license from localStorage if valid
+    try {
+      const savedLicense = localStorage.getItem("pf_preferred_permit_license");
+      if (savedLicense && (savedLicense === "881995" || savedLicense === "931105")) {
+        setLicense(savedLicense);
+      }
+    } catch (e) {}
+
+    // Bind click handlers to license toggle buttons
+    licenseButtons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = btn.dataset.license;
+        if (target) {
+          setLicense(target);
+        }
+      });
+    });
 
     if (!verifyBtn || !permitInput) return;
 
     async function handleVerify() {
       const permitNumber = (permitInput.value || "").trim();
+      const currentLicense = licenseInput ? (licenseInput.value || "881995").trim() : "881995";
+      const currentLicenseName = currentLicense === "931105" ? "Eva DXB" : "Mira International";
+      const licenseMeta = { licenseNumber: currentLicense, licenseName: currentLicenseName };
 
       if (!permitNumber) {
         permitInput.focus();
@@ -619,7 +687,7 @@
         }, 2000);
 
         if (resultContainer) {
-          renderErrorResult(resultContainer, "Please enter a permit number to verify.");
+          renderErrorResult(resultContainer, "Please enter a permit number to verify.", licenseMeta);
         }
         return;
       }
@@ -634,19 +702,21 @@
       verifyBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Verifying...</span>';
 
       try {
-        const response = await api(`/?resource=verify-permit&permit_number=${encodeURIComponent(permitNumber)}&permitType=rera`);
+        const response = await api(
+          `/?resource=verify-permit&permit_number=${encodeURIComponent(permitNumber)}&permitType=rera&license_number=${encodeURIComponent(currentLicense)}`
+        );
 
         if (response && response.status === "success" && response.data) {
-          renderVerificationResult(resultContainer, response);
+          renderVerificationResult(resultContainer, response, licenseMeta);
         } else if (response && response.error) {
-          renderErrorResult(resultContainer, response.error);
+          renderErrorResult(resultContainer, response.error, licenseMeta);
         } else {
-          renderErrorResult(resultContainer, "Unexpected response from verification service.");
+          renderErrorResult(resultContainer, "Unexpected response from verification service.", licenseMeta);
         }
       } catch (err) {
         console.error("Permit verification error:", err);
         const errMsg = err?.error || err?.message || "Verification request failed. Please check the permit number.";
-        renderErrorResult(resultContainer, errMsg);
+        renderErrorResult(resultContainer, errMsg, licenseMeta);
       } finally {
         verifyBtn.disabled = false;
         verifyBtn.innerHTML = originalBtnHtml;

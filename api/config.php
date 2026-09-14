@@ -17,7 +17,11 @@ $CUSTOM_USERS_API = "https://crm.mira-international.com/pub/endpoints/users/";
 define('PF_API_BASE_URL', 'https://atlas.propertyfinder.com/v1');
 define('PF_API_KEY', 'NWYtD.Dtl5S99RFiN3ubzOoJ8DkQkVNxMIikwpbo');
 define('PF_API_SECRET', '6EDbWpCiJ7qbLVLz7AmJ8e1O2BCKG5lW');
-define('PF_LICENSE_NUMBER', '881995');
+define('PF_LICENSE_NUMBER', '881995'); // Default: Mira International
+define('PF_LICENSES', [
+    '881995' => 'Mira International',
+    '931105' => 'Eva DXB',
+]);
 
 /**
  * Bitrix user IDs who are allowed to modify restricted fields

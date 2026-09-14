@@ -266,7 +266,33 @@ if (!$id) {
                 <i class="fa-solid fa-file-signature text-slate-400"></i>
             </div>
 
-            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-5 space-y-4">
+                <!-- Permit Verification License Selection -->
+                <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                            <i class="fa-solid fa-building-circle-check text-base"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-800 uppercase tracking-wider">Permit Verification License</div>
+                            <div class="text-xs text-slate-500">Select brokerage license to verify this permit with Property Finder</div>
+                        </div>
+                    </div>
+
+                    <div class="inline-flex rounded-xl bg-slate-200/80 p-1 gap-1 shrink-0" id="permitLicenseToggle">
+                        <button type="button" data-license="881995"
+                            class="permit-license-btn px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer shadow-xs bg-white text-blue-700">
+                            <i class="fa-solid fa-building mr-1.5 text-blue-600"></i>Mira International (881995)
+                        </button>
+                        <button type="button" data-license="931105"
+                            class="permit-license-btn px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer text-slate-600 hover:text-slate-900">
+                            <i class="fa-solid fa-building mr-1.5 text-slate-400"></i>Eva DXB (931105)
+                        </button>
+                        <input type="hidden" id="permitLicenseNumber" value="881995">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Permit Type -->
                 <div>
                     <label class="block text-md font-semibold text-slate-500">Permit Type</label>
@@ -326,6 +352,7 @@ if (!$id) {
                             class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                 </div>
+            </div>
             </div>
 
             <!-- Verification Result Container -->

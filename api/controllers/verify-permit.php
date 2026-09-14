@@ -78,7 +78,14 @@ if (!$token) {
 }
 
 $permitType = trim($_GET['permitType'] ?? 'rera');
-$licenseNumber = PF_LICENSE_NUMBER;
+
+// Allow license number to be selected (defaults to PF_LICENSE_NUMBER)
+$licenseNumber = trim($_GET['license_number'] ?? $_GET['licenseNumber'] ?? '');
+if (empty($licenseNumber) || !preg_match('/^\d+$/', $licenseNumber)) {
+    $licenseNumber = PF_LICENSE_NUMBER;
+}
+
+$licenseName = PF_LICENSES[$licenseNumber] ?? ($licenseNumber === '931105' ? 'Eva DXB' : 'Mira International');
 
 $apiUrl = rtrim(PF_API_BASE_URL, '/') . '/compliances/' . rawurlencode($permitNumber) . '/' . rawurlencode($licenseNumber) . '?permitType=' . rawurlencode($permitType);
 
@@ -107,6 +114,10 @@ if ($curlErr) {
 $resultData = json_decode($response, true);
 
 if ($httpCode >= 200 && $httpCode < 300) {
+    if (is_array($resultData)) {
+        $resultData['verifiedLicense'] = $licenseNumber;
+        $resultData['verifiedLicenseName'] = $licenseName;
+    }
     jsonResponse($resultData, 200);
 }
 
@@ -123,7 +134,9 @@ if (is_array($resultData)) {
 }
 
 jsonResponse([
-    'error'   => $errorMessage,
-    'raw'     => $resultData,
-    'status'  => $httpCode
+    'error'         => $errorMessage,
+    'licenseNumber' => $licenseNumber,
+    'licenseName'   => $licenseName,
+    'raw'           => $resultData,
+    'status'        => $httpCode
 ], $httpCode >= 400 && $httpCode < 600 ? $httpCode : 400);
