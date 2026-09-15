@@ -15,13 +15,28 @@ $CUSTOM_USERS_API = "https://crm.mira-international.com/pub/endpoints/users/";
  * Property Finder Atlas API Configuration
  */
 define('PF_API_BASE_URL', 'https://atlas.propertyfinder.com/v1');
-define('PF_API_KEY', 'NWYtD.Dtl5S99RFiN3ubzOoJ8DkQkVNxMIikwpbo');
-define('PF_API_SECRET', '6EDbWpCiJ7qbLVLz7AmJ8e1O2BCKG5lW');
 define('PF_LICENSE_NUMBER', '881995'); // Default: Mira International
 define('PF_LICENSES', [
     '881995' => 'Mira International',
     '931105' => 'Eva DXB',
 ]);
+
+define('PF_BROKER_CREDENTIALS', [
+    '881995' => [
+        'name'      => 'Mira International',
+        'apiKey'    => 'NWYtD.Dtl5S99RFiN3ubzOoJ8DkQkVNxMIikwpbo',
+        'apiSecret' => '6EDbWpCiJ7qbLVLz7AmJ8e1O2BCKG5lW',
+    ],
+    '931105' => [
+        'name'      => 'Eva DXB',
+        'apiKey'    => 'dFzmK.XB9Ubm7PFmSEoXVRPGpH14AejacF74UKjA',
+        'apiSecret' => 'rrDMzhtyjGZClMjcn7ymW5vG3qowQZ4y',
+    ],
+]);
+
+// Fallback constants for backwards compatibility
+define('PF_API_KEY', PF_BROKER_CREDENTIALS['881995']['apiKey']);
+define('PF_API_SECRET', PF_BROKER_CREDENTIALS['881995']['apiSecret']);
 
 /**
  * Bitrix user IDs who are allowed to modify restricted fields

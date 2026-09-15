@@ -10,12 +10,29 @@ if (empty($permitNumber)) {
     ], 400);
 }
 
+// Allow license number to be selected (defaults to PF_LICENSE_NUMBER)
+$licenseNumber = trim($_GET['license_number'] ?? $_GET['licenseNumber'] ?? '');
+if (empty($licenseNumber) || !preg_match('/^\d+$/', $licenseNumber)) {
+    $licenseNumber = PF_LICENSE_NUMBER;
+}
+
+$licenseName = PF_LICENSES[$licenseNumber] ?? ($licenseNumber === '931105' ? 'Eva DXB' : 'Mira International');
+
 /**
- * Obtain Property Finder Bearer Token (with caching)
+ * Obtain Property Finder Bearer Token for a specific brokerage license (with caching)
  */
-function getPfAuthToken(): ?string
+function getPfAuthToken(string $licenseNumber): ?string
 {
-    $cacheFile = __DIR__ . '/../cache/pf_token.json';
+    $creds = PF_BROKER_CREDENTIALS[$licenseNumber] ?? null;
+    $apiKey = $creds['apiKey'] ?? (defined('PF_API_KEY') ? PF_API_KEY : '');
+    $apiSecret = $creds['apiSecret'] ?? (defined('PF_API_SECRET') ? PF_API_SECRET : '');
+
+    if (empty($apiKey) || empty($apiSecret)) {
+        error_log("PF Auth Error: Missing API credentials for license {$licenseNumber}");
+        return null;
+    }
+
+    $cacheFile = __DIR__ . "/../cache/pf_token_{$licenseNumber}.json";
 
     if (file_exists($cacheFile)) {
         $cached = json_decode(file_get_contents($cacheFile), true);
@@ -38,8 +55,8 @@ function getPfAuthToken(): ?string
             'Accept: application/json',
         ],
         CURLOPT_POSTFIELDS     => json_encode([
-            'apiKey'    => PF_API_KEY,
-            'apiSecret' => PF_API_SECRET,
+            'apiKey'    => $apiKey,
+            'apiSecret' => $apiSecret,
         ]),
         CURLOPT_TIMEOUT        => 15,
     ]);
@@ -70,22 +87,14 @@ function getPfAuthToken(): ?string
     return null;
 }
 
-$token = getPfAuthToken();
+$token = getPfAuthToken($licenseNumber);
 if (!$token) {
     jsonResponse([
-        'error' => 'Failed to authenticate with Property Finder API'
+        'error' => "Failed to authenticate with Property Finder API for {$licenseName} ({$licenseNumber})"
     ], 502);
 }
 
 $permitType = trim($_GET['permitType'] ?? 'rera');
-
-// Allow license number to be selected (defaults to PF_LICENSE_NUMBER)
-$licenseNumber = trim($_GET['license_number'] ?? $_GET['licenseNumber'] ?? '');
-if (empty($licenseNumber) || !preg_match('/^\d+$/', $licenseNumber)) {
-    $licenseNumber = PF_LICENSE_NUMBER;
-}
-
-$licenseName = PF_LICENSES[$licenseNumber] ?? ($licenseNumber === '931105' ? 'Eva DXB' : 'Mira International');
 
 $apiUrl = rtrim(PF_API_BASE_URL, '/') . '/compliances/' . rawurlencode($permitNumber) . '/' . rawurlencode($licenseNumber) . '?permitType=' . rawurlencode($permitType);
 
