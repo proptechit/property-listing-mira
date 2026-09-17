@@ -40,6 +40,8 @@ if (!$id) {
     </div>
 </div>
 
+<?php require __DIR__ . '/../partials/refresh-modal.php'; ?>
+
 <script>
     const listingId = <?php echo json_encode($id); ?>;
 </script>

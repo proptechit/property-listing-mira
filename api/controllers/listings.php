@@ -873,8 +873,8 @@ if ($method === 'POST') {
 
     // ── Refresh Listing Action (Workflow Template ID 189) ─────────────────────
     if ($action === 'refresh') {
+        $input = getRequestBody();
         if (!$id) {
-            $input = getRequestBody();
             $id = $input['id'] ?? null;
         }
 
@@ -891,6 +891,26 @@ if ($method === 'POST') {
             jsonResponse(['error' => 'Listing not found'], 404);
         }
 
+        // If a new reference number is provided, save it to the listing first
+        $newReference = trim((string)($input['reference'] ?? ''));
+        if ($newReference !== '') {
+            $updateRes = bitrixRequest('crm.item.update', [
+                'entityTypeId' => LISTINGS_ENTITY_ID,
+                'id'           => $id,
+                'fields'       => [
+                    'ufCrm5_1752571265' => $newReference
+                ]
+            ]);
+
+            if (!empty($updateRes['error'])) {
+                jsonResponse([
+                    'error'   => 'Bitrix error updating listing reference: ' . ($updateRes['error_description'] ?? $updateRes['error']),
+                    'details' => $updateRes
+                ], 500);
+            }
+        }
+
+        // Run workflow template 189 on the listing
         $res = bitrixRequest('bizproc.workflow.start', [
             'TEMPLATE_ID' => 189,
             'DOCUMENT_ID' => [
@@ -909,7 +929,8 @@ if ($method === 'POST') {
 
         jsonResponse([
             'success'    => true,
-            'message'    => 'Listing refresh workflow initiated successfully',
+            'message'    => 'Listing reference updated and refresh workflow initiated successfully',
+            'reference'  => $newReference !== '' ? $newReference : ($checkRes['result']['item']['ufCrm5_1752571265'] ?? ''),
             'workflowId' => $res['result'] ?? null,
         ]);
     }
@@ -985,114 +1006,38 @@ if ($method === 'POST') {
         // Reset status to Start (DT1052_11:NEW)
         $fields['stageId'] = 'DT1052_11:NEW';
 
-        // Handle files: download and re-encode as base64 tuples for Bitrix crm.item.add
-        $imageObjects = $fields['ufCrm5_1755322696'] ?? [];
-        $fields['ufCrm5_1755322696'] = [];
+        // Handle images: pass existing file IDs as array of integers so Bitrix clones them directly
+        $imageIds = [];
+        if (!empty($fields['ufCrm5_1755322696']) && is_array($fields['ufCrm5_1755322696'])) {
+            foreach ($fields['ufCrm5_1755322696'] as $img) {
+                if (is_array($img) && !empty($img['id'])) {
+                    $imageIds[] = (int)$img['id'];
+                } elseif (is_numeric($img) && (int)$img > 0) {
+                    $imageIds[] = (int)$img;
+                }
+            }
+        }
+        $fields['ufCrm5_1755322696'] = $imageIds;
 
-        $docMap = [
-            'ufCrm5_1763015564142' => 'title_deed',
-            'ufCrm7_1770311850284' => 'passport_copy',
-            'ufCrm5_1763015706080' => 'emirates_id',
-            'ufCrm7_1770312301595' => 'contract_a',
-            'ufCrm7_1770312338525' => 'listing_form',
+        // Handle single document fields: pass integer file IDs so Bitrix clones them directly
+        $docKeys = [
+            'ufCrm5_1763015564142', // title_deed
+            'ufCrm7_1770311850284', // passport_copy
+            'ufCrm5_1763015706080', // emirates_id
+            'ufCrm7_1770312301595', // contract_a
+            'ufCrm7_1770312338525', // listing_form
         ];
-
-        $docObjects = [];
-        foreach ($docMap as $bitrixKey => $nameKey) {
-            if (!empty($fields[$bitrixKey])) {
-                $docObjects[$bitrixKey] = [
-                    'val'  => $fields[$bitrixKey],
-                    'name' => $nameKey
-                ];
-                unset($fields[$bitrixKey]);
-            }
-        }
-
-        $downloads = [];
-        if (is_array($imageObjects)) {
-            foreach ($imageObjects as $idx => $img) {
-                $url = $img['urlMachine'] ?? $img['url'] ?? $img['downloadUrl'] ?? null;
-                if ($url) {
-                    $imgName = !empty($img['name']) ? $img['name'] : (!empty($img['NAME']) ? $img['NAME'] : ('image_' . ($idx + 1) . '.jpg'));
-                    $downloads[] = [
-                        'type' => 'image',
-                        'url'  => $url,
-                        'name' => $imgName
-                    ];
+        foreach ($docKeys as $k) {
+            if (!empty($fields[$k])) {
+                if (is_array($fields[$k]) && !empty($fields[$k]['id'])) {
+                    $fields[$k] = (int)$fields[$k]['id'];
+                } elseif (is_numeric($fields[$k]) && (int)$fields[$k] > 0) {
+                    $fields[$k] = (int)$fields[$k];
+                } else {
+                    unset($fields[$k]);
                 }
-            }
-        }
-
-        foreach ($docObjects as $bitrixKey => $docInfo) {
-            $doc = $docInfo['val'];
-            $url = null;
-            $docName = $docInfo['name'] . '.pdf';
-            if (is_array($doc)) {
-                $url = $doc['urlMachine'] ?? $doc['url'] ?? $doc['downloadUrl'] ?? null;
-                if (!empty($doc['name'])) $docName = $doc['name'];
-            } elseif (is_numeric($doc) && (int)$doc > 0) {
-                $hydrated = hydrateBitrixFileById((int)$doc);
-                if (is_array($hydrated)) {
-                    $url = $hydrated['urlMachine'] ?? $hydrated['url'] ?? null;
-                    if (!empty($hydrated['name'])) $docName = $hydrated['name'];
-                }
-            }
-            if ($url) {
-                $downloads[] = [
-                    'type'      => 'doc',
-                    'bitrixKey' => $bitrixKey,
-                    'url'       => $url,
-                    'name'      => $docName
-                ];
-            }
-        }
-
-        if (!empty($downloads)) {
-            $mh = curl_multi_init();
-            $handles = [];
-            foreach ($downloads as $idx => $dl) {
-                $ch = curl_init($dl['url']);
-                curl_setopt_array($ch, [
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_TIMEOUT        => 45,
-                    CURLOPT_CONNECTTIMEOUT => 15,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_SSL_VERIFYHOST => false,
-                ]);
-                curl_multi_add_handle($mh, $ch);
-                $handles[$idx] = $ch;
-            }
-
-            $running = null;
-            do {
-                $status = curl_multi_exec($mh, $running);
-                if ($running) {
-                    curl_multi_select($mh);
-                }
-            } while ($running > 0 && $status === CURLM_OK);
-
-            $newImages = [];
-            foreach ($handles as $idx => $ch) {
-                $content = curl_multi_getcontent($ch);
-                $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_multi_remove_handle($mh, $ch);
-                curl_close($ch);
-
-                if ($httpCode >= 200 && $httpCode < 300 && is_string($content) && $content !== '') {
-                    $base64 = base64_encode($content);
-                    $dl = $downloads[$idx];
-                    if ($dl['type'] === 'image') {
-                        $newImages[] = [$dl['name'], $base64];
-                    } elseif ($dl['type'] === 'doc') {
-                        $fields[$dl['bitrixKey']] = [$dl['name'], $base64];
-                    }
-                }
-            }
-            curl_multi_close($mh);
-
-            if (!empty($newImages)) {
-                $fields['ufCrm5_1755322696'] = $newImages;
+            } else {
+                unset($fields[$k]);
             }
         }
 

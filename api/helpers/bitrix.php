@@ -1,5 +1,5 @@
 <?php
-function bitrixRequest($method, $params = [], $customUrl = null)
+function bitrixRequest($method, $params = [], $customUrl = null, $timeout = 60)
 {
     if ($customUrl) {
         $url = $customUrl;
@@ -14,7 +14,7 @@ function bitrixRequest($method, $params = [], $customUrl = null)
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => $encodedParams,
-        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_TIMEOUT        => $timeout,
     ]);
 
     $response = curl_exec($ch);

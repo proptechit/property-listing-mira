@@ -511,7 +511,7 @@ async function loadListingDetails(id) {
       }
     }
 
-    wireActionButtons(id);
+    wireActionButtons(id, listing?.reference || "");
     renderListingDetails(container, listing);
   } catch (err) {
     container.innerHTML = `
@@ -525,38 +525,112 @@ async function loadListingDetails(id) {
   }
 }
 
-function wireActionButtons(id) {
-  const refreshBtn = qs("#refreshListingBtn");
-  if (refreshBtn && !refreshBtn.dataset.wired) {
-    refreshBtn.dataset.wired = "true";
-    refreshBtn.addEventListener("click", async () => {
-      if (!confirm("Are you sure you want to refresh this listing? This will run the listing update workflow.")) {
+function openRefreshListingModal(id, currentRef = "") {
+  const modal = qs("#refreshListingModal");
+  const idInput = qs("#refreshListingId");
+  const refInput = qs("#refreshReferenceInput");
+  const submitBtn = qs("#submitRefreshModalBtn");
+
+  if (!modal || !idInput || !refInput) return;
+
+  idInput.value = id || "";
+  refInput.value = currentRef || "";
+
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i><span>Save & Refresh</span>';
+  }
+
+  modal.classList.remove("hidden");
+  modal.style.display = "flex";
+
+  setTimeout(() => {
+    refInput.focus();
+    refInput.select();
+  }, 50);
+}
+
+function closeRefreshListingModal() {
+  const modal = qs("#refreshListingModal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.style.display = "none";
+}
+
+function wireRefreshModal(id) {
+  const modal = qs("#refreshListingModal");
+  const form = qs("#refreshListingForm");
+  const closeBtn = qs("#closeRefreshModalBtn");
+  const cancelBtn = qs("#cancelRefreshModalBtn");
+
+  if (closeBtn) closeBtn.addEventListener("click", closeRefreshListingModal);
+  if (cancelBtn) cancelBtn.addEventListener("click", closeRefreshListingModal);
+
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeRefreshListingModal();
+    });
+  }
+
+  if (form && !form.dataset.wired) {
+    form.dataset.wired = "true";
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const listingId = qs("#refreshListingId")?.value || id;
+      const ref = qs("#refreshReferenceInput")?.value?.trim();
+      const submitBtn = qs("#submitRefreshModalBtn");
+
+      if (!listingId) {
+        alert("Listing ID is missing");
+        return;
+      }
+      if (!ref) {
+        alert("Please enter a reference number.");
+        qs("#refreshReferenceInput")?.focus();
         return;
       }
 
-      const originalHtml = refreshBtn.innerHTML;
-      refreshBtn.disabled = true;
-      refreshBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i> Refreshing...';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Saving & Refreshing...</span>';
+      }
 
       try {
-        const res = await api(`/?resource=listings&action=refresh&id=${encodeURIComponent(id)}`, {
+        const response = await api(`/?resource=listings&action=refresh&id=${encodeURIComponent(listingId)}`, {
           method: "POST",
+          body: { reference: ref },
         });
 
-        if (res && res.success) {
-          alert("Listing refresh workflow started successfully!");
-          loadListingDetails(id);
+        closeRefreshListingModal();
+
+        if (response && response.success) {
+          alert(`Listing reference saved (${response.reference || ref}) and refresh workflow started successfully!`);
+          loadListingDetails(listingId);
         } else {
           alert("Listing refreshed.");
-          loadListingDetails(id);
+          loadListingDetails(listingId);
         }
-      } catch (err) {
-        console.error("Refresh listing error:", err);
-        alert("Error refreshing listing: " + (err.message || "Unknown error"));
+      } catch (error) {
+        console.error("Refresh listing error:", error);
+        alert("Error refreshing listing: " + (error.message || "Unknown error"));
       } finally {
-        refreshBtn.disabled = false;
-        refreshBtn.innerHTML = originalHtml;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i><span>Save & Refresh</span>';
+        }
       }
+    });
+  }
+}
+
+function wireActionButtons(id, currentReference = "") {
+  wireRefreshModal(id);
+
+  const refreshBtn = qs("#refreshListingBtn");
+  if (refreshBtn && !refreshBtn.dataset.wired) {
+    refreshBtn.dataset.wired = "true";
+    refreshBtn.addEventListener("click", () => {
+      openRefreshListingModal(id, currentReference);
     });
   }
 
@@ -603,4 +677,10 @@ function wireActionButtons(id) {
     });
   }
 }
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeRefreshListingModal();
+  }
+});
 
