@@ -511,6 +511,7 @@ async function loadListingDetails(id) {
       }
     }
 
+    wireActionButtons(id);
     renderListingDetails(container, listing);
   } catch (err) {
     container.innerHTML = `
@@ -523,3 +524,83 @@ async function loadListingDetails(id) {
     `;
   }
 }
+
+function wireActionButtons(id) {
+  const refreshBtn = qs("#refreshListingBtn");
+  if (refreshBtn && !refreshBtn.dataset.wired) {
+    refreshBtn.dataset.wired = "true";
+    refreshBtn.addEventListener("click", async () => {
+      if (!confirm("Are you sure you want to refresh this listing? This will run the listing update workflow.")) {
+        return;
+      }
+
+      const originalHtml = refreshBtn.innerHTML;
+      refreshBtn.disabled = true;
+      refreshBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i> Refreshing...';
+
+      try {
+        const res = await api(`/?resource=listings&action=refresh&id=${encodeURIComponent(id)}`, {
+          method: "POST",
+        });
+
+        if (res && res.success) {
+          alert("Listing refresh workflow started successfully!");
+          loadListingDetails(id);
+        } else {
+          alert("Listing refreshed.");
+          loadListingDetails(id);
+        }
+      } catch (err) {
+        console.error("Refresh listing error:", err);
+        alert("Error refreshing listing: " + (err.message || "Unknown error"));
+      } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = originalHtml;
+      }
+    });
+  }
+
+  const dupBtn = qs("#duplicateListingBtn");
+  if (dupBtn && !dupBtn.dataset.wired) {
+    dupBtn.dataset.wired = "true";
+    dupBtn.addEventListener("click", async () => {
+      if (!confirm("Are you sure you want to duplicate this listing?")) {
+        return;
+      }
+
+      const overlay = document.createElement("div");
+      overlay.id = "dupLoadingOverlay";
+      overlay.className = "fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center backdrop-blur-sm";
+      overlay.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full text-center">
+          <div class="inline-block animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
+          <h3 class="text-lg font-bold text-slate-800">Duplicating Listing</h3>
+          <p class="text-sm text-slate-500 mt-1">Copying details and media... Please wait.</p>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      try {
+        const res = await api(`/?resource=listings&action=duplicate&id=${encodeURIComponent(id)}`, {
+          method: "POST",
+        });
+
+        overlay.remove();
+
+        if (res && res.success && res.id) {
+          const newRef = res.reference || "";
+          alert(`Listing duplicated successfully!${newRef ? `\nNew Reference: ${newRef}` : ""}`);
+          window.location.href = `?page=listings&action=view&id=${encodeURIComponent(res.id)}`;
+        } else {
+          alert("Listing duplicated successfully!");
+          window.location.href = "?page=listings&action=list";
+        }
+      } catch (err) {
+        overlay.remove();
+        console.error("Duplicate listing error:", err);
+        alert("Error duplicating listing: " + (err.message || "Unknown error"));
+      }
+    });
+  }
+}
+

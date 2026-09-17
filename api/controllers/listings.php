@@ -10,6 +10,7 @@ require 'helpers/developer-cache.php';
 
 $map = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
+$action = $_GET['action'] ?? null;
 
 function summarizeImagePayload(array $images): array
 {
@@ -869,6 +870,256 @@ if ($method === 'GET') {
  * POST /api/?resource=listings
  */
 if ($method === 'POST') {
+
+    // ── Refresh Listing Action (Workflow Template ID 189) ─────────────────────
+    if ($action === 'refresh') {
+        if (!$id) {
+            $input = getRequestBody();
+            $id = $input['id'] ?? null;
+        }
+
+        if (!$id) {
+            jsonResponse(['error' => 'Listing ID is required'], 400);
+        }
+
+        $checkRes = bitrixRequest('crm.item.get', [
+            'entityTypeId' => LISTINGS_ENTITY_ID,
+            'id'           => $id,
+        ]);
+
+        if (empty($checkRes['result']['item'])) {
+            jsonResponse(['error' => 'Listing not found'], 404);
+        }
+
+        $res = bitrixRequest('bizproc.workflow.start', [
+            'TEMPLATE_ID' => 189,
+            'DOCUMENT_ID' => [
+                'crm',
+                'Bitrix\Crm\Integration\BizProc\Document\Dynamic',
+                'DYNAMIC_1052_' . $id
+            ]
+        ]);
+
+        if (!empty($res['error'])) {
+            jsonResponse([
+                'error'   => 'Bitrix error starting workflow: ' . ($res['error_description'] ?? $res['error']),
+                'details' => $res
+            ], 500);
+        }
+
+        jsonResponse([
+            'success'    => true,
+            'message'    => 'Listing refresh workflow initiated successfully',
+            'workflowId' => $res['result'] ?? null,
+        ]);
+    }
+
+    // ── Duplicate Listing Action ─────────────────────────────────────────────
+    if ($action === 'duplicate') {
+        set_time_limit(300);
+
+        if (!$id) {
+            $input = getRequestBody();
+            $id = $input['id'] ?? null;
+        }
+
+        if (!$id) {
+            jsonResponse(['error' => 'Listing ID is required'], 400);
+        }
+
+        $getRes = bitrixRequest('crm.item.get', [
+            'entityTypeId' => LISTINGS_ENTITY_ID,
+            'id'           => $id,
+        ]);
+
+        $item = $getRes['result']['item'] ?? null;
+        if (empty($item)) {
+            jsonResponse(['error' => 'Listing not found'], 404);
+        }
+
+        $fields = $item;
+
+        // Strip read-only / system / non-clonable fields
+        unset(
+            $fields['id'],
+            $fields['xmlId'],
+            $fields['createdBy'],
+            $fields['updatedBy'],
+            $fields['movedBy'],
+            $fields['createdTime'],
+            $fields['updatedTime'],
+            $fields['movedTime'],
+            $fields['lastActivityBy'],
+            $fields['lastActivityTime'],
+            $fields['lastCommunicationTime'],
+            $fields['lastCommunicationCallTime'],
+            $fields['lastCommunicationEmailTime'],
+            $fields['lastCommunicationImolTime'],
+            $fields['lastCommunicationWebformTime'],
+            $fields['entityTypeId']
+        );
+
+        // Title: original title + " (Duplicate)"
+        $origTitle = trim((string)($fields['title'] ?? ''));
+        $fields['title'] = $origTitle !== '' ? ($origTitle . ' (Duplicate)') : 'Listing (Duplicate)';
+
+        // Reference: original reference + "DUPLICATE"
+        $origRef = trim((string)($fields['ufCrm5_1752571265'] ?? ''));
+        $fields['ufCrm5_1752571265'] = $origRef !== '' ? ($origRef . 'DUPLICATE') : 'DUPLICATE';
+
+        // PropertyFinder ID and Bayut listing ID must be empty: do not copy them
+        $fields['ufCrm5_1754838287'] = '';
+        $fields['ufCrm7_1773047782'] = '';
+
+        // Clear portal created / updated dates
+        unset(
+            $fields['ufCrm7_1789377397'],
+            $fields['ufCrm7_1789377425'],
+            $fields['ufCrm7_1789377437'],
+            $fields['ufCrm7_1789377455']
+        );
+
+        // Reset brochure URL so Bitrix automation creates a new one for this duplicated listing
+        $fields['ufCrm5_1764769932'] = '';
+
+        // Reset status to Start (DT1052_11:NEW)
+        $fields['stageId'] = 'DT1052_11:NEW';
+
+        // Handle files: download and re-encode as base64 tuples for Bitrix crm.item.add
+        $imageObjects = $fields['ufCrm5_1755322696'] ?? [];
+        $fields['ufCrm5_1755322696'] = [];
+
+        $docMap = [
+            'ufCrm5_1763015564142' => 'title_deed',
+            'ufCrm7_1770311850284' => 'passport_copy',
+            'ufCrm5_1763015706080' => 'emirates_id',
+            'ufCrm7_1770312301595' => 'contract_a',
+            'ufCrm7_1770312338525' => 'listing_form',
+        ];
+
+        $docObjects = [];
+        foreach ($docMap as $bitrixKey => $nameKey) {
+            if (!empty($fields[$bitrixKey])) {
+                $docObjects[$bitrixKey] = [
+                    'val'  => $fields[$bitrixKey],
+                    'name' => $nameKey
+                ];
+                unset($fields[$bitrixKey]);
+            }
+        }
+
+        $downloads = [];
+        if (is_array($imageObjects)) {
+            foreach ($imageObjects as $idx => $img) {
+                $url = $img['urlMachine'] ?? $img['url'] ?? $img['downloadUrl'] ?? null;
+                if ($url) {
+                    $imgName = !empty($img['name']) ? $img['name'] : (!empty($img['NAME']) ? $img['NAME'] : ('image_' . ($idx + 1) . '.jpg'));
+                    $downloads[] = [
+                        'type' => 'image',
+                        'url'  => $url,
+                        'name' => $imgName
+                    ];
+                }
+            }
+        }
+
+        foreach ($docObjects as $bitrixKey => $docInfo) {
+            $doc = $docInfo['val'];
+            $url = null;
+            $docName = $docInfo['name'] . '.pdf';
+            if (is_array($doc)) {
+                $url = $doc['urlMachine'] ?? $doc['url'] ?? $doc['downloadUrl'] ?? null;
+                if (!empty($doc['name'])) $docName = $doc['name'];
+            } elseif (is_numeric($doc) && (int)$doc > 0) {
+                $hydrated = hydrateBitrixFileById((int)$doc);
+                if (is_array($hydrated)) {
+                    $url = $hydrated['urlMachine'] ?? $hydrated['url'] ?? null;
+                    if (!empty($hydrated['name'])) $docName = $hydrated['name'];
+                }
+            }
+            if ($url) {
+                $downloads[] = [
+                    'type'      => 'doc',
+                    'bitrixKey' => $bitrixKey,
+                    'url'       => $url,
+                    'name'      => $docName
+                ];
+            }
+        }
+
+        if (!empty($downloads)) {
+            $mh = curl_multi_init();
+            $handles = [];
+            foreach ($downloads as $idx => $dl) {
+                $ch = curl_init($dl['url']);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_TIMEOUT        => 45,
+                    CURLOPT_CONNECTTIMEOUT => 15,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                ]);
+                curl_multi_add_handle($mh, $ch);
+                $handles[$idx] = $ch;
+            }
+
+            $running = null;
+            do {
+                $status = curl_multi_exec($mh, $running);
+                if ($running) {
+                    curl_multi_select($mh);
+                }
+            } while ($running > 0 && $status === CURLM_OK);
+
+            $newImages = [];
+            foreach ($handles as $idx => $ch) {
+                $content = curl_multi_getcontent($ch);
+                $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_multi_remove_handle($mh, $ch);
+                curl_close($ch);
+
+                if ($httpCode >= 200 && $httpCode < 300 && is_string($content) && $content !== '') {
+                    $base64 = base64_encode($content);
+                    $dl = $downloads[$idx];
+                    if ($dl['type'] === 'image') {
+                        $newImages[] = [$dl['name'], $base64];
+                    } elseif ($dl['type'] === 'doc') {
+                        $fields[$dl['bitrixKey']] = [$dl['name'], $base64];
+                    }
+                }
+            }
+            curl_multi_close($mh);
+
+            if (!empty($newImages)) {
+                $fields['ufCrm5_1755322696'] = $newImages;
+            }
+        }
+
+        $addRes = bitrixRequest('crm.item.add', [
+            'entityTypeId' => LISTINGS_ENTITY_ID,
+            'fields'       => $fields
+        ]);
+
+        if (!empty($addRes['error'])) {
+            jsonResponse([
+                'error'   => 'Bitrix error duplicating listing: ' . ($addRes['error_description'] ?? $addRes['error']),
+                'details' => $addRes
+            ], 500);
+        }
+
+        $newItem = fromBitrixFields($addRes['result']['item'], $map, $enums);
+        hydrateListingMediaFields($newItem);
+
+        jsonResponse([
+            'success'   => true,
+            'message'   => 'Listing duplicated successfully',
+            'item'      => $newItem,
+            'id'        => $newItem['id'] ?? ($addRes['result']['item']['id'] ?? null),
+            'reference' => $fields['ufCrm5_1752571265'],
+            'title'     => $fields['title']
+        ], 201);
+    }
 
     $input = getRequestBody();
 

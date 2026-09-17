@@ -916,6 +916,24 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                     : ""
                 }
 
+                <button type="button"
+                  class="w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  data-action="refresh-listing"
+                  data-id="${l.id}"
+                  role="menuitem">
+                  <i class="fa-solid fa-arrows-rotate text-blue-500 text-sm"></i>
+                  <span>Refresh listing</span>
+                </button>
+
+                <button type="button"
+                  class="w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  data-action="duplicate-listing"
+                  data-id="${l.id}"
+                  role="menuitem">
+                  <i class="fa-solid fa-clone text-emerald-500 text-sm"></i>
+                  <span>Duplicate listing</span>
+                </button>
+
                 <div class="my-1 h-px bg-gray-100"></div>
 
                 <button type="button"
@@ -1311,6 +1329,72 @@ async function deleteListing(id) {
   }
 }
 
+async function refreshListing(id) {
+  if (!id) return;
+
+  if (!confirm("Are you sure you want to refresh this listing? This will run the listing update workflow.")) {
+    return;
+  }
+
+  try {
+    const response = await api(`/?resource=listings&action=refresh&id=${encodeURIComponent(id)}`, {
+      method: "POST",
+    });
+
+    if (response && response.success) {
+      alert("Listing refresh workflow started successfully!");
+      loadListings(currentPage, state.searchTerm, state.filters);
+    } else {
+      alert("Listing refreshed.");
+      loadListings(currentPage, state.searchTerm, state.filters);
+    }
+  } catch (error) {
+    console.error("Refresh listing error:", error);
+    alert("Error refreshing listing: " + (error.message || "Unknown error"));
+  }
+}
+
+async function duplicateListing(id) {
+  if (!id) return;
+
+  if (!confirm("Are you sure you want to duplicate this listing?")) {
+    return;
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "dupLoadingOverlay";
+  overlay.className = "fixed inset-0 bg-slate-900/40 z-50 flex items-center justify-center backdrop-blur-sm";
+  overlay.innerHTML = `
+    <div class="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full text-center">
+      <div class="inline-block animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
+      <h3 class="text-lg font-bold text-slate-800">Duplicating Listing</h3>
+      <p class="text-sm text-slate-500 mt-1">Copying details and media... Please wait.</p>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  try {
+    const response = await api(`/?resource=listings&action=duplicate&id=${encodeURIComponent(id)}`, {
+      method: "POST",
+    });
+
+    overlay.remove();
+
+    if (response && response.success) {
+      const newRef = response.reference || "";
+      alert(`Listing duplicated successfully!${newRef ? `\nNew Reference: ${newRef}` : ""}`);
+      loadListings(currentPage, state.searchTerm, state.filters);
+    } else {
+      alert("Duplication finished, refreshing listings.");
+      loadListings(currentPage, state.searchTerm, state.filters);
+    }
+  } catch (error) {
+    overlay.remove();
+    console.error("Duplicate listing error:", error);
+    alert("Error duplicating listing: " + (error.message || "Unknown error"));
+  }
+}
+
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-menu-btn]");
   const menu = e.target.closest("[data-menu]");
@@ -1336,6 +1420,14 @@ document.addEventListener("click", (e) => {
     }
     if (action === "photographer-booking") {
       photograherBooking(id);
+      return;
+    }
+    if (action === "refresh-listing") {
+      refreshListing(id);
+      return;
+    }
+    if (action === "duplicate-listing") {
+      duplicateListing(id);
       return;
     }
 

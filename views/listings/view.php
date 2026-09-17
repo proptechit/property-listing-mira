@@ -15,10 +15,18 @@ if (!$id) {
             <h1 class="text-2xl font-bold text-slate-800">Listing Details</h1>
             <p class="text-md text-slate-500 mt-1">View full information, media, and key attributes.</p>
         </div>
-        <div class="flex items-center gap-2 justify-end">
+        <div class="flex flex-wrap items-center gap-2 justify-end">
+            <button id="refreshListingBtn" type="button"
+                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-md font-semibold transition-colors shadow-sm inline-flex items-center gap-2">
+                <i class="fa-solid fa-arrows-rotate text-blue-500"></i> Refresh Listing
+            </button>
+            <button id="duplicateListingBtn" type="button"
+                class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-md font-semibold transition-colors shadow-sm inline-flex items-center gap-2">
+                <i class="fa-solid fa-clone text-emerald-500"></i> Duplicate Listing
+            </button>
             <a id="editListingBtn" href="?page=listings&action=edit&id=<?php echo htmlspecialchars($id); ?>"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-md font-semibold transition-colors shadow-md shadow-blue-100">
-                <i class="fa-solid fa-pen-to-square mr-2"></i> Edit Listing
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-md font-semibold transition-colors shadow-md shadow-blue-100 inline-flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Listing
             </a>
         </div>
     </div>
