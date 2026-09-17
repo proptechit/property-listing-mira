@@ -218,6 +218,27 @@ async function loadListingForEdit(listingId) {
       hidePricePfCheckbox.checked = isHidden;
     }
 
+    // Pre-fill watermark checkboxes
+    const watermarkBayutCheckbox = document.getElementById("watermarkBayut");
+    if (watermarkBayutCheckbox) {
+      const isWatermarkBayut =
+        listing.watermark_bayut === true ||
+        listing.watermark_bayut === 1 ||
+        listing.watermark_bayut === "1" ||
+        listing.watermark_bayut === "Y";
+      watermarkBayutCheckbox.checked = isWatermarkBayut;
+    }
+
+    const watermarkPfCheckbox = document.getElementById("watermarkPf");
+    if (watermarkPfCheckbox) {
+      const isWatermarkPf =
+        listing.watermark_pf === true ||
+        listing.watermark_pf === 1 ||
+        listing.watermark_pf === "1" ||
+        listing.watermark_pf === "Y";
+      watermarkPfCheckbox.checked = isWatermarkPf;
+    }
+
     const portalsSelect = document.getElementById("portals");
     if (
       portalsSelect &&

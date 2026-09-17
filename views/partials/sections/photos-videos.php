@@ -15,7 +15,25 @@
         <div class="p-5 space-y-6">
             <!-- Photos Section -->
             <div>
-                <label class="block text-md font-semibold text-slate-900 mb-4">Photos</label>
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <label class="block text-md font-semibold text-slate-900">Photos</label>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="watermarkBayut" name="watermark_bayut" value="1"
+                                class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4 cursor-pointer">
+                            <label for="watermarkBayut" class="text-sm font-semibold text-slate-600 cursor-pointer select-none">
+                                Watermark in Bayut?
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="watermarkPf" name="watermark_pf" value="1"
+                                class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4 cursor-pointer">
+                            <label for="watermarkPf" class="text-sm font-semibold text-slate-600 cursor-pointer select-none">
+                                Watermark in Property Finder?
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Image Input Area -->
                 <div class="mb-4 p-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50" id="imageDropzone">

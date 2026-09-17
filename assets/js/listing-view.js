@@ -411,6 +411,26 @@ function renderListingDetails(container, listing) {
         <div class="flex items-center gap-2 text-lg font-bold text-slate-800">
           <i class="fa-solid fa-images text-slate-400"></i>
           Gallery
+          ${
+            listing?.watermark_bayut === true ||
+            listing?.watermark_bayut === "Y" ||
+            listing?.watermark_bayut === 1 ||
+            listing?.watermark_bayut === "1"
+              ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <i class="fa-solid fa-stamp text-[10px]"></i> Bayut Watermark
+                </span>`
+              : ""
+          }
+          ${
+            listing?.watermark_pf === true ||
+            listing?.watermark_pf === "Y" ||
+            listing?.watermark_pf === 1 ||
+            listing?.watermark_pf === "1"
+              ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                  <i class="fa-solid fa-stamp text-[10px]"></i> PF Watermark
+                </span>`
+              : ""
+          }
         </div>
         <div class="text-md text-slate-500 font-semibold">${images.length} image${
           images.length === 1 ? "" : "s"
