@@ -935,10 +935,8 @@ if ($method === 'POST') {
         ]);
     }
 
-    // ── Duplicate Listing Action ─────────────────────────────────────────────
+    // ── Duplicate Listing Action (Workflow Template ID 242) ───────────────────
     if ($action === 'duplicate') {
-        set_time_limit(300);
-
         if (!$id) {
             $input = getRequestBody();
             $id = $input['id'] ?? null;
@@ -948,123 +946,41 @@ if ($method === 'POST') {
             jsonResponse(['error' => 'Listing ID is required'], 400);
         }
 
-        $getRes = bitrixRequest('crm.item.get', [
+        // Verify listing exists
+        $checkRes = bitrixRequest('crm.item.get', [
             'entityTypeId' => LISTINGS_ENTITY_ID,
             'id'           => $id,
         ]);
 
-        $item = $getRes['result']['item'] ?? null;
-        if (empty($item)) {
+        if (empty($checkRes['result']['item'])) {
             jsonResponse(['error' => 'Listing not found'], 404);
         }
 
-        $fields = $item;
-
-        // Strip read-only / system / non-clonable fields
-        unset(
-            $fields['id'],
-            $fields['xmlId'],
-            $fields['createdBy'],
-            $fields['updatedBy'],
-            $fields['movedBy'],
-            $fields['createdTime'],
-            $fields['updatedTime'],
-            $fields['movedTime'],
-            $fields['lastActivityBy'],
-            $fields['lastActivityTime'],
-            $fields['lastCommunicationTime'],
-            $fields['lastCommunicationCallTime'],
-            $fields['lastCommunicationEmailTime'],
-            $fields['lastCommunicationImolTime'],
-            $fields['lastCommunicationWebformTime'],
-            $fields['entityTypeId']
-        );
-
-        // Title: original title + " (Duplicate)"
-        $origTitle = trim((string)($fields['title'] ?? ''));
-        $fields['title'] = $origTitle !== '' ? ($origTitle . ' (Duplicate)') : 'Listing (Duplicate)';
-
-        // Reference: original reference + "DUPLICATE"
-        $origRef = trim((string)($fields['ufCrm5_1752571265'] ?? ''));
-        $fields['ufCrm5_1752571265'] = $origRef !== '' ? ($origRef . 'DUPLICATE') : 'DUPLICATE';
-
-        // PropertyFinder ID and Bayut listing ID must be empty: do not copy them
-        $fields['ufCrm5_1754838287'] = '';
-        $fields['ufCrm7_1773047782'] = '';
-
-        // Clear portal created / updated dates
-        unset(
-            $fields['ufCrm7_1789377397'],
-            $fields['ufCrm7_1789377425'],
-            $fields['ufCrm7_1789377437'],
-            $fields['ufCrm7_1789377455']
-        );
-
-        // Reset brochure URL so Bitrix automation creates a new one for this duplicated listing
-        $fields['ufCrm5_1764769932'] = '';
-
-        // Reset status to Start (DT1052_11:NEW)
-        $fields['stageId'] = 'DT1052_11:NEW';
-
-        // Handle images: pass existing file IDs as array of integers so Bitrix clones them directly
-        $imageIds = [];
-        if (!empty($fields['ufCrm5_1755322696']) && is_array($fields['ufCrm5_1755322696'])) {
-            foreach ($fields['ufCrm5_1755322696'] as $img) {
-                if (is_array($img) && !empty($img['id'])) {
-                    $imageIds[] = (int)$img['id'];
-                } elseif (is_numeric($img) && (int)$img > 0) {
-                    $imageIds[] = (int)$img;
-                }
-            }
-        }
-        $fields['ufCrm5_1755322696'] = $imageIds;
-
-        // Handle single document fields: pass integer file IDs so Bitrix clones them directly
-        $docKeys = [
-            'ufCrm5_1763015564142', // title_deed
-            'ufCrm7_1770311850284', // passport_copy
-            'ufCrm5_1763015706080', // emirates_id
-            'ufCrm7_1770312301595', // contract_a
-            'ufCrm7_1770312338525', // listing_form
-        ];
-        foreach ($docKeys as $k) {
-            if (!empty($fields[$k])) {
-                if (is_array($fields[$k]) && !empty($fields[$k]['id'])) {
-                    $fields[$k] = (int)$fields[$k]['id'];
-                } elseif (is_numeric($fields[$k]) && (int)$fields[$k] > 0) {
-                    $fields[$k] = (int)$fields[$k];
-                } else {
-                    unset($fields[$k]);
-                }
-            } else {
-                unset($fields[$k]);
-            }
-        }
-
-        $addRes = bitrixRequest('crm.item.add', [
-            'entityTypeId' => LISTINGS_ENTITY_ID,
-            'fields'       => $fields
+        // Run Bitrix duplicate listing workflow template 242
+        $res = bitrixRequest('bizproc.workflow.start', [
+            'TEMPLATE_ID' => 242,
+            'DOCUMENT_ID' => [
+                'crm',
+                'Bitrix\Crm\Integration\BizProc\Document\Dynamic',
+                'DYNAMIC_1052_' . $id
+            ],
+            'PARAMETERS'  => []
         ]);
 
-        if (!empty($addRes['error'])) {
+        if (!empty($res['error'])) {
             jsonResponse([
-                'error'   => 'Bitrix error duplicating listing: ' . ($addRes['error_description'] ?? $addRes['error']),
-                'details' => $addRes
+                'error'   => 'Bitrix error starting duplicate listing workflow: ' . ($res['error_description'] ?? $res['error']),
+                'details' => $res
             ], 500);
         }
 
-        $newItem = fromBitrixFields($addRes['result']['item'], $map, $enums);
-        hydrateListingMediaFields($newItem);
-
         jsonResponse([
-            'success'   => true,
-            'message'   => 'Listing duplicated successfully',
-            'item'      => $newItem,
-            'id'        => $newItem['id'] ?? ($addRes['result']['item']['id'] ?? null),
-            'reference' => $fields['ufCrm5_1752571265'],
-            'title'     => $fields['title']
-        ], 201);
+            'success'    => true,
+            'message'    => 'Duplicate listing workflow started successfully. The duplicated listing will appear shortly.',
+            'workflowId' => $res['result'] ?? null,
+        ]);
     }
+
 
     $input = getRequestBody();
 

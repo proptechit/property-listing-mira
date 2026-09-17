@@ -1442,7 +1442,7 @@ async function duplicateListing(id) {
     <div class="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full text-center">
       <div class="inline-block animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
       <h3 class="text-lg font-bold text-slate-800">Duplicating Listing</h3>
-      <p class="text-sm text-slate-500 mt-1">Copying details and media... Please wait.</p>
+      <p class="text-sm text-slate-500 mt-1">Starting duplicate workflow... Please wait.</p>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -1455,11 +1455,12 @@ async function duplicateListing(id) {
     overlay.remove();
 
     if (response && response.success) {
-      const newRef = response.reference || "";
-      alert(`Listing duplicated successfully!${newRef ? `\nNew Reference: ${newRef}` : ""}`);
-      loadListings(currentPage, state.searchTerm, state.filters);
+      alert("Duplicate listing workflow started successfully! The duplicated listing will appear shortly.");
+      setTimeout(() => {
+        loadListings(currentPage, state.searchTerm, state.filters);
+      }, 1500);
     } else {
-      alert("Duplication finished, refreshing listings.");
+      alert("Duplication initiated, refreshing listings.");
       loadListings(currentPage, state.searchTerm, state.filters);
     }
   } catch (error) {
