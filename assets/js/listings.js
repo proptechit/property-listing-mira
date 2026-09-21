@@ -1668,7 +1668,7 @@ function wireFilters() {
 
 async function loadAgentsDropdown() {
   try {
-    const response = await api("/?resource=agents&page=1");
+    const response = await api("/?resource=agents&all=true");
     const agents = response.data || [];
     const agentSelect = qs("#f_agent");
 
@@ -1696,7 +1696,7 @@ async function loadAgentsDropdown() {
 
 async function loadOwnersDropdown() {
   try {
-    const response = await api("/?resource=owners&page=1");
+    const response = await api("/?resource=owners&all=true");
     const owners = response.data || [];
     const ownerSelect = qs("#f_owner");
 

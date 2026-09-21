@@ -48,7 +48,9 @@ if ($all) {
     );
 
     usort($users, function ($a, $b) {
-        return strcasecmp($a['name'], $b['name']);
+        $nameA = trim(($a['name'] ?? '') . ' ' . ($a['last_name'] ?? ''));
+        $nameB = trim(($b['name'] ?? '') . ' ' . ($b['last_name'] ?? ''));
+        return strcasecmp($nameA, $nameB);
     });
 
     jsonResponse([
@@ -77,7 +79,9 @@ $users = array_map(
 );
 
 usort($users, function ($a, $b) {
-    return strcasecmp($a['name'], $b['name']);
+    $nameA = trim(($a['name'] ?? '') . ' ' . ($a['last_name'] ?? ''));
+    $nameB = trim(($b['name'] ?? '') . ' ' . ($b['last_name'] ?? ''));
+    return strcasecmp($nameA, $nameB);
 });
 
 jsonResponse([
