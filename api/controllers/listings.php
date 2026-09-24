@@ -637,12 +637,12 @@ if ($method === 'GET') {
 
     // Unit Number (partial/wildcard match)
     if ($unitNumberVal !== null && $unitNumberVal !== '') {
-        $filter['%ufCrm5_1752571865'] = $unitNumberVal;
+        $filter['ufCrm5_1752571865'] = $unitNumberVal;
     }
 
     // Permit Number (partial/wildcard match)
     if ($permitNumberVal !== null && $permitNumberVal !== '') {
-        $filter['%ufCrm5_1752508269'] = $permitNumberVal;
+        $filter['ufCrm5_1752508269'] = $permitNumberVal;
     }
 
     // Title (partial/wildcard match)
