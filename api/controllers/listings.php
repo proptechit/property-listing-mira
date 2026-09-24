@@ -394,6 +394,9 @@ if ($method === 'GET') {
 
         $item = fromBitrixFields($res['result']['item'], $map, $enums);
         hydrateListingMediaFields($item);
+        if (!isset($item['permit_number']) && isset($item['advertisement_number'])) {
+            $item['permit_number'] = $item['advertisement_number'];
+        }
 
         // Hydrate location + agent + owner + developer (same behavior as list endpoint)
         $locationIds = [];
@@ -526,6 +529,21 @@ if ($method === 'GET') {
         unset($_GET['reference']);
     }
 
+    $unitNumberVal = null;
+    if (isset($_GET['unit_number']) && $_GET['unit_number'] !== '') {
+        $unitNumberVal = trim($_GET['unit_number']);
+        unset($_GET['unit_number']);
+    }
+
+    $permitNumberVal = null;
+    if (isset($_GET['permit_number']) && $_GET['permit_number'] !== '') {
+        $permitNumberVal = trim($_GET['permit_number']);
+        unset($_GET['permit_number']);
+    } elseif (isset($_GET['advertisement_number']) && $_GET['advertisement_number'] !== '') {
+        $permitNumberVal = trim($_GET['advertisement_number']);
+        unset($_GET['advertisement_number']);
+    }
+
     $titleVal = null;
     if (isset($_GET['title'])) {
         $titleVal = trim($_GET['title']);
@@ -615,6 +633,16 @@ if ($method === 'GET') {
     // Reference (partial/wildcard match)
     if ($referenceVal !== null && $referenceVal !== '') {
         $filter['%ufCrm5_1752571265'] = $referenceVal;
+    }
+
+    // Unit Number (partial/wildcard match)
+    if ($unitNumberVal !== null && $unitNumberVal !== '') {
+        $filter['%ufCrm5_1752571865'] = $unitNumberVal;
+    }
+
+    // Permit Number (partial/wildcard match)
+    if ($permitNumberVal !== null && $permitNumberVal !== '') {
+        $filter['%ufCrm5_1752508269'] = $permitNumberVal;
     }
 
     // Title (partial/wildcard match)
@@ -753,6 +781,9 @@ if ($method === 'GET') {
         function ($item) use ($map, $enums) {
             $mapped = fromBitrixFields($item, $map, $enums);
             hydrateListingMediaFields($mapped);
+            if (!isset($mapped['permit_number']) && isset($mapped['advertisement_number'])) {
+                $mapped['permit_number'] = $mapped['advertisement_number'];
+            }
             return $mapped;
         },
         $items

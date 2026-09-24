@@ -24,6 +24,8 @@ const state = {
   viewMode: "grid", // 'grid' | 'list'
   filters: {
     reference: "",
+    unitNumber: "",
+    permitNumber: "",
     title: "",
     minPrice: "",
     maxPrice: "",
@@ -300,6 +302,8 @@ function buildQueryParams(page, searchTerm, filters) {
 
   const map = {
     reference: "reference",
+    unitNumber: "unit_number",
+    permitNumber: "permit_number",
     title: "title",
     minPrice: "min_price",
     maxPrice: "max_price",
@@ -382,6 +386,8 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
   const f = filters || {};
 
   if (f.reference && !ref.includes(normStr(f.reference))) return false;
+  if (f.unitNumber && !normStr(listing?.unit_number).includes(normStr(f.unitNumber))) return false;
+  if (f.permitNumber && !normStr(listing?.advertisement_number || listing?.permit_number).includes(normStr(f.permitNumber))) return false;
   if (f.title && !title.includes(normStr(f.title))) return false;
   if (f.location && !location.includes(normStr(f.location))) return false;
 
@@ -461,6 +467,8 @@ function getActiveChips(filters, searchTerm) {
   push("searchTerm", "Search", searchTerm);
 
   push("reference", "Ref", filters.reference);
+  push("unitNumber", "Unit", filters.unitNumber);
+  push("permitNumber", "Permit", filters.permitNumber);
   push("title", "Title", filters.title);
   push("location", "Location", filters.location);
   push("status", "Status", filters.status);
@@ -555,6 +563,8 @@ function syncFiltersToUI() {
   };
 
   set("#f_reference", state.filters.reference);
+  set("#f_unitNumber", state.filters.unitNumber);
+  set("#f_permitNumber", state.filters.permitNumber);
   set("#f_title", state.filters.title);
   set("#f_minPrice", state.filters.minPrice);
   set("#f_maxPrice", state.filters.maxPrice);
@@ -580,6 +590,8 @@ function readFiltersFromUI() {
 
   return {
     reference: get("#f_reference"),
+    unitNumber: get("#f_unitNumber"),
+    permitNumber: get("#f_permitNumber"),
     title: get("#f_title"),
     minPrice: get("#f_minPrice"),
     maxPrice: get("#f_maxPrice"),
@@ -1602,6 +1614,8 @@ function wireFilters() {
     resetBtn.addEventListener("click", () => {
       state.filters = {
         reference: "",
+        unitNumber: "",
+        permitNumber: "",
         title: "",
         minPrice: "",
         maxPrice: "",
@@ -1642,6 +1656,8 @@ function wireFilters() {
 
       state.filters = {
         reference: "",
+        unitNumber: "",
+        permitNumber: "",
         title: "",
         minPrice: "",
         maxPrice: "",

@@ -132,6 +132,20 @@
                     </div>
 
                     <div>
+                        <label class="text-md font-semibold text-slate-500">Unit Number</label>
+                        <input id="f_unitNumber" type="text"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g. 101" />
+                    </div>
+
+                    <div>
+                        <label class="text-md font-semibold text-slate-500">Permit Number</label>
+                        <input id="f_permitNumber" type="text"
+                            class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="e.g. 711..." />
+                    </div>
+
+                    <div>
                         <label class="text-md font-semibold text-slate-500">Min Price (AED)</label>
                         <input id="f_minPrice" type="number" inputmode="numeric"
                             class="mt-1 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-md outline-none focus:ring-2 focus:ring-blue-500"
