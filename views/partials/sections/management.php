@@ -59,6 +59,14 @@
                     <i class="fa-solid fa-key absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                 </div>
             </div>
+
+            <div>
+                <label class="block text-md font-semibold text-slate-500">Available From</label>
+                <div class="mt-1 relative">
+                    <input type="date" name="available_from" id="availableFromInput"
+                        class="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-md text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
         </div>
     </div>
 </section>

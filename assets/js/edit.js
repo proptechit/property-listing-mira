@@ -146,6 +146,13 @@ async function loadListingForEdit(listingId) {
       }
     }
 
+    if (listing.available_from) {
+      const dateInput = document.querySelector('[name="available_from"]');
+      if (dateInput) {
+        dateInput.value = listing.available_from.split("T")[0].split(" ")[0];
+      }
+    }
+
     // Pre-fill video inputs
     if (listing.video) {
       const videoInput = document.querySelector('[name="video"]');

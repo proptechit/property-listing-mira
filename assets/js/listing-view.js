@@ -90,6 +90,25 @@ function formatDate(dateString) {
   });
 }
 
+function formatDateOnly(dateString) {
+  if (!dateString) return "-";
+  let str = String(dateString).trim();
+  if (!str) return "-";
+  const dateOnly = str.split("T")[0].split(" ")[0];
+  const parts = dateOnly.split("-");
+  if (parts.length === 3) {
+    const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+    }
+  }
+  return escapeHtml(dateOnly);
+}
+
 function buildDetailRowHtml(label, html, icon = null) {
   const has = html !== undefined && html !== null && String(html).trim() !== "";
   const iconClass = icon ? (icon.includes("fa-") ? icon : `fa-solid ${icon}`) : "";
@@ -282,6 +301,7 @@ function renderListingDetails(container, listing) {
             ${buildDetailRowHtml("Owner WhatsApp", ownerWhatsappHtml, "fa-brands fa-whatsapp text-emerald-500")}
             ${buildDetailRow("Developer", developer, "fa-helmet-safety")}
             ${buildDetailRow("Ownership", listing?.ownership ? prettyLabel(listing.ownership) : "", "fa-key")}
+            ${buildDetailRow("Available From", listing?.available_from ? formatDateOnly(listing.available_from) : "", "fa-calendar-days")}
             ${buildDetailRow("Created At", formatDate(listing?.created_at), "fa-clock")}
             ${buildDetailRow("Updated At", formatDate(listing?.updated_at), "fa-clock")}
           </div>
