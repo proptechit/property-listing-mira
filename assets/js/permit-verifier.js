@@ -96,7 +96,7 @@
 
     // 4. Unit Number
     const unitInput = document.querySelector('[name="unit_number"]');
-    if (unitInput && prop.unitNumber !== undefined && prop.unitNumber !== null) {
+    if (unitInput && !unitInput.disabled && prop.unitNumber !== undefined && prop.unitNumber !== null) {
       const uNum = String(prop.unitNumber).trim();
       if (uNum !== "" && uNum !== "0") {
         unitInput.value = uNum;

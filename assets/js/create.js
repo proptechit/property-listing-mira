@@ -1958,6 +1958,11 @@ function attachFormSubmissionHandler(id) {
       data.watermark_bayut = document.getElementById("watermarkBayut")?.checked ? "Y" : "N";
       data.watermark_pf = document.getElementById("watermarkPf")?.checked ? "Y" : "N";
 
+      // Never send masked unit number '***' to prevent overwriting existing value
+      if (data.unit_number === "***" || data.unit_number === "Restricted") {
+        delete data.unit_number;
+      }
+
 
 
       // convert documents

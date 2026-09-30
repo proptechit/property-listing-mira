@@ -376,6 +376,52 @@ function normalizeDocumentFields(array &$input): void
 
 
 /**
+ * Check if the caller is authorized to view a listing's unit number.
+ * Unit numbers are visible only to:
+ * 1. All admins listed in ADMIN_IDS
+ * 2. The listing admin of that listing (ufCrm7_1772520263 / listing_admin)
+ * 3. Strictly the listing owner (ufCrm5_1766132923 / listing_owner)
+ */
+function isAuthorizedForUnitNumber(int $callerId, array $listing, array $adminIds): bool
+{
+    if ($callerId <= 0) {
+        return false;
+    }
+
+    // 1. Any admin in ADMIN_IDS
+    if (in_array($callerId, $adminIds, true)) {
+        return true;
+    }
+
+    // 2. Listing admin of this specific listing (ufCrm7_1772520263 / listing_admin)
+    $listingAdmin = $listing['listing_admin'] ?? $listing['ufCrm7_1772520263'] ?? null;
+    $listingAdminId = 0;
+    if (is_array($listingAdmin) && isset($listingAdmin['id'])) {
+        $listingAdminId = (int)$listingAdmin['id'];
+    } elseif (is_numeric($listingAdmin)) {
+        $listingAdminId = (int)$listingAdmin;
+    }
+    if ($listingAdminId > 0 && $callerId === $listingAdminId) {
+        return true;
+    }
+
+    // 3. Strictly the listing owner (ufCrm5_1766132923 / listing_owner)
+    $listingOwner = $listing['listing_owner'] ?? $listing['ufCrm5_1766132923'] ?? null;
+    $listingOwnerId = 0;
+    if (is_array($listingOwner) && isset($listingOwner['id'])) {
+        $listingOwnerId = (int)$listingOwner['id'];
+    } elseif (is_numeric($listingOwner)) {
+        $listingOwnerId = (int)$listingOwner;
+    }
+    if ($listingOwnerId > 0 && $callerId === $listingOwnerId) {
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
  * GET /api/?resource=listings
  * GET /api/?resource=listings/{id}
  */
@@ -488,6 +534,14 @@ if ($method === 'GET') {
                 'id' => $item['developer'],
                 'name' => $developerCache[$item['developer']],
             ];
+        }
+
+        $callerId = (int) ($_SERVER['HTTP_X_USER_ID'] ?? ($_GET['user_id'] ?? 0));
+        $adminIds = defined('ADMIN_IDS') ? ADMIN_IDS : ($GLOBALS['ADMIN_IDS'] ?? []);
+        $canViewUnit = isAuthorizedForUnitNumber($callerId, $item, $adminIds);
+        $item['is_unit_restricted'] = !$canViewUnit;
+        if (!$canViewUnit) {
+            $item['unit_number'] = '***';
         }
 
         jsonResponse($item);
@@ -638,6 +692,19 @@ if ($method === 'GET') {
     // Unit Number (partial/wildcard match)
     if ($unitNumberVal !== null && $unitNumberVal !== '') {
         $filter['ufCrm5_1752571865'] = $unitNumberVal;
+
+        $callerId = (int) ($_SERVER['HTTP_X_USER_ID'] ?? ($_GET['user_id'] ?? 0));
+        $adminIds = defined('ADMIN_IDS') ? ADMIN_IDS : ($GLOBALS['ADMIN_IDS'] ?? []);
+        $callerIsAdmin = in_array($callerId, $adminIds, true);
+
+        // Non-admins can only search/filter unit numbers for listings they own or administer
+        if (!$callerIsAdmin) {
+            $filter[(string)$subFilterIndex++] = [
+                'logic' => 'OR',
+                '0' => ['ufCrm5_1766132923' => $callerId],
+                '1' => ['ufCrm7_1772520263' => $callerId],
+            ];
+        }
     }
 
     // Permit Number (partial/wildcard match)
@@ -844,6 +911,9 @@ if ($method === 'GET') {
     saveUserCache($userCache);
     saveDeveloperCache($developerCache);
 
+    $callerId = (int) ($_SERVER['HTTP_X_USER_ID'] ?? ($_GET['user_id'] ?? 0));
+    $adminIds = defined('ADMIN_IDS') ? ADMIN_IDS : ($GLOBALS['ADMIN_IDS'] ?? []);
+
     foreach ($output as &$item) {
         if (!empty($item['location']) && isset($locationCache[$item['location']])) {
             $item['location'] = [
@@ -882,6 +952,12 @@ if ($method === 'GET') {
                 'id' => $item['developer'],
                 'name' => $developerCache[$item['developer']],
             ];
+        }
+
+        $canViewUnit = isAuthorizedForUnitNumber($callerId, $item, $adminIds);
+        $item['is_unit_restricted'] = !$canViewUnit;
+        if (!$canViewUnit) {
+            $item['unit_number'] = '***';
         }
     }
     unset($item);
@@ -1077,6 +1153,11 @@ if ($method === 'PUT') {
     $adminIds = defined('ADMIN_IDS') ? ADMIN_IDS : ($GLOBALS['ADMIN_IDS'] ?? []);
     $callerIsAdmin = in_array($callerId, $adminIds, true);
 
+    // If input contains masked unit number '***', always remove it so DB is never overwritten with mask
+    if (isset($input['unit_number']) && trim((string)$input['unit_number']) === '***') {
+        unset($input['unit_number']);
+    }
+
     if (!$callerIsAdmin) {
         $currentRes = bitrixRequest('crm.item.get', [
             'entityTypeId' => LISTINGS_ENTITY_ID,
@@ -1088,6 +1169,14 @@ if ($method === 'PUT') {
         if ($currentStage === 'DT1052_11:SUCCESS') {
             // Published listing – strip restricted fields for non-admins
             unset($input['price'], $input['images']);
+        }
+
+        // Unit number permission check for non-admins
+        $ownerId = (int)($currentItem['ufCrm5_1766132923'] ?? 0);
+        $adminId = (int)($currentItem['ufCrm7_1772520263'] ?? 0);
+        $canEditUnit = ($callerId > 0 && ($callerId === $ownerId || $callerId === $adminId));
+        if (!$canEditUnit) {
+            unset($input['unit_number']);
         }
     }
     // ─────────────────────────────────────────────────────────────────────────

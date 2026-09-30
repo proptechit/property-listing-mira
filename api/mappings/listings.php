@@ -135,6 +135,7 @@ return [
     'ownership'      => 'ufCrm7_1782715351',
     'listing_agent'  => 'assignedById',
     'listing_owner'  => 'ufCrm5_1766132923',
+    'listing_admin'  => 'ufCrm7_1772520263',
     'branch'         => 'ufCrm7_1772708634',
     'available_from' => 'ufCrm7_1768561960936',
 

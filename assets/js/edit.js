@@ -641,6 +641,9 @@ async function loadListingForEdit(listingId) {
 
     // Restrict price & images for non-admins on published listings
     applyPublishedListingRestrictions(listing);
+
+    // Restrict unit number for unauthorized users
+    applyUnitNumberRestrictions(listing);
   } catch (error) {
     console.error("Error loading listing:", error);
     alert("Error loading listing: " + (error.message || "Unknown error"));
@@ -750,6 +753,45 @@ function _insertPublishedWarning(anchorSelector, bannerId, label) {
   `;
 
   // Insert after the anchor's parent wrapper (the relative div)
+  const wrapper = anchor.closest("div") || anchor.parentElement;
+  if (wrapper) {
+    wrapper.after(banner);
+  }
+}
+
+/**
+ * Lock and mask unit number for users who are not the listing owner or their admins.
+ */
+function applyUnitNumberRestrictions(listing) {
+  const isRestricted = listing?.is_unit_restricted || listing?.unit_number === "***";
+  if (!isRestricted) return;
+
+  const unitInput = document.querySelector('[name="unit_number"]');
+  if (unitInput) {
+    unitInput.value = "***";
+    unitInput.disabled = true;
+    unitInput.readOnly = true;
+    unitInput.classList.add("opacity-60", "cursor-not-allowed", "bg-slate-100");
+    unitInput.title = "Unit number is visible and editable only by the listing owner and their admins.";
+    _insertUnitRestrictedWarning('[name="unit_number"]');
+  }
+}
+
+function _insertUnitRestrictedWarning(anchorSelector) {
+  const bannerId = "unit-number-restricted-warning";
+  if (document.getElementById(bannerId)) return;
+
+  const anchor = document.querySelector(anchorSelector);
+  if (!anchor) return;
+
+  const banner = document.createElement("p");
+  banner.id = bannerId;
+  banner.className = "mt-1 flex items-center gap-1.5 text-xs font-semibold text-amber-600";
+  banner.innerHTML = `
+    <i class="fa-solid fa-lock text-[10px]"></i>
+    <span>Unit number is visible only to the listing owner and their admins.</span>
+  `;
+
   const wrapper = anchor.closest("div") || anchor.parentElement;
   if (wrapper) {
     wrapper.after(banner);

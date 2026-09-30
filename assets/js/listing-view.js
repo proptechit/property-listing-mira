@@ -364,7 +364,15 @@ function renderListingDetails(container, listing) {
           <div class="text-lg font-bold text-slate-800 mb-4">More details</div>
           <div class="space-y-0">
             ${buildDetailRow("Emirate", listing?.emirate ? prettyLabel(listing.emirate) : "", "fa-map")}
-            ${buildDetailRow("Unit number", listing?.unit_number, "fa-door-closed")}
+            ${
+              listing?.is_unit_restricted || listing?.unit_number === "***"
+                ? buildDetailRowHtml(
+                    "Unit number",
+                    `<span class="inline-flex items-center gap-1.5 text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-lg text-xs font-bold border border-amber-200/60" title="Visible only to listing owner and their admins"><i class="fa-solid fa-lock text-[10px]"></i> Restricted (***)</span>`,
+                    "fa-door-closed"
+                  )
+                : buildDetailRow("Unit number", listing?.unit_number, "fa-door-closed")
+            }
             ${buildDetailRow("Floor", listing?.floor_number, "fa-layer-group")}
             ${buildDetailRow("Parking slots", listing?.parking_slots, "fa-square-parking")}
             ${buildDetailRow("Total floors", listing?.total_floors, "fa-building")}
