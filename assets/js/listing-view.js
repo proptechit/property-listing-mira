@@ -91,9 +91,9 @@ function formatDate(dateString) {
 }
 
 function formatDateOnly(dateString) {
-  if (!dateString) return "-";
+  if (!dateString || dateString === "N") return "-";
   let str = String(dateString).trim();
-  if (!str) return "-";
+  if (!str || str === "N") return "-";
   const dateOnly = str.split("T")[0].split(" ")[0];
   const parts = dateOnly.split("-");
   if (parts.length === 3) {

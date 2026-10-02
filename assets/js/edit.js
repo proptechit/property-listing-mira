@@ -139,18 +139,20 @@ async function loadListingForEdit(listingId) {
       }
     }
 
-    if (listing.permit_expiry_date) {
-      const dateInput = document.querySelector('[name="permit_expiry_date"]');
-      if (dateInput) {
-        dateInput.value = listing.permit_expiry_date.split("T")[0];
-      }
+    const permitExpiryInput = document.querySelector('[name="permit_expiry_date"]');
+    if (permitExpiryInput) {
+      permitExpiryInput.value =
+        listing.permit_expiry_date && listing.permit_expiry_date !== "N"
+          ? listing.permit_expiry_date.split("T")[0]
+          : "";
     }
 
-    if (listing.available_from) {
-      const dateInput = document.querySelector('[name="available_from"]');
-      if (dateInput) {
-        dateInput.value = listing.available_from.split("T")[0].split(" ")[0];
-      }
+    const availableFromInput = document.querySelector('[name="available_from"]');
+    if (availableFromInput) {
+      availableFromInput.value =
+        listing.available_from && listing.available_from !== "N"
+          ? listing.available_from.split("T")[0].split(" ")[0]
+          : "";
     }
 
     // Pre-fill video inputs

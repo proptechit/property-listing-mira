@@ -21,10 +21,10 @@ function toBitrixFields(array $input, array $map, array $enums = []): array
                     $value
                 );
             } else {
-                $out[$bitrixField] = $enums[$key][$value] ?? $value;
+                $out[$bitrixField] = ($value === null || $value === '') ? '' : ($enums[$key][$value] ?? $value);
             }
         } else {
-            $out[$bitrixField] = $value;
+            $out[$bitrixField] = ($value === null) ? '' : $value;
         }
     }
 
@@ -65,6 +65,12 @@ function fromBitrixFields(array $item, array $map, array $enums = []): array
             }
         } else {
             $out[$frontendKey] = $value;
+        }
+
+        // Sanitize date fields where Bitrix may return "N", empty string, or false for unset dates
+        $dateFields = ['available_from', 'permit_expiry_date', 'permit_issue_date', 'bayut_created_at', 'bayut_updated_at', 'pf_created_at', 'pf_updated_at'];
+        if (in_array($frontendKey, $dateFields, true) && ($value === 'N' || $value === '' || $value === false)) {
+            $out[$frontendKey] = null;
         }
     }
 
