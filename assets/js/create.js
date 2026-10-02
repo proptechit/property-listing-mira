@@ -1275,11 +1275,67 @@ function disposeAllImagePreviews() {
   });
 }
 
+async function createPreviewThumbnail(file, maxDimension = 480) {
+  if (!file || !(file instanceof Blob) || !file.type.startsWith("image/")) {
+    return URL.createObjectURL(file);
+  }
+
+  // Use createImageBitmap if available for hardware-accelerated off-main-thread decoding
+  if (typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const width = bitmap.width;
+      const height = bitmap.height;
+
+      // If image is already smaller than maxDimension, no need to downscale
+      if (width <= maxDimension && height <= maxDimension) {
+        bitmap.close();
+        return URL.createObjectURL(file);
+      }
+
+      const scale = Math.min(maxDimension / width, maxDimension / height);
+      const targetWidth = Math.max(1, Math.round(width * scale));
+      const targetHeight = Math.max(1, Math.round(height * scale));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext("2d", { alpha: false });
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "medium";
+        ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+        bitmap.close();
+
+        return new Promise((resolve) => {
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(URL.createObjectURL(blob));
+              } else {
+                resolve(URL.createObjectURL(file));
+              }
+            },
+            "image/jpeg",
+            0.82
+          );
+        });
+      }
+      bitmap.close();
+    } catch (err) {
+      console.warn("createImageBitmap thumbnail generation failed, falling back to full image:", err);
+    }
+  }
+
+  return URL.createObjectURL(file);
+}
+
 async function buildListingImage(file) {
+  const previewUrl = await createPreviewThumbnail(file);
   return {
     id: Date.now() + Math.random(),
-    file,
-    previewUrl: URL.createObjectURL(file),
+    file, // 100% original full-quality file preserved intact for upload
+    previewUrl, // Lightweight scaled thumbnail (~30KB) for instant UI rendering and reordering
     name: file.name,
     isExistingImage: false,
   };
@@ -1289,7 +1345,7 @@ async function processAndAddImageFiles(files) {
   const fileList = Array.from(files || []);
   if (fileList.length === 0) return;
 
-  let addedCount = 0;
+  const validFiles = [];
   const errorMessages = [];
 
   for (const file of fileList) {
@@ -1303,18 +1359,21 @@ async function processAndAddImageFiles(files) {
       continue;
     }
 
-    const imageData = await buildListingImage(file);
-    imageGallery.push(imageData);
-    addedCount += 1;
+    validFiles.push(file);
   }
 
-  if (addedCount > 0) {
+  if (validFiles.length > 0) {
+    // Generate thumbnails in parallel
+    const newImages = await Promise.all(
+      validFiles.map((file) => buildListingImage(file))
+    );
+    imageGallery.push(...newImages);
     renderImageGallery();
   }
 
   if (errorMessages.length > 0) {
     setImageUploadFeedback(errorMessages, "error");
-  } else if (addedCount > 0) {
+  } else if (validFiles.length > 0) {
     setImageUploadFeedback();
   }
 }
@@ -1338,6 +1397,36 @@ function initializeImageManagement() {
   const clearAllImagesBtn = document.getElementById("clearAllImagesBtn");
 
   if (!imageInput || !imageGrid) return;
+
+  if (imageGrid.dataset.gridEventsBound !== "1") {
+    imageGrid.dataset.gridEventsBound = "1";
+    imageGrid.addEventListener("click", (e) => {
+      const removeBtn = e.target.closest(".remove-image-btn");
+      if (removeBtn) {
+        e.preventDefault();
+        const id = removeBtn.getAttribute("data-id");
+        removeImage(id);
+        return;
+      }
+
+      const upBtn = e.target.closest(".move-up-btn");
+      if (upBtn) {
+        e.preventDefault();
+        const id = upBtn.getAttribute("data-id");
+        moveImageUp(id);
+        return;
+      }
+
+      const downBtn = e.target.closest(".move-down-btn");
+      if (downBtn) {
+        e.preventDefault();
+        const id = downBtn.getAttribute("data-id");
+        moveImageDown(id);
+        return;
+      }
+    });
+  }
+
   if (imageInput.dataset.imageManagementBound === "1") return;
   imageInput.dataset.imageManagementBound = "1";
 
@@ -1623,38 +1712,33 @@ function renderImageGallery() {
   const imageGrid = document.getElementById("imagePreviewGrid");
   if (!imageGrid) return;
 
+  const total = imageGallery.length;
   imageGrid.innerHTML = imageGallery
     .map((image, index) => {
       const previewSrc = getImagePreviewSrc(image);
+      const isFirst = index === 0;
+      const isLast = index === total - 1;
       return `
-    <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-sm hover:shadow-md transition-shadow cursor-move" draggable="true" data-image-id="${image.id}">
-      <img src="${escapeAttribute(previewSrc)}" alt="${escapeAttribute(image.name)}" class="w-full h-full object-cover pointer-events-none select-none">
+    <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-square shadow-sm hover:shadow-md transition-shadow cursor-move select-none" draggable="true" data-image-id="${escapeAttribute(image.id)}">
+      <img src="${escapeAttribute(previewSrc)}" alt="${escapeAttribute(image.name)}" loading="lazy" class="w-full h-full object-cover pointer-events-none select-none">
       
       <!-- Overlay with actions -->
-      <div class="absolute inset-0  bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-200 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 z-10">
-        <div class="flex gap-2">
-          ${
-            index > 0
-              ? `<button type="button" class="move-up-btn p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg" data-id="${image.id}" title="Move up">
-                <i class="fa-solid fa-arrow-up text-sm"></i>
-              </button>`
-              : ""
-          }
-          ${
-            index < imageGallery.length - 1
-              ? `<button type="button" class="move-down-btn p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg" data-id="${image.id}" title="Move down">
-                <i class="fa-solid fa-arrow-down text-sm"></i>
-              </button>`
-              : ""
-          }
+      <div class="absolute inset-0 bg-slate-900/30 group-hover:bg-opacity-60 transition-all duration-200 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 z-10 pointer-events-none">
+        <div class="flex gap-2 pointer-events-auto">
+          <button type="button" class="move-up-btn p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg ${isFirst ? "hidden" : ""}" data-id="${escapeAttribute(image.id)}" title="Move up">
+            <i class="fa-solid fa-arrow-up text-sm"></i>
+          </button>
+          <button type="button" class="move-down-btn p-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white transition-colors shadow-lg ${isLast ? "hidden" : ""}" data-id="${escapeAttribute(image.id)}" title="Move down">
+            <i class="fa-solid fa-arrow-down text-sm"></i>
+          </button>
         </div>
-        <button type="button" class="remove-image-btn p-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors shadow-lg" data-id="${image.id}" title="Remove image">
+        <button type="button" class="remove-image-btn p-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors shadow-lg pointer-events-auto" data-id="${escapeAttribute(image.id)}" title="Remove image">
           <i class="fa-solid fa-trash-can text-sm"></i>
         </button>
       </div>
       
       <!-- Index label -->
-      <div class="absolute top-2 left-2  bg-opacity-70 text-white text-xs font-bold px-3 py-1.5 rounded-md z-20">
+      <div class="image-index-badge absolute top-2 left-2 bg-slate-900/80 text-white text-xs font-bold px-2.5 py-1 rounded-md z-20 pointer-events-none">
         ${index + 1}
       </div>
     </div>
@@ -1662,36 +1746,66 @@ function renderImageGallery() {
     })
     .join("");
 
-  // Attach event listeners
-  document.querySelectorAll(".remove-image-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const id = btn.getAttribute("data-id");
-      removeImage(id);
-    });
-  });
-
-  document.querySelectorAll(".move-up-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const id = btn.getAttribute("data-id");
-      moveImageUp(id);
-    });
-  });
-
-  document.querySelectorAll(".move-down-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const id = btn.getAttribute("data-id");
-      moveImageDown(id);
-    });
-  });
-
   updateImagesInput();
   syncClearAllImagesButton();
 
   // When gallery height changes inside an open collapsible section,
   // recalculate section max-height to prevent overlap with next sections.
+  if (typeof refreshCollapsibleHeights === "function") {
+    requestAnimationFrame(refreshCollapsibleHeights);
+  }
+
+  document.dispatchEvent(new CustomEvent("imagesRendered"));
+}
+
+/**
+ * Re-orders existing DOM cards in place without wiping or recreating innerHTML.
+ * Keeps decoded bitmaps in memory with 0ms lag, updates badge numbers and button states.
+ */
+function updateGalleryDOMOrder() {
+  const imageGrid = document.getElementById("imagePreviewGrid");
+  if (!imageGrid) return;
+
+  const cards = Array.from(imageGrid.children);
+  const cardMap = new Map();
+  cards.forEach((card) => {
+    const id = card.getAttribute("data-image-id");
+    if (id) cardMap.set(toImageId(id), card);
+  });
+
+  const total = imageGallery.length;
+  const fragment = document.createDocumentFragment();
+
+  imageGallery.forEach((image, index) => {
+    const card = cardMap.get(toImageId(image.id));
+    if (card) {
+      // Update badge number
+      const badge = card.querySelector(".image-index-badge");
+      if (badge) {
+        badge.textContent = String(index + 1);
+      }
+
+      // Update Move Up button visibility
+      const upBtn = card.querySelector(".move-up-btn");
+      if (upBtn) {
+        upBtn.classList.toggle("hidden", index === 0);
+      }
+
+      // Update Move Down button visibility
+      const downBtn = card.querySelector(".move-down-btn");
+      if (downBtn) {
+        downBtn.classList.toggle("hidden", index === total - 1);
+      }
+
+      fragment.appendChild(card);
+    }
+  });
+
+  imageGrid.appendChild(fragment);
+
+  updateImagesInput();
+  syncClearAllImagesButton();
+
   if (typeof refreshCollapsibleHeights === "function") {
     requestAnimationFrame(refreshCollapsibleHeights);
   }
@@ -1710,7 +1824,18 @@ function removeImage(id) {
   imageGallery = imageGallery.filter(
     (img) => img && toImageId(img.id) !== targetId,
   );
-  renderImageGallery();
+
+  const imageGrid = document.getElementById("imagePreviewGrid");
+  const cardToRemove = Array.from(imageGrid?.children || []).find(
+    (el) => toImageId(el.getAttribute("data-image-id")) === targetId
+  );
+
+  if (cardToRemove) {
+    cardToRemove.remove();
+    updateGalleryDOMOrder();
+  } else {
+    renderImageGallery();
+  }
 }
 
 function clearAllImages() {
@@ -1749,25 +1874,29 @@ function reorderImages(fromIndex, toIndex) {
     fromIndex < 0 ||
     fromIndex >= imageGallery.length ||
     toIndex < 0 ||
-    toIndex >= imageGallery.length
+    toIndex >= imageGallery.length ||
+    fromIndex === toIndex
   )
     return;
 
   const [movedImage] = imageGallery.splice(fromIndex, 1);
   imageGallery.splice(toIndex, 0, movedImage);
-  renderImageGallery();
+  updateGalleryDOMOrder();
 }
 
 function setupDragAndDrop() {
   const imageGrid = document.getElementById("imagePreviewGrid");
   if (!imageGrid) return;
+  if (imageGrid.dataset.dragDropBound === "1") return;
+  imageGrid.dataset.dragDropBound = "1";
 
   imageGrid.addEventListener("dragstart", (e) => {
-    if (e.target.closest("[data-image-id]")) {
-      const imageEl = e.target.closest("[data-image-id]");
+    const imageEl = e.target.closest("[data-image-id]");
+    if (imageEl) {
       draggedImageId = imageEl.getAttribute("data-image-id");
-      imageEl.classList.add("opacity-50");
+      imageEl.classList.add("opacity-40");
       e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", draggedImageId);
     }
   });
 
@@ -1776,7 +1905,7 @@ function setupDragAndDrop() {
     e.dataTransfer.dropEffect = "move";
 
     const imageEl = e.target.closest("[data-image-id]");
-    if (imageEl && draggedImageId !== imageEl.getAttribute("data-image-id")) {
+    if (imageEl && draggedImageId && draggedImageId !== imageEl.getAttribute("data-image-id")) {
       imageEl.classList.add("ring-2", "ring-blue-500");
     }
   });
@@ -1808,15 +1937,15 @@ function setupDragAndDrop() {
       }
     }
 
-    document.querySelectorAll("[data-image-id]").forEach((el) => {
-      el.classList.remove("opacity-50", "ring-2", "ring-blue-500");
+    document.querySelectorAll("#imagePreviewGrid [data-image-id]").forEach((el) => {
+      el.classList.remove("opacity-40", "ring-2", "ring-blue-500");
     });
     draggedImageId = null;
   });
 
   imageGrid.addEventListener("dragend", () => {
-    document.querySelectorAll("[data-image-id]").forEach((el) => {
-      el.classList.remove("opacity-50", "ring-2", "ring-blue-500");
+    document.querySelectorAll("#imagePreviewGrid [data-image-id]").forEach((el) => {
+      el.classList.remove("opacity-40", "ring-2", "ring-blue-500");
     });
     draggedImageId = null;
   });
@@ -1827,12 +1956,12 @@ function moveImageUp(id) {
   const index = imageGallery.findIndex(
     (img) => img && toImageId(img.id) === toImageId(id),
   );
-  if (index > 0 && index !== -1) {
+  if (index > 0) {
     [imageGallery[index], imageGallery[index - 1]] = [
       imageGallery[index - 1],
       imageGallery[index],
     ];
-    renderImageGallery();
+    updateGalleryDOMOrder();
   }
 }
 
@@ -1846,7 +1975,7 @@ function moveImageDown(id) {
       imageGallery[index + 1],
       imageGallery[index],
     ];
-    renderImageGallery();
+    updateGalleryDOMOrder();
   }
 }
 
@@ -1904,7 +2033,7 @@ function shuffleImages() {
     [imageGallery[i], imageGallery[j]] = [imageGallery[j], imageGallery[i]];
   }
 
-  renderImageGallery();
+  updateGalleryDOMOrder();
 }
 
 // ============================================================================
