@@ -14,7 +14,7 @@ if ($method === 'GET') {
     // Restrict activity logs to administrators only
     $callerId = getCallerUserId();
     $adminIds = defined('ADMIN_IDS') ? ADMIN_IDS : ($GLOBALS['ADMIN_IDS'] ?? []);
-    if ($callerId > 0 && !in_array($callerId, $adminIds, true)) {
+    if ($callerId <= 0 || !in_array($callerId, $adminIds, true)) {
         jsonResponse(['error' => 'Forbidden: Activity logs are restricted to administrators'], 403);
     }
 
