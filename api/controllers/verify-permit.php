@@ -18,8 +18,9 @@ $checkRes = bitrixRequest('crm.item.list', [
     'entityTypeId' => LISTINGS_ENTITY_ID,
     'filter'       => [
         'ufCrm5_1752508269' => $permitNumber,
+        'stageId'           => 'DT1052_11:SUCCESS',
     ],
-    'select'       => ['id'],
+    'select'       => ['id', 'stageId'],
 ]);
 
 $conflicts = array_filter($checkRes['result']['items'] ?? [], function ($item) use ($excludeListingId) {

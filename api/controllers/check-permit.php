@@ -17,8 +17,9 @@ $res = bitrixRequest('crm.item.list', [
     'entityTypeId' => LISTINGS_ENTITY_ID,
     'filter'       => [
         'ufCrm5_1752508269' => $permitNumber,
+        'stageId'           => 'DT1052_11:SUCCESS',
     ],
-    'select'       => ['id'],
+    'select'       => ['id', 'stageId'],
 ]);
 
 $items = $res['result']['items'] ?? [];

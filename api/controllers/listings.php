@@ -1098,8 +1098,9 @@ if ($method === 'POST') {
             'entityTypeId' => LISTINGS_ENTITY_ID,
             'filter'       => [
                 'ufCrm5_1752508269' => $permitNumber,
+                'stageId'           => 'DT1052_11:SUCCESS',
             ],
-            'select'       => ['id'],
+            'select'       => ['id', 'stageId'],
         ]);
 
         if (!empty($existingPermitRes['result']['items'])) {
@@ -1207,8 +1208,9 @@ if ($method === 'PUT') {
             'entityTypeId' => LISTINGS_ENTITY_ID,
             'filter'       => [
                 'ufCrm5_1752508269' => $permitNumber,
+                'stageId'           => 'DT1052_11:SUCCESS',
             ],
-            'select'       => ['id'],
+            'select'       => ['id', 'stageId'],
         ]);
 
         $conflicts = array_filter($existingPermitRes['result']['items'] ?? [], function ($item) use ($id) {
