@@ -75,6 +75,10 @@
                         <span>Verify Permit</span>
                     </button>
                 </div>
+                <div id="permitDuplicateWarning" class="hidden mt-1.5 text-xs text-rose-600 font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
+                    <span>There is an existing listing with same permit number, please contact crm team</span>
+                </div>
             </div>
 
             <!-- Permit Issue Date -->

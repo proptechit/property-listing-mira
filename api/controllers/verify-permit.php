@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../helpers/response.php';
+require_once __DIR__ . '/../helpers/bitrix.php';
 
 $permitNumber = trim($_GET['permit_number'] ?? '');
 
@@ -8,6 +9,30 @@ if (empty($permitNumber)) {
     jsonResponse([
         'error' => 'Permit number is required'
     ], 400);
+}
+
+// Check if permit already exists in Bitrix CRM
+$excludeListingId = isset($_GET['listing_id']) ? (int)$_GET['listing_id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
+
+$checkRes = bitrixRequest('crm.item.list', [
+    'entityTypeId' => LISTINGS_ENTITY_ID,
+    'filter'       => [
+        'ufCrm5_1752508269' => $permitNumber,
+    ],
+    'select'       => ['id'],
+]);
+
+$conflicts = array_filter($checkRes['result']['items'] ?? [], function ($item) use ($excludeListingId) {
+    return (int)($item['id'] ?? 0) !== $excludeListingId;
+});
+
+if (!empty($conflicts)) {
+    jsonResponse([
+        'error'        => 'There is an existing listing with same permit number, please contact crm team',
+        'message'      => 'There is an existing listing with same permit number, please contact crm team',
+        'duplicate'    => true,
+        'conflict_ids' => array_values(array_map(fn($c) => $c['id'], $conflicts)),
+    ], 422);
 }
 
 // Allow license number to be selected (defaults to PF_LICENSE_NUMBER)

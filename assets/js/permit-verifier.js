@@ -588,18 +588,20 @@
     const licenseNum = licenseInfo?.licenseNumber || (document.getElementById("permitLicenseNumber")?.value || "881995").trim();
     const licenseName = licenseInfo?.licenseName || (licenseNum === "931105" ? "Eva DXB" : "Mira International");
     const otherChoice = licenseNum === "931105" ? "Mira International (881995)" : "Eva DXB (931105)";
+    const isDuplicate = String(errorMessage || "").toLowerCase().includes("existing listing with same permit number");
 
     container.innerHTML = `
       <div class="mt-4 p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start justify-between gap-3 text-rose-800">
         <div class="flex items-start gap-3">
           <i class="fa-solid fa-circle-exclamation text-rose-500 text-lg mt-0.5 shrink-0"></i>
           <div>
-            <div class="font-bold text-sm">Permit Verification Failed</div>
-            <div class="text-xs text-rose-600 mt-1">${escapeHtml(errorMessage || "Invalid permit number or not found in DLD/RERA records.")}</div>
+            <div class="font-bold text-sm">${isDuplicate ? "Duplicate Permit Number" : "Permit Verification Failed"}</div>
+            <div class="text-xs text-rose-600 mt-1 font-medium">${escapeHtml(errorMessage || "Invalid permit number or not found in DLD/RERA records.")}</div>
+            ${!isDuplicate ? `
             <div class="text-[11px] text-slate-600 mt-2 bg-white/80 rounded-lg p-2 border border-rose-100 flex items-center gap-1.5">
               <i class="fa-solid fa-circle-info text-blue-500 shrink-0"></i>
               <span>Checked under <strong>${escapeHtml(licenseName)} (${escapeHtml(licenseNum)})</strong>. If registered with another client, switch to <strong>${escapeHtml(otherChoice)}</strong> above and verify again.</span>
-            </div>
+            </div>` : ""}
           </div>
         </div>
         <button type="button" class="text-rose-400 hover:text-rose-600 p-1 cursor-pointer" onclick="this.closest('#permitVerificationResult').classList.add('hidden')">
@@ -701,14 +703,23 @@
       verifyBtn.disabled = true;
       verifyBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Verifying...</span>';
 
+      const listingId = new URLSearchParams(window.location.search).get("id") || "";
+      const listingParam = listingId ? `&listing_id=${encodeURIComponent(listingId)}` : "";
+
       try {
         const response = await api(
-          `/?resource=verify-permit&permit_number=${encodeURIComponent(permitNumber)}&permitType=rera&license_number=${encodeURIComponent(currentLicense)}`
+          `/?resource=verify-permit&permit_number=${encodeURIComponent(permitNumber)}&permitType=rera&license_number=${encodeURIComponent(currentLicense)}${listingParam}`
         );
 
         if (response && response.status === "success" && response.data) {
+          if (duplicateWarningEl) duplicateWarningEl.classList.add("hidden");
+          permitInput.classList.remove("ring-2", "ring-rose-500", "border-rose-500");
           renderVerificationResult(resultContainer, response, licenseMeta);
         } else if (response && response.error) {
+          if (String(response.error).toLowerCase().includes("existing listing with same permit number")) {
+            if (duplicateWarningEl) duplicateWarningEl.classList.remove("hidden");
+            permitInput.classList.add("ring-2", "ring-rose-500", "border-rose-500");
+          }
           renderErrorResult(resultContainer, response.error, licenseMeta);
         } else {
           renderErrorResult(resultContainer, "Unexpected response from verification service.", licenseMeta);
@@ -716,12 +727,66 @@
       } catch (err) {
         console.error("Permit verification error:", err);
         const errMsg = err?.error || err?.message || "Verification request failed. Please check the permit number.";
+        if (String(errMsg).toLowerCase().includes("existing listing with same permit number")) {
+          if (duplicateWarningEl) duplicateWarningEl.classList.remove("hidden");
+          permitInput.classList.add("ring-2", "ring-rose-500", "border-rose-500");
+        }
         renderErrorResult(resultContainer, errMsg, licenseMeta);
       } finally {
         verifyBtn.disabled = false;
         verifyBtn.innerHTML = originalBtnHtml;
       }
     }
+
+    // Inline permit duplicate check on blur / debounced input
+    const duplicateWarningEl = document.getElementById("permitDuplicateWarning");
+    let checkTimeout = null;
+
+    async function checkPermitDuplicate(val) {
+      const permitNo = (val || "").trim();
+      if (!permitNo) {
+        if (duplicateWarningEl) duplicateWarningEl.classList.add("hidden");
+        permitInput.classList.remove("ring-2", "ring-rose-500", "border-rose-500");
+        return false;
+      }
+
+      const listingId = new URLSearchParams(window.location.search).get("id") || "";
+      const listingParam = listingId ? `&listing_id=${encodeURIComponent(listingId)}` : "";
+
+      try {
+        const res = await api(
+          `/?resource=check-permit&permit_number=${encodeURIComponent(permitNo)}${listingParam}`
+        );
+        if (res && res.exists) {
+          if (duplicateWarningEl) duplicateWarningEl.classList.remove("hidden");
+          permitInput.classList.add("ring-2", "ring-rose-500", "border-rose-500");
+          return true;
+        } else {
+          if (duplicateWarningEl) duplicateWarningEl.classList.add("hidden");
+          permitInput.classList.remove("ring-2", "ring-rose-500", "border-rose-500");
+          return false;
+        }
+      } catch (err) {
+        return false;
+      }
+    }
+
+    permitInput.addEventListener("blur", () => {
+      checkPermitDuplicate(permitInput.value);
+    });
+
+    permitInput.addEventListener("input", () => {
+      if (duplicateWarningEl && !duplicateWarningEl.classList.contains("hidden")) {
+        duplicateWarningEl.classList.add("hidden");
+        permitInput.classList.remove("ring-2", "ring-rose-500", "border-rose-500");
+      }
+      clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(() => {
+        if (permitInput.value.trim()) {
+          checkPermitDuplicate(permitInput.value);
+        }
+      }, 750);
+    });
 
     verifyBtn.addEventListener("click", (e) => {
       e.preventDefault();

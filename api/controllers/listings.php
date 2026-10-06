@@ -1091,6 +1091,25 @@ if ($method === 'POST') {
 
     $input = getRequestBody();
 
+    // Check if listing with same permit number already exists
+    $permitNumber = trim((string)($input['advertisement_number'] ?? ($input['permit_number'] ?? '')));
+    if ($permitNumber !== '') {
+        $existingPermitRes = bitrixRequest('crm.item.list', [
+            'entityTypeId' => LISTINGS_ENTITY_ID,
+            'filter'       => [
+                'ufCrm5_1752508269' => $permitNumber,
+            ],
+            'select'       => ['id'],
+        ]);
+
+        if (!empty($existingPermitRes['result']['items'])) {
+            jsonResponse([
+                'error'   => 'There is an existing listing with same permit number, please contact crm team',
+                'message' => 'There is an existing listing with same permit number, please contact crm team',
+            ], 422);
+        }
+    }
+
     // reformat images
     $input['images'] = normalizeFiles($input['images'] ?? []);
     normalizeDocumentFields($input);
@@ -1180,6 +1199,29 @@ if ($method === 'PUT') {
         }
     }
     // ─────────────────────────────────────────────────────────────────────────
+
+    // Check if listing with same permit number already exists on another listing
+    $permitNumber = trim((string)($input['advertisement_number'] ?? ($input['permit_number'] ?? '')));
+    if ($permitNumber !== '') {
+        $existingPermitRes = bitrixRequest('crm.item.list', [
+            'entityTypeId' => LISTINGS_ENTITY_ID,
+            'filter'       => [
+                'ufCrm5_1752508269' => $permitNumber,
+            ],
+            'select'       => ['id'],
+        ]);
+
+        $conflicts = array_filter($existingPermitRes['result']['items'] ?? [], function ($item) use ($id) {
+            return (int)($item['id'] ?? 0) !== (int)$id;
+        });
+
+        if (!empty($conflicts)) {
+            jsonResponse([
+                'error'   => 'There is an existing listing with same permit number, please contact crm team',
+                'message' => 'There is an existing listing with same permit number, please contact crm team',
+            ], 422);
+        }
+    }
 
     // reformat images
     $input['images'] = normalizeFiles($input['images'] ?? []);

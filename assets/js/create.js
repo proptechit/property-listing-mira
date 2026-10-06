@@ -2066,11 +2066,35 @@ function attachFormSubmissionHandler(id) {
       }
     }
 
+    // Early validation: check if permit number already belongs to an existing listing
+    const permitInput = form.querySelector('[name="advertisement_number"]');
+    const permitVal = (permitInput?.value || "").trim();
+    const isEdit = editForm !== null;
+
+    if (permitVal) {
+      try {
+        const checkUrl = `/?resource=check-permit&permit_number=${encodeURIComponent(permitVal)}${isEdit && id ? `&listing_id=${id}` : ""}`;
+        const checkRes = await api(checkUrl);
+        if (checkRes && checkRes.exists) {
+          alert("There is an existing listing with same permit number, please contact crm team");
+          if (permitInput) {
+            permitInput.focus();
+            permitInput.classList.add("ring-2", "ring-rose-500", "border-rose-500");
+            permitInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+          const warningEl = document.getElementById("permitDuplicateWarning");
+          if (warningEl) warningEl.classList.remove("hidden");
+          return;
+        }
+      } catch (checkErr) {
+        console.warn("Permit duplicate pre-check error:", checkErr);
+      }
+    }
+
     // Show loading state
     const submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) {
       submitBtn.disabled = true;
-      const isEdit = editForm !== null;
       submitBtn.innerHTML = isEdit
         ? '<i class="fa-solid fa-spinner fa-spin"></i> Updating...'
         : '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
@@ -2201,9 +2225,23 @@ function attachFormSubmissionHandler(id) {
       console.error("Form submission error:", error);
       const isEdit = editForm !== null;
       const action = isEdit ? "updating" : "creating";
-      alert(
-        "Error " + action + " listing: " + (error.message || "Unknown error"),
-      );
+      const errorMsg = error?.message || error?.error || "Unknown error";
+
+      if (String(errorMsg).includes("existing listing with same permit number")) {
+        alert("There is an existing listing with same permit number, please contact crm team");
+        const permitInput = form.querySelector('[name="advertisement_number"]');
+        if (permitInput) {
+          permitInput.focus();
+          permitInput.classList.add("ring-2", "ring-rose-500", "border-rose-500");
+          permitInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        const warningEl = document.getElementById("permitDuplicateWarning");
+        if (warningEl) warningEl.classList.remove("hidden");
+      } else {
+        alert(
+          "Error " + action + " listing: " + errorMsg,
+        );
+      }
 
       // Restore button state
       if (submitBtn) {

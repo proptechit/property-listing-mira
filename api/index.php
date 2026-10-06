@@ -90,6 +90,10 @@ switch ($resource) {
         require __DIR__ . '/controllers/verify-permit.php';
         break;
 
+    case 'check-permit':
+        require __DIR__ . '/controllers/check-permit.php';
+        break;
+
     default:
         http_response_code(404);
         echo json_encode([
