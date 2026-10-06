@@ -8,6 +8,7 @@ define('LISTINGS_ENTITY_ID', 1052);
 define('LOCATIONS_ENTITY_ID', 1056);
 define('BAYUT_LOCATIONS_ENTITY_ID', 1074);
 define('DEVELOPERS_ENTITY_ID', 1078);
+define('ACTIVITY_LOGS_ENTITY_ID', 1106);
 
 $CUSTOM_USERS_API = "https://crm.mira-international.com/pub/endpoints/users/";
 
