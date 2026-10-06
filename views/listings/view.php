@@ -38,6 +38,11 @@ if (!$id) {
             <div class="h-4 bg-slate-200 rounded w-2/3"></div>
         </div>
     </div>
+
+    <!-- Admin-Only Activity Logs Section -->
+    <div id="listingActivityLogsSection" class="mt-8 hidden">
+        <!-- Rendered via listing-view.js if IS_ADMIN is true -->
+    </div>
 </div>
 
 <?php require __DIR__ . '/../partials/refresh-modal.php'; ?>

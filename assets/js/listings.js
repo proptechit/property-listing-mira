@@ -947,6 +947,17 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                   <span>Duplicate listing</span>
                 </button>
 
+                ${
+                  IS_ADMIN
+                    ? `<a href="?page=activity-logs&action=list&listing_id=${encodeURIComponent(l.id)}"
+                        class="w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                        role="menuitem">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-500 text-sm"></i>
+                        <span>Activity logs</span>
+                      </a>`
+                    : ""
+                }
+
                 <div class="my-1 h-px bg-gray-100"></div>
 
                 <button type="button"

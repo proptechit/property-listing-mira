@@ -43,7 +43,7 @@
                         id="navDropdownBtn"
                         class="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors">
                         <span id="currentPageName">
-                            <?php echo ucfirst($page ?? 'Listings'); ?>
+                            <?php echo ucwords(str_replace('-', ' ', $page ?? 'Listings')); ?>
                         </span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -90,6 +90,15 @@
                        <?php echo ($page === 'reports') ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'; ?>">
                             Reports
                         </a>
+
+                        <?php if (!empty($isAdmin)): ?>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <a href="?page=activity-logs&action=list"
+                            class="block px-4 py-2 text-sm transition-colors
+                       <?php echo ($page === 'activity-logs') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'; ?>">
+                            <i class="fa-solid fa-clock-rotate-left text-blue-500 mr-1.5"></i> Activity Logs
+                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 

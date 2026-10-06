@@ -541,6 +541,10 @@ async function loadListingDetails(id) {
 
     wireActionButtons(id, listing?.reference || "");
     renderListingDetails(container, listing);
+
+    if (IS_ADMIN) {
+      loadListingActivityLogs(id);
+    }
   } catch (err) {
     container.innerHTML = `
       <div class="bg-white rounded-2xl shadow-sm border border-rose-200 p-6">
@@ -710,4 +714,541 @@ document.addEventListener("keydown", (e) => {
     closeRefreshListingModal();
   }
 });
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Admin-Only Activity History Component for Single Listing View
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+let _cachedListingLogs = [];
+let _currentLogsFilter = "all";
+
+const ACTIVITY_ACTION_CONFIG = {
+  created: {
+    label: "Created",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    iconClass: "fa-solid fa-circle-plus text-emerald-600",
+    dotClass: "bg-emerald-500",
+  },
+  updated: {
+    label: "Updated",
+    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+    iconClass: "fa-solid fa-pen-to-square text-blue-600",
+    dotClass: "bg-blue-500",
+  },
+  published: {
+    label: "Published",
+    badgeClass: "bg-teal-50 text-teal-700 border-teal-200",
+    iconClass: "fa-solid fa-circle-check text-teal-600",
+    dotClass: "bg-teal-500",
+  },
+  unpublished: {
+    label: "Unpublished",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    iconClass: "fa-solid fa-circle-pause text-amber-600",
+    dotClass: "bg-amber-500",
+  },
+  deleted: {
+    label: "Deleted",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    iconClass: "fa-solid fa-trash-can text-rose-600",
+    dotClass: "bg-rose-500",
+  },
+  viewed: {
+    label: "Viewed",
+    badgeClass: "bg-violet-50 text-violet-700 border-violet-200",
+    iconClass: "fa-solid fa-eye text-violet-600",
+    dotClass: "bg-violet-500",
+  },
+  duplicated: {
+    label: "Duplicated",
+    badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    iconClass: "fa-solid fa-clone text-indigo-600",
+    dotClass: "bg-indigo-500",
+  },
+  refreshed: {
+    label: "Refreshed",
+    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
+    iconClass: "fa-solid fa-arrows-rotate text-sky-600",
+    dotClass: "bg-sky-500",
+  },
+};
+
+const LOG_AVATAR_COLORS = [
+  "bg-blue-500",
+  "bg-indigo-500",
+  "bg-purple-500",
+  "bg-pink-500",
+  "bg-teal-500",
+  "bg-emerald-500",
+  "bg-amber-500",
+  "bg-cyan-500",
+];
+
+function getLogAvatarColor(str) {
+  let hash = 0;
+  for (let i = 0; i < (str || "").length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return LOG_AVATAR_COLORS[Math.abs(hash) % LOG_AVATAR_COLORS.length];
+}
+
+function getLogInitials(name) {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+function timeAgo(dateString) {
+  if (!dateString) return "-";
+  let str = String(dateString).trim();
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(str)) {
+    str = str.replace(" ", "T");
+  }
+  const date = new Date(str);
+  if (isNaN(date.getTime())) return dateString;
+
+  const seconds = Math.floor((new Date() - date) / 1000);
+  if (seconds < 60) return "Just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
+function formatLogTimestamp(dateString) {
+  if (!dateString) return "-";
+  let str = String(dateString).trim();
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(str)) {
+    str = str.replace(" ", "T");
+  }
+  const date = new Date(str);
+  if (isNaN(date.getTime())) return escapeHtml(str);
+
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+function formatLogFieldName(name) {
+  return String(name || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+async function loadListingActivityLogs(id, forceReload = false) {
+  if (!IS_ADMIN) return;
+
+  const section = qs("#listingActivityLogsSection");
+  if (!section) return;
+
+  section.classList.remove("hidden");
+
+  if (forceReload || _cachedListingLogs.length === 0) {
+    section.innerHTML = `
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+              <div class="h-5 bg-slate-200 rounded w-40 animate-pulse"></div>
+              <div class="h-3 bg-slate-100 rounded w-64 mt-1.5 animate-pulse"></div>
+            </div>
+          </div>
+          <div class="h-8 bg-slate-100 rounded-xl w-24 animate-pulse"></div>
+        </div>
+        <div class="space-y-4">
+          <div class="h-16 bg-slate-50 rounded-xl animate-pulse"></div>
+          <div class="h-16 bg-slate-50 rounded-xl animate-pulse"></div>
+          <div class="h-16 bg-slate-50 rounded-xl animate-pulse"></div>
+        </div>
+      </div>
+    `;
+
+    try {
+      const res = await api(
+        `/?resource=activity-logs&listing_id=${encodeURIComponent(id)}&limit=100`
+      );
+      _cachedListingLogs = res?.items || [];
+    } catch (err) {
+      console.error("Failed to load listing activity logs:", err);
+      section.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center text-slate-500">
+          <div class="text-sm font-semibold text-rose-600">Failed to load activity history</div>
+          <div class="text-xs text-slate-400 mt-1">${escapeHtml(
+            err?.error || err?.message || "Unknown error"
+          )}</div>
+        </div>
+      `;
+      return;
+    }
+  }
+
+  renderListingActivitySection(section, _cachedListingLogs, _currentLogsFilter, id);
+}
+
+function renderListingActivitySection(container, logs, currentFilter, listingId) {
+  // Filter logic
+  const filtered = logs.filter((log) => {
+    const a = String(log.action || "").toLowerCase();
+    if (currentFilter === "edits") return a === "updated";
+    if (currentFilter === "status") return a === "published" || a === "unpublished";
+    if (currentFilter === "views") return a === "viewed";
+    if (currentFilter === "workflows")
+      return a === "created" || a === "refreshed" || a === "duplicated" || a === "deleted";
+    return true; // 'all'
+  });
+
+  const totalAll = logs.length;
+  const totalEdits = logs.filter((l) => l.action === "updated").length;
+  const totalStatus = logs.filter((l) => l.action === "published" || l.action === "unpublished").length;
+  const totalViews = logs.filter((l) => l.action === "viewed").length;
+  const totalWorkflows = logs.filter(
+    (l) => ["created", "refreshed", "duplicated", "deleted"].includes(l.action)
+  ).length;
+
+  container.innerHTML = `
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-7">
+      <!-- Section Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-slate-100">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0 shadow-2xs">
+            <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h2 class="text-lg font-bold text-slate-900">Activity History</h2>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-700 border border-purple-200">
+                <i class="fa-solid fa-shield-halved text-[9px]"></i> Admin Only
+              </span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                ${totalAll} ${totalAll === 1 ? "event" : "events"}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Chronological audit log of all changes, approvals, views, and automated workflows on this listing
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 self-start sm:self-center">
+          <button id="refreshListingLogsBtn" type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors shadow-2xs">
+            <i class="fa-solid fa-arrows-rotate text-slate-400" id="refreshListingLogsIcon"></i>
+            <span>Refresh</span>
+          </button>
+          <a href="?page=activity-logs&action=list&listing_id=${encodeURIComponent(listingId)}"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+            <span>Global Logs</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Action Filter Pills -->
+      <div class="flex flex-wrap items-center gap-1.5 pt-4 pb-5">
+        <button type="button" data-act-filter="all"
+          class="px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+            currentFilter === "all"
+              ? "bg-blue-600 text-white shadow-2xs"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }">
+          All (${totalAll})
+        </button>
+        <button type="button" data-act-filter="edits"
+          class="px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+            currentFilter === "edits"
+              ? "bg-blue-600 text-white shadow-2xs"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }">
+          Edits & Updates (${totalEdits})
+        </button>
+        <button type="button" data-act-filter="status"
+          class="px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+            currentFilter === "status"
+              ? "bg-blue-600 text-white shadow-2xs"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }">
+          Status Changes (${totalStatus})
+        </button>
+        <button type="button" data-act-filter="views"
+          class="px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+            currentFilter === "views"
+              ? "bg-blue-600 text-white shadow-2xs"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }">
+          Views (${totalViews})
+        </button>
+        <button type="button" data-act-filter="workflows"
+          class="px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+            currentFilter === "workflows"
+              ? "bg-blue-600 text-white shadow-2xs"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }">
+          Workflows (${totalWorkflows})
+        </button>
+      </div>
+
+      <!-- Timeline List -->
+      ${
+        filtered.length === 0
+          ? `
+        <div class="text-center py-12 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+          <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2 text-sm">
+            <i class="fa-solid fa-inbox"></i>
+          </div>
+          <div class="text-sm font-semibold text-slate-700">No activity logs in this category</div>
+          <p class="text-xs text-slate-400 mt-1">Try selecting a different filter above.</p>
+        </div>
+      `
+          : `
+        <div class="relative pl-6 sm:pl-8 space-y-6 before:content-[''] before:absolute before:left-2.5 sm:before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+          ${filtered
+            .map((log) => {
+              const action = String(log.action || "").toLowerCase();
+              const cfg = ACTIVITY_ACTION_CONFIG[action] || {
+                label: action,
+                badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+                iconClass: "fa-solid fa-circle-info text-slate-500",
+                dotClass: "bg-slate-400",
+              };
+
+              const userName = log.user_name || "System";
+              const userRole = log.user_role || (log.user_id == 1 ? "Admin" : "Agent");
+              const isAdmin = userRole.toLowerCase().includes("admin");
+              const avatarColor = getLogAvatarColor(userName);
+              const initials = getLogInitials(userName);
+
+              const changes = log.changes;
+              const hasDiff =
+                changes &&
+                typeof changes === "object" &&
+                !Array.isArray(changes) &&
+                Object.keys(changes).length > 0;
+
+              return `
+                <div class="relative group">
+                  <!-- Timeline dot -->
+                  <div class="absolute -left-[30px] sm:-left-[38px] top-1.5 w-6 h-6 rounded-full bg-white border-2 border-slate-200 group-hover:border-blue-500 flex items-center justify-center shadow-2xs transition-colors">
+                    <span class="w-2 h-2 rounded-full ${cfg.dotClass}"></span>
+                  </div>
+
+                  <!-- Event Box -->
+                  <div class="bg-slate-50/75 hover:bg-slate-50 rounded-xl border border-slate-200/80 p-4 transition-all hover:shadow-2xs">
+                    <!-- Top Row -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                      <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                          cfg.badgeClass
+                        }">
+                          <i class="${cfg.iconClass} text-[10px]"></i>
+                          <span>${escapeHtml(cfg.label)}</span>
+                        </span>
+
+                        <div class="flex items-center gap-1.5">
+                          <span class="w-5 h-5 rounded-full ${avatarColor} text-white flex items-center justify-center font-bold text-[9px] shrink-0">
+                            ${initials}
+                          </span>
+                          <span class="text-xs font-bold text-slate-800">${escapeHtml(userName)}</span>
+                          <span class="text-[10px] px-1.5 py-0.2 rounded font-semibold ${
+                            isAdmin
+                              ? "bg-purple-100 text-purple-700 border border-purple-200"
+                              : "bg-slate-200 text-slate-700"
+                          }">
+                            ${escapeHtml(userRole)}
+                          </span>
+                          ${
+                            log.user_id
+                              ? `<span class="text-[10px] text-slate-400 font-mono">#${escapeHtml(
+                                  String(log.user_id)
+                                )}</span>`
+                              : ""
+                          }
+                        </div>
+                      </div>
+
+                      <div class="text-right">
+                        <span class="text-xs font-semibold text-slate-700">${timeAgo(
+                          log.created_at
+                        )}</span>
+                        <span class="text-[10px] text-slate-400 block" title="${escapeHtml(
+                          log.created_at || ""
+                        )}">
+                          ${formatLogTimestamp(log.created_at)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Description -->
+                    <p class="text-sm text-slate-700 font-medium">${escapeHtml(
+                      log.description || "-"
+                    )}</p>
+
+                    <!-- Portals tag if present -->
+                    ${
+                      log.portals
+                        ? `<div class="flex flex-wrap gap-1 mt-2">
+                             ${String(log.portals)
+                               .split(",")
+                               .map(
+                                 (p) => `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-white text-slate-600 border border-slate-200">
+                                   <i class="fa-solid fa-satellite-dish mr-1 text-[9px] text-slate-400"></i>${escapeHtml(
+                                     p.trim()
+                                   )}
+                                 </span>`
+                               )
+                               .join("")}
+                           </div>`
+                        : ""
+                    }
+
+                    <!-- Expandable field changes diff -->
+                    ${
+                      hasDiff
+                        ? `
+                      <details class="mt-3 group/diff">
+                        <summary class="cursor-pointer text-xs font-semibold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1 select-none">
+                          <i class="fa-solid fa-code-compare text-[10px]"></i>
+                          <span>View ${Object.keys(changes).length} modified ${
+                            Object.keys(changes).length === 1 ? "field" : "fields"
+                          }</span>
+                          <i class="fa-solid fa-chevron-down text-[9px] transition-transform group-open/diff:rotate-180 ml-1"></i>
+                        </summary>
+                        <div class="mt-2.5 pt-2.5 border-t border-slate-200/80 space-y-2">
+                          ${Object.entries(changes)
+                            .map(([k, d]) => {
+                              const title = formatLogFieldName(k);
+                              if (d && typeof d === "object" && ("old" in d || "new" in d)) {
+                                const oldStr =
+                                  d.old === null || d.old === ""
+                                    ? "(empty)"
+                                    : typeof d.old === "object"
+                                    ? JSON.stringify(d.old)
+                                    : String(d.old);
+                                const newStr =
+                                  d.new === null || d.new === ""
+                                    ? "(empty)"
+                                    : typeof d.new === "object"
+                                    ? JSON.stringify(d.new)
+                                    : String(d.new);
+
+                                return `
+                                  <div class="bg-white rounded-lg p-2.5 border border-slate-200/90 text-xs">
+                                    <div class="font-bold text-slate-700 mb-1 flex items-center justify-between">
+                                      <span>${escapeHtml(title)}</span>
+                                      <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(k)}</span>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+                                      <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-100 line-through">
+                                        ${escapeHtml(oldStr)}
+                                      </span>
+                                      <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+                                      <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold">
+                                        ${escapeHtml(newStr)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                `;
+                              }
+                              if (d && typeof d === "object" && ("old_count" in d || "new_count" in d)) {
+                                return `
+                                  <div class="bg-white rounded-lg p-2.5 border border-slate-200/90 text-xs">
+                                    <span class="font-bold text-slate-700">${escapeHtml(title)}:</span>
+                                    <span class="font-mono text-slate-600 ml-1.5">
+                                      ${d.old_count} items → <span class="font-bold text-emerald-700">${d.new_count} items</span>
+                                    </span>
+                                  </div>
+                                `;
+                              }
+                              return `
+                                <div class="bg-white rounded-lg p-2 border border-slate-200 text-xs font-mono text-slate-600">
+                                  <span class="font-bold text-slate-700">${escapeHtml(title)}:</span> ${escapeHtml(
+                                JSON.stringify(d)
+                              )}
+                                </div>
+                              `;
+                            })
+                            .join("")}
+                        </div>
+                      </details>
+                    `
+                        : ""
+                    }
+
+                    <!-- Technical Device Details (Discreet) -->
+                    ${
+                      log.ip_address || log.user_agent
+                        ? `
+                      <details class="mt-2 text-[11px] text-slate-400">
+                        <summary class="cursor-pointer hover:text-slate-600 select-none inline-flex items-center gap-1">
+                          <i class="fa-solid fa-network-wired text-[9px]"></i>
+                          <span>Device info</span>
+                        </summary>
+                        <div class="mt-1 p-2 bg-white rounded border border-slate-200 space-y-0.5 font-mono text-[10px] text-slate-600">
+                          ${
+                            log.ip_address
+                              ? `<div><span class="text-slate-400">IP:</span> ${escapeHtml(
+                                  log.ip_address
+                                )}</div>`
+                              : ""
+                          }
+                          ${
+                            log.user_agent
+                              ? `<div class="break-all"><span class="text-slate-400">UA:</span> ${escapeHtml(
+                                  log.user_agent
+                                )}</div>`
+                              : ""
+                          }
+                        </div>
+                      </details>
+                    `
+                        : ""
+                    }
+                  </div>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `
+      }
+    </div>
+  `;
+
+  // Wire filter pill buttons
+  container.querySelectorAll("[data-act-filter]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetFilter = btn.getAttribute("data-act-filter");
+      _currentLogsFilter = targetFilter;
+      renderListingActivitySection(container, _cachedListingLogs, _currentLogsFilter, listingId);
+    });
+  });
+
+  // Wire refresh button
+  const refreshBtn = container.querySelector("#refreshListingLogsBtn");
+  const refreshIcon = container.querySelector("#refreshListingLogsIcon");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", async () => {
+      if (refreshIcon) refreshIcon.classList.add("fa-spin");
+      await loadListingActivityLogs(listingId, true);
+    });
+  }
+}
+
 
