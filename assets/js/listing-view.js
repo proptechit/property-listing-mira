@@ -525,7 +525,7 @@ async function loadListingDetails(id) {
     `;
 
     const listing = await api(
-      `/?resource=listings&id=${encodeURIComponent(id)}`,
+      `/?resource=listings&id=${encodeURIComponent(id)}&track_view=1`,
     );
 
     // Hide edit button for non-admin

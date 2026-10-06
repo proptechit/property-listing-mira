@@ -7,6 +7,7 @@ require 'helpers/transform.php';
 require 'helpers/location-cache.php';
 require 'helpers/user-cache.php';
 require 'helpers/developer-cache.php';
+require 'helpers/activity-logger.php';
 
 $map = require 'mappings/listings.php';
 $enums = require 'enums/listings.php';
@@ -544,6 +545,18 @@ if ($method === 'GET') {
             $item['unit_number'] = '***';
         }
 
+        // Log viewed event if track_view flag is set (throttled to 1 view per 15 mins per user)
+        $trackView = isset($_GET['track_view']) || (isset($_GET['context']) && $_GET['context'] === 'view');
+        if ($trackView && $callerId > 0 && !shouldThrottleView((int)$id, $callerId)) {
+            logActivity([
+                'action'        => 'viewed',
+                'listing_id'    => (int)$id,
+                'listing_ref'   => $item['reference'] ?? '',
+                'listing_title' => $item['title'] ?? '',
+                'user_id'       => $callerId,
+            ]);
+        }
+
         jsonResponse($item);
     }
 
@@ -1034,6 +1047,25 @@ if ($method === 'POST') {
             ], 500);
         }
 
+        // Log refresh activity
+        $callerId = getCallerUserId([$input['user_id'] ?? 0]);
+        $itemSnapshot = $checkRes['result']['item'] ?? [];
+        $refVal = $newReference !== '' ? $newReference : ($itemSnapshot['ufCrm5_1752571265'] ?? '');
+        logActivity([
+            'action'        => 'refreshed',
+            'listing_id'    => (int)$id,
+            'listing_ref'   => $refVal,
+            'listing_title' => $itemSnapshot['title'] ?? '',
+            'user_id'       => $callerId,
+            'description'   => "Listing #{$id} refreshed" . ($newReference !== '' ? " (reference updated to {$newReference})" : ""),
+            'changes'       => $newReference !== '' ? [
+                'reference' => [
+                    'old' => $itemSnapshot['ufCrm5_1752571265'] ?? '',
+                    'new' => $newReference,
+                ]
+            ] : null,
+        ]);
+
         jsonResponse([
             'success'    => true,
             'message'    => 'Listing reference updated and refresh workflow initiated successfully',
@@ -1080,6 +1112,18 @@ if ($method === 'POST') {
                 'details' => $res
             ], 500);
         }
+
+        // Log duplicate activity
+        $callerId = getCallerUserId([$input['user_id'] ?? 0]);
+        $itemSnapshot = $checkRes['result']['item'] ?? [];
+        logActivity([
+            'action'        => 'duplicated',
+            'listing_id'    => (int)$id,
+            'listing_ref'   => $itemSnapshot['ufCrm5_1752571265'] ?? '',
+            'listing_title' => $itemSnapshot['title'] ?? '',
+            'user_id'       => $callerId,
+            'description'   => "Listing #{$id} duplicate workflow initiated",
+        ]);
 
         jsonResponse([
             'success'    => true,
@@ -1145,6 +1189,32 @@ if ($method === 'POST') {
         ], 500);
     }
 
+    $createdItem = $res['result']['item'] ?? [];
+    $newListingId = (int)($createdItem['id'] ?? 0);
+    $callerId = getCallerUserId([
+        $input['created_by'] ?? 0,
+        $input['assigned_to'] ?? 0,
+        $input['user_id'] ?? 0
+    ]);
+
+    if ($newListingId > 0) {
+        logActivity([
+            'action'        => 'created',
+            'listing_id'    => $newListingId,
+            'listing_ref'   => $createdItem['ufCrm5_1752571265'] ?? ($input['reference'] ?? ''),
+            'listing_title' => $createdItem['title'] ?? ($input['title'] ?? ''),
+            'user_id'       => $callerId,
+            'description'   => "Listing #{$newListingId} created",
+            'portals'       => $input['portals'] ?? [],
+            'changes'       => [
+                'title'     => $createdItem['title'] ?? ($input['title'] ?? ''),
+                'reference' => $createdItem['ufCrm5_1752571265'] ?? ($input['reference'] ?? ''),
+                'price'     => $createdItem['ufCrm5_1754555234'] ?? ($input['price'] ?? ''),
+                'status'    => $createdItem['stageId'] ?? ($input['status'] ?? 'Draft'),
+            ],
+        ]);
+    }
+
     jsonResponse(
         (function () use ($res, $map, $enums) {
             $item = fromBitrixFields($res['result']['item'], $map, $enums);
@@ -1169,7 +1239,7 @@ if ($method === 'PUT') {
     // ── Published-listing field restriction ───────────────────────────────────
     // Only admins may change `price` or `images` on a published listing.
     // The ADMIN_IDS list lives in the root config.php (loaded by index.php).
-    $callerId = (int) ($_SERVER['HTTP_X_USER_ID'] ?? 0);
+    $callerId = getCallerUserId([$input['user_id'] ?? 0]);
     $adminIds = defined('ADMIN_IDS') ? ADMIN_IDS : ($GLOBALS['ADMIN_IDS'] ?? []);
     $callerIsAdmin = in_array($callerId, $adminIds, true);
 
@@ -1178,14 +1248,20 @@ if ($method === 'PUT') {
         unset($input['unit_number']);
     }
 
-    if (!$callerIsAdmin) {
-        $currentRes = bitrixRequest('crm.item.get', [
-            'entityTypeId' => LISTINGS_ENTITY_ID,
-            'id'           => $id,
-        ]);
-        $currentItem = $currentRes['result']['item'] ?? null;
-        $currentStage = $currentItem['stageId'] ?? '';
+    // Always fetch current listing state before update (for permissions, diff computation, and activity logging)
+    $currentRes = bitrixRequest('crm.item.get', [
+        'entityTypeId' => LISTINGS_ENTITY_ID,
+        'id'           => $id,
+    ]);
 
+    if (empty($currentRes['result']['item'])) {
+        jsonResponse(['error' => 'Listing not found'], 404);
+    }
+
+    $currentItem = $currentRes['result']['item'];
+    $currentStage = $currentItem['stageId'] ?? '';
+
+    if (!$callerIsAdmin) {
         if ($currentStage === 'DT1052_11:SUCCESS') {
             // Published listing – strip restricted fields for non-admins
             unset($input['price'], $input['images']);
@@ -1200,6 +1276,10 @@ if ($method === 'PUT') {
         }
     }
     // ─────────────────────────────────────────────────────────────────────────
+
+    // Compute diff before mutating or normalizing fields
+    $oldListing = fromBitrixFields($currentItem, $map, $enums);
+    $diff = computeListingDiff($oldListing, $input);
 
     // Check if listing with same permit number already exists on another listing
     $permitNumber = trim((string)($input['advertisement_number'] ?? ($input['permit_number'] ?? '')));
@@ -1260,6 +1340,37 @@ if ($method === 'PUT') {
         ], 500);
     }
 
+    // Determine action: published, unpublished, or updated
+    $newStageId = $fields['stageId'] ?? null;
+    $actionType = 'updated';
+    if (($newStageId === 'DT1052_11:SUCCESS' || (isset($input['status']) && $input['status'] === 'Published')) && $currentStage !== 'DT1052_11:SUCCESS') {
+        $actionType = 'published';
+    } elseif (($newStageId === 'DT1052_11:FAIL' || (isset($input['status']) && $input['status'] === 'Unpublished')) && $currentStage === 'DT1052_11:SUCCESS') {
+        $actionType = 'unpublished';
+    }
+
+    if ($actionType === 'published') {
+        $logDesc = "Listing #{$id} published";
+    } elseif ($actionType === 'unpublished') {
+        $logDesc = "Listing #{$id} unpublished";
+    } elseif (!empty($diff)) {
+        $changedKeys = array_keys($diff);
+        $logDesc = "Listing #{$id} updated (" . implode(', ', array_slice($changedKeys, 0, 5)) . (count($changedKeys) > 5 ? '...' : '') . ")";
+    } else {
+        $logDesc = "Listing #{$id} updated";
+    }
+
+    logActivity([
+        'action'        => $actionType,
+        'listing_id'    => (int)$id,
+        'listing_ref'   => $currentItem['ufCrm5_1752571265'] ?? ($input['reference'] ?? ''),
+        'listing_title' => $currentItem['title'] ?? ($input['title'] ?? ''),
+        'user_id'       => $callerId,
+        'description'   => $logDesc,
+        'changes'       => $diff,
+        'portals'       => $input['portals'] ?? ($oldListing['portals'] ?? []),
+    ]);
+
     $fetchRes = bitrixRequest('crm.item.get', [
         'entityTypeId' => LISTINGS_ENTITY_ID,
         'id' => $id
@@ -1293,9 +1404,40 @@ if ($method === 'DELETE') {
         jsonResponse(['error' => 'ID is required'], 400);
     }
 
-    bitrixRequest('crm.item.delete', [
+    $callerId = getCallerUserId();
+
+    $currentRes = bitrixRequest('crm.item.get', [
         'entityTypeId' => LISTINGS_ENTITY_ID,
         'id'           => $id
+    ]);
+    $currentItem = $currentRes['result']['item'] ?? [];
+
+    $delRes = bitrixRequest('crm.item.delete', [
+        'entityTypeId' => LISTINGS_ENTITY_ID,
+        'id'           => $id
+    ]);
+
+    if (!empty($delRes['error'])) {
+        jsonResponse([
+            'error'   => 'Bitrix error deleting listing',
+            'details' => $delRes
+        ], 500);
+    }
+
+    logActivity([
+        'action'        => 'deleted',
+        'listing_id'    => (int)$id,
+        'listing_ref'   => $currentItem['ufCrm5_1752571265'] ?? '',
+        'listing_title' => $currentItem['title'] ?? '',
+        'user_id'       => $callerId,
+        'description'   => "Listing #{$id} deleted",
+        'changes'       => [
+            'snapshot' => [
+                'title'     => $currentItem['title'] ?? '',
+                'reference' => $currentItem['ufCrm5_1752571265'] ?? '',
+                'stageId'   => $currentItem['stageId'] ?? '',
+            ]
+        ],
     ]);
 
     jsonResponse(['message' => 'Deleted']);

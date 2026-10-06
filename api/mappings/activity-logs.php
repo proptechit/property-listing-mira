@@ -9,6 +9,8 @@ return [
     'listing_title' => 'ufCrm20ListingTitle',
     'action'        => 'ufCrm20Action',
     'user_id'       => 'ufCrm20UserId',
+    'assigned_to'   => 'assignedById',
+    'created_by'    => 'createdBy',
     'user_name'     => 'ufCrm20UserName',
     'user_role'     => 'ufCrm20UserRole',
     'description'   => 'ufCrm20Description',

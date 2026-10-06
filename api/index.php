@@ -94,6 +94,10 @@ switch ($resource) {
         require __DIR__ . '/controllers/check-permit.php';
         break;
 
+    case 'activity-logs':
+        require __DIR__ . '/controllers/activity-logs.php';
+        break;
+
     default:
         http_response_code(404);
         echo json_encode([
