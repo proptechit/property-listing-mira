@@ -703,23 +703,14 @@
       verifyBtn.disabled = true;
       verifyBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Verifying...</span>';
 
-      const listingId = new URLSearchParams(window.location.search).get("id") || "";
-      const listingParam = listingId ? `&listing_id=${encodeURIComponent(listingId)}` : "";
-
       try {
         const response = await api(
-          `/?resource=verify-permit&permit_number=${encodeURIComponent(permitNumber)}&permitType=rera&license_number=${encodeURIComponent(currentLicense)}${listingParam}`
+          `/?resource=verify-permit&permit_number=${encodeURIComponent(permitNumber)}&permitType=rera&license_number=${encodeURIComponent(currentLicense)}`
         );
 
         if (response && response.status === "success" && response.data) {
-          if (duplicateWarningEl) duplicateWarningEl.classList.add("hidden");
-          permitInput.classList.remove("ring-2", "ring-rose-500", "border-rose-500");
           renderVerificationResult(resultContainer, response, licenseMeta);
         } else if (response && response.error) {
-          if (String(response.error).toLowerCase().includes("existing listing with same permit number")) {
-            if (duplicateWarningEl) duplicateWarningEl.classList.remove("hidden");
-            permitInput.classList.add("ring-2", "ring-rose-500", "border-rose-500");
-          }
           renderErrorResult(resultContainer, response.error, licenseMeta);
         } else {
           renderErrorResult(resultContainer, "Unexpected response from verification service.", licenseMeta);
@@ -727,10 +718,6 @@
       } catch (err) {
         console.error("Permit verification error:", err);
         const errMsg = err?.error || err?.message || "Verification request failed. Please check the permit number.";
-        if (String(errMsg).toLowerCase().includes("existing listing with same permit number")) {
-          if (duplicateWarningEl) duplicateWarningEl.classList.remove("hidden");
-          permitInput.classList.add("ring-2", "ring-rose-500", "border-rose-500");
-        }
         renderErrorResult(resultContainer, errMsg, licenseMeta);
       } finally {
         verifyBtn.disabled = false;
