@@ -60,6 +60,7 @@
     </form>
 </div>
 
+<script src="assets/js/jszip.min.js"></script>
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/create.js"></script>
 <script src="assets/js/permit-verifier.js"></script>

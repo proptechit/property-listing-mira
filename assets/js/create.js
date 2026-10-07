@@ -1484,6 +1484,14 @@ function initializeImageManagement() {
     });
   }
 
+  const downloadImagesZipBtn = document.getElementById("downloadImagesZipBtn");
+  if (downloadImagesZipBtn && downloadImagesZipBtn.dataset.downloadZipBound !== "1") {
+    downloadImagesZipBtn.dataset.downloadZipBound = "1";
+    downloadImagesZipBtn.addEventListener("click", () => {
+      downloadImagesAsZip();
+    });
+  }
+
   setupDragAndDrop();
   syncClearAllImagesButton();
 
@@ -1861,12 +1869,250 @@ function clearAllImages() {
 function syncClearAllImagesButton() {
   const clearAllImagesWrap = document.getElementById("clearAllImagesWrap");
   const clearAllImagesBtn = document.getElementById("clearAllImagesBtn");
-  if (!clearAllImagesWrap || !clearAllImagesBtn) return;
+  const downloadZipBtn = document.getElementById("downloadImagesZipBtn");
+  const countLabel = document.getElementById("imageCountLabel");
+  if (!clearAllImagesWrap) return;
 
-  const hasImages = imageGallery.length > 0;
+  const count = Array.isArray(imageGallery) ? imageGallery.length : 0;
+  const hasImages = count > 0;
   clearAllImagesWrap.classList.toggle("hidden", !hasImages);
   clearAllImagesWrap.classList.toggle("flex", hasImages);
-  clearAllImagesBtn.disabled = !hasImages;
+
+  if (clearAllImagesBtn) {
+    clearAllImagesBtn.disabled = !hasImages;
+  }
+  if (downloadZipBtn && !downloadZipBtn.dataset.busy) {
+    downloadZipBtn.disabled = !hasImages;
+  }
+  if (countLabel) {
+    countLabel.textContent = hasImages
+      ? `${count} image${count === 1 ? "" : "s"}`
+      : "";
+  }
+}
+
+/**
+ * Helper to fetch image blob with fallback proxy
+ */
+async function fetchImageBlobWithFallback(url) {
+  if (!url) return null;
+
+  // Handle blob: or data: URIs directly
+  if (url.startsWith("blob:") || url.startsWith("data:")) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to read local image (HTTP ${res.status})`);
+    return await res.blob();
+  }
+
+  // Attempt direct fetch first
+  try {
+    const res = await fetch(url);
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob && blob.size > 0) return blob;
+    }
+  } catch (err) {
+    console.warn(`Direct fetch failed for ${url}, trying image-proxy fallback:`, err);
+  }
+
+  // Fallback via our backend proxy
+  const proxyUrl = `/?resource=image-proxy&url=${encodeURIComponent(url)}`;
+  const proxyRes = await fetch(proxyUrl);
+  if (!proxyRes.ok) {
+    throw new Error(`Failed to download image from server (HTTP ${proxyRes.status})`);
+  }
+  return await proxyRes.blob();
+}
+
+/**
+ * Determine the filename for the zip archive based on the listing's property reference.
+ */
+function getListingZipFileName() {
+  const refInput = document.querySelector('[name="reference"]');
+  let ref = (refInput?.value || "").trim();
+  if (!ref && typeof listing === "object" && listing && listing.reference) {
+    ref = String(listing.reference).trim();
+  }
+
+  // Sanitize filename: replace invalid characters (\ / : * ? " < > |) and whitespace
+  const cleanRef = ref
+    .replace(/[/\\?%*:|"<>]/g, "-")
+    .replace(/\s+/g, "_")
+    .trim();
+
+  if (cleanRef) {
+    return cleanRef.toLowerCase().endsWith(".zip") ? cleanRef : `${cleanRef}.zip`;
+  }
+  return "listing-images.zip";
+}
+
+/**
+ * Map MIME types to standard file extensions
+ */
+function getExtensionFromMime(mimeType) {
+  const map = {
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "image/svg+xml": "svg",
+    "image/avif": "avif",
+    "image/heic": "heic",
+    "image/heif": "heif",
+  };
+  return map[mimeType?.toLowerCase()] || "jpg";
+}
+
+/**
+ * Download all images currently in imageGallery as a ZIP archive
+ */
+async function downloadImagesAsZip() {
+  if (!Array.isArray(imageGallery) || imageGallery.length === 0) {
+    alert("No images available to download.");
+    return;
+  }
+
+  if (typeof JSZip === "undefined") {
+    alert("JSZip library is not loaded. Please refresh the page and try again.");
+    return;
+  }
+
+  const downloadZipBtn = document.getElementById("downloadImagesZipBtn");
+  const iconEl = document.getElementById("downloadZipIcon");
+  const textEl = document.getElementById("downloadZipBtnText");
+  const originalText = textEl ? textEl.textContent : "Download ZIP";
+  const total = imageGallery.length;
+
+  // Set busy state on button
+  if (downloadZipBtn) {
+    downloadZipBtn.dataset.busy = "1";
+    downloadZipBtn.disabled = true;
+  }
+  if (iconEl) {
+    iconEl.className = "fa-solid fa-spinner fa-spin text-blue-600";
+  }
+  if (textEl) {
+    textEl.textContent = `Preparing 0/${total}...`;
+  }
+
+  try {
+    const zip = new JSZip();
+    const usedNames = new Set();
+    const padDigits = total >= 100 ? 3 : 2;
+
+    for (let i = 0; i < total; i++) {
+      const item = imageGallery[i];
+      if (textEl) {
+        textEl.textContent = `Fetching ${i + 1}/${total}...`;
+      }
+
+      let blob = null;
+
+      // Case 1: Local file (File / Blob)
+      if (item.file instanceof Blob) {
+        blob = item.file;
+      }
+      // Case 2: Remote image or preview URL
+      else {
+        const url = item.downloadUrl || item.urlMachine || item.src || item.previewUrl;
+        if (!url) {
+          console.warn("Skipping image with no URL:", item);
+          continue;
+        }
+        blob = await fetchImageBlobWithFallback(url);
+      }
+
+      if (!blob) {
+        console.warn("Could not retrieve blob for image:", item);
+        continue;
+      }
+
+      // Determine extension
+      let originalName = String(item.name || item.file?.name || "").trim();
+      originalName = originalName.split("?")[0].split("/").pop();
+
+      let ext = "";
+      const dotIndex = originalName.lastIndexOf(".");
+      if (dotIndex > 0) {
+        ext = originalName.substring(dotIndex + 1).toLowerCase();
+        originalName = originalName.substring(0, dotIndex);
+      }
+      if (!ext || ext.length > 5 || !/^[a-z0-9]+$/i.test(ext)) {
+        ext = getExtensionFromMime(blob.type);
+      }
+
+      // Clean base name or format nicely if default "File 1234"
+      let baseName = originalName;
+      if (!baseName || /^File \d+$/i.test(baseName) || /^image(-\d+)?$/i.test(baseName)) {
+        baseName = `image-${String(i + 1).padStart(padDigits, "0")}`;
+      } else {
+        baseName = baseName.replace(/[/\\?%*:|"<>]/g, "-").replace(/\s+/g, "_");
+      }
+
+      // Ensure uniqueness inside zip
+      let fileName = `${baseName}.${ext}`;
+      let counter = 1;
+      while (usedNames.has(fileName.toLowerCase())) {
+        fileName = `${baseName}_${counter}.${ext}`;
+        counter++;
+      }
+      usedNames.add(fileName.toLowerCase());
+
+      zip.file(fileName, blob);
+    }
+
+    if (textEl) {
+      textEl.textContent = "Compressing ZIP...";
+    }
+
+    const zipBlob = await zip.generateAsync(
+      {
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 },
+      },
+      (metadata) => {
+        if (textEl && metadata.percent) {
+          textEl.textContent = `Compressing ${Math.round(metadata.percent)}%...`;
+        }
+      }
+    );
+
+    const zipFileName = getListingZipFileName();
+
+    // Trigger download in browser
+    const downloadUrl = URL.createObjectURL(zipBlob);
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = zipFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => {
+      URL.revokeObjectURL(downloadUrl);
+    }, 10000);
+
+    if (textEl) {
+      textEl.textContent = "Downloaded!";
+    }
+    setTimeout(() => {
+      if (textEl) textEl.textContent = originalText;
+    }, 2000);
+  } catch (err) {
+    console.error("ZIP download failed:", err);
+    alert("Error downloading images zip: " + (err.message || "Unknown error"));
+    if (textEl) textEl.textContent = originalText;
+  } finally {
+    if (downloadZipBtn) {
+      delete downloadZipBtn.dataset.busy;
+      downloadZipBtn.disabled = false;
+    }
+    if (iconEl) {
+      iconEl.className = "fa-solid fa-file-zipper text-blue-600";
+    }
+  }
 }
 
 function reorderImages(fromIndex, toIndex) {
@@ -2257,3 +2503,4 @@ function attachFormSubmissionHandler(id) {
 
 window.renderDocumentPreview = renderDocumentPreview;
 window.initializeDocumentManagement = initializeDocumentManagement;
+window.downloadImagesAsZip = downloadImagesAsZip;

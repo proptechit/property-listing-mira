@@ -684,7 +684,7 @@ function applyPublishedListingRestrictions(listing) {
     addImageBtn.setAttribute("tabindex", "-1");
   }
 
-  // Hide Clear All Images button
+  // Hide Clear All Images button (delete operation restricted on published listings)
   const clearAllBtn = document.getElementById("clearAllImagesBtn");
   if (clearAllBtn) {
     clearAllBtn.disabled = true;
@@ -692,7 +692,9 @@ function applyPublishedListingRestrictions(listing) {
   }
   const clearAllWrap = document.getElementById("clearAllImagesWrap");
   if (clearAllWrap) {
-    clearAllWrap.classList.add("hidden");
+    const hasImgs = Array.isArray(imageGallery) && imageGallery.length > 0;
+    clearAllWrap.classList.toggle("hidden", !hasImgs);
+    clearAllWrap.classList.toggle("flex", hasImgs);
   }
 
   // Hide shuffle button if present

@@ -98,6 +98,10 @@ switch ($resource) {
         require __DIR__ . '/controllers/activity-logs.php';
         break;
 
+    case 'image-proxy':
+        require __DIR__ . '/controllers/image-proxy.php';
+        break;
+
     default:
         http_response_code(404);
         echo json_encode([

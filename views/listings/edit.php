@@ -665,12 +665,21 @@ if (!$id) {
 
                     <div id="imageUploadFeedback" class="hidden mb-4 rounded-xl border px-4 py-3 text-sm"></div>
 
-                    <div class="mb-4 hidden justify-end" id="clearAllImagesWrap">
-                        <button type="button" id="clearAllImagesBtn"
-                            class="inline-flex items-center gap-2 rounded-lg border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60">
-                            <i class="fa-solid fa-trash-can"></i>
-                            Delete All Images
-                        </button>
+                    <div class="mb-4 hidden items-center justify-between gap-3 flex-wrap" id="clearAllImagesWrap">
+                        <div class="text-sm font-medium text-slate-500" id="imageCountLabel"></div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="downloadImagesZipBtn"
+                                class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-blue-600 hover:border-blue-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                title="Download all images in a ZIP archive named by property reference">
+                                <i class="fa-solid fa-file-zipper text-blue-600" id="downloadZipIcon"></i>
+                                <span id="downloadZipBtnText">Download ZIP</span>
+                            </button>
+                            <button type="button" id="clearAllImagesBtn"
+                                class="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60">
+                                <i class="fa-solid fa-trash-can"></i>
+                                Delete All Images
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Image Preview Grid -->
@@ -831,6 +840,7 @@ if (!$id) {
 <script>
     const listingId = <?php echo json_encode($id); ?>;
 </script>
+<script src="assets/js/jszip.min.js"></script>
 <script src="assets/js/utils.js"></script>
 <script src="assets/js/create.js"></script>
 <script src="assets/js/edit.js"></script>
