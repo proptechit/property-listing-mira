@@ -2319,7 +2319,9 @@ function attachFormSubmissionHandler(id) {
 
     if (permitVal) {
       try {
-        const checkUrl = `/?resource=check-permit&permit_number=${encodeURIComponent(permitVal)}${isEdit && id ? `&listing_id=${id}` : ""}`;
+        const purposeInput = form.querySelector('[name="purpose"]') || document.getElementById("purposeType");
+        const purposeVal = (purposeInput?.value || "").trim();
+        const checkUrl = `/?resource=check-permit&permit_number=${encodeURIComponent(permitVal)}${purposeVal ? `&purpose=${encodeURIComponent(purposeVal)}` : ""}${isEdit && id ? `&listing_id=${id}` : ""}`;
         const checkRes = await api(checkUrl);
         if (checkRes && checkRes.exists) {
           alert("There is an existing listing with same permit number, please contact crm team");

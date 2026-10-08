@@ -739,10 +739,12 @@
 
       const listingId = new URLSearchParams(window.location.search).get("id") || "";
       const listingParam = listingId ? `&listing_id=${encodeURIComponent(listingId)}` : "";
+      const purposeVal = (document.getElementById("purposeType")?.value || document.querySelector('[name="purpose"]')?.value || "").trim();
+      const purposeParam = purposeVal ? `&purpose=${encodeURIComponent(purposeVal)}` : "";
 
       try {
         const res = await api(
-          `/?resource=check-permit&permit_number=${encodeURIComponent(permitNo)}${listingParam}`
+          `/?resource=check-permit&permit_number=${encodeURIComponent(permitNo)}${listingParam}${purposeParam}`
         );
         if (res && res.exists) {
           if (duplicateWarningEl) duplicateWarningEl.classList.remove("hidden");
@@ -756,6 +758,16 @@
       } catch (err) {
         return false;
       }
+    }
+
+    // Re-check duplicate status when purpose (Sale vs Rent) changes
+    const purposeInputEl = document.getElementById("purposeType") || document.querySelector('[name="purpose"]');
+    if (purposeInputEl) {
+      purposeInputEl.addEventListener("change", () => {
+        if (permitInput && permitInput.value.trim()) {
+          checkPermitDuplicate(permitInput.value);
+        }
+      });
     }
 
     permitInput.addEventListener("blur", () => {

@@ -1138,16 +1138,27 @@ if ($method === 'POST') {
     // Check if listing with same permit number already exists
     $permitNumber = trim((string)($input['advertisement_number'] ?? ($input['permit_number'] ?? '')));
     if ($permitNumber !== '') {
+        $targetPurpose = normalizePurposeValue($input['purpose'] ?? ($input['ufCrm5_1752755567'] ?? ''));
+
         $existingPermitRes = bitrixRequest('crm.item.list', [
             'entityTypeId' => LISTINGS_ENTITY_ID,
             'filter'       => [
                 'ufCrm5_1752508269' => $permitNumber,
                 'stageId'           => 'DT1052_11:SUCCESS',
             ],
-            'select'       => ['id', 'stageId'],
+            'select'       => ['id', 'stageId', 'ufCrm5_1752755567'],
         ]);
 
-        if (!empty($existingPermitRes['result']['items'])) {
+        $conflicts = array_filter($existingPermitRes['result']['items'] ?? [], function ($item) use ($targetPurpose) {
+            $itemPurpose = normalizePurposeValue($item['ufCrm5_1752755567'] ?? '');
+            // If the existing listing has a different purpose type, it is not a conflict
+            if ($targetPurpose !== '' && $itemPurpose !== '' && $targetPurpose !== $itemPurpose) {
+                return false;
+            }
+            return true;
+        });
+
+        if (!empty($conflicts)) {
             jsonResponse([
                 'error'   => 'There is an existing listing with same permit number, please contact crm team',
                 'message' => 'There is an existing listing with same permit number, please contact crm team',
@@ -1284,17 +1295,27 @@ if ($method === 'PUT') {
     // Check if listing with same permit number already exists on another listing
     $permitNumber = trim((string)($input['advertisement_number'] ?? ($input['permit_number'] ?? '')));
     if ($permitNumber !== '') {
+        $targetPurpose = normalizePurposeValue($input['purpose'] ?? ($input['ufCrm5_1752755567'] ?? ($currentItem['ufCrm5_1752755567'] ?? '')));
+
         $existingPermitRes = bitrixRequest('crm.item.list', [
             'entityTypeId' => LISTINGS_ENTITY_ID,
             'filter'       => [
                 'ufCrm5_1752508269' => $permitNumber,
                 'stageId'           => 'DT1052_11:SUCCESS',
             ],
-            'select'       => ['id', 'stageId'],
+            'select'       => ['id', 'stageId', 'ufCrm5_1752755567'],
         ]);
 
-        $conflicts = array_filter($existingPermitRes['result']['items'] ?? [], function ($item) use ($id) {
-            return (int)($item['id'] ?? 0) !== (int)$id;
+        $conflicts = array_filter($existingPermitRes['result']['items'] ?? [], function ($item) use ($id, $targetPurpose) {
+            if ((int)($item['id'] ?? 0) === (int)$id) {
+                return false;
+            }
+            $itemPurpose = normalizePurposeValue($item['ufCrm5_1752755567'] ?? '');
+            // If the existing listing has a different purpose type, it is not a conflict
+            if ($targetPurpose !== '' && $itemPurpose !== '' && $targetPurpose !== $itemPurpose) {
+                return false;
+            }
+            return true;
         });
 
         if (!empty($conflicts)) {

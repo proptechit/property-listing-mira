@@ -107,3 +107,25 @@ function mapFilters(array $query, array $map, array $enums = []): array
 
     return $out;
 }
+
+/**
+ * Normalize listing purpose to Bitrix enum ID ('358' for Sale/Buy, '359' for Rent).
+ */
+function normalizePurposeValue($val): string
+{
+    if (is_array($val)) {
+        $val = reset($val);
+    }
+    $val = trim((string)$val);
+    if ($val === '') {
+        return '';
+    }
+    $lower = strtolower($val);
+    if ($val === '358' || $lower === 'for sale' || $lower === 'sale' || $lower === 'buy' || $lower === 'sell') {
+        return '358';
+    }
+    if ($val === '359' || $lower === 'for rent' || $lower === 'rent') {
+        return '359';
+    }
+    return $val;
+}
