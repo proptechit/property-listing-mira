@@ -528,6 +528,12 @@ async function loadListingDetails(id) {
       `/?resource=listings&id=${encodeURIComponent(id)}&track_view=1`,
     );
 
+    // Hide refresh button for non-admin
+    const refreshBtn = qs("#refreshListingBtn");
+    if (refreshBtn && !IS_ADMIN) {
+      refreshBtn.classList.add("hidden");
+    }
+
     // Hide edit button for non-admin
     const editBtn = qs("#editListingBtn");
     if (editBtn) {
@@ -558,6 +564,7 @@ async function loadListingDetails(id) {
 }
 
 function openRefreshListingModal(id, currentRef = "") {
+  if (!IS_ADMIN) return;
   const modal = qs("#refreshListingModal");
   const idInput = qs("#refreshListingId");
   const refInput = qs("#refreshReferenceInput");
@@ -590,6 +597,7 @@ function closeRefreshListingModal() {
 }
 
 function wireRefreshModal(id) {
+  if (!IS_ADMIN) return;
   const modal = qs("#refreshListingModal");
   const form = qs("#refreshListingForm");
   const closeBtn = qs("#closeRefreshModalBtn");
@@ -656,14 +664,16 @@ function wireRefreshModal(id) {
 }
 
 function wireActionButtons(id, currentReference = "") {
-  wireRefreshModal(id);
+  if (IS_ADMIN) {
+    wireRefreshModal(id);
 
-  const refreshBtn = qs("#refreshListingBtn");
-  if (refreshBtn && !refreshBtn.dataset.wired) {
-    refreshBtn.dataset.wired = "true";
-    refreshBtn.addEventListener("click", () => {
-      openRefreshListingModal(id, currentReference);
-    });
+    const refreshBtn = qs("#refreshListingBtn");
+    if (refreshBtn && !refreshBtn.dataset.wired) {
+      refreshBtn.dataset.wired = "true";
+      refreshBtn.addEventListener("click", () => {
+        openRefreshListingModal(id, currentReference);
+      });
+    }
   }
 
   const dupBtn = qs("#duplicateListingBtn");

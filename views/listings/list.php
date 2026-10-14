@@ -356,7 +356,9 @@
     <!-- listings view container ends -->
 </div>
 
+<?php if (!empty($isAdmin)): ?>
 <?php require __DIR__ . '/../partials/refresh-modal.php'; ?>
+<?php endif; ?>
 
 <script src="assets/js/listings.js"></script>
 <script>

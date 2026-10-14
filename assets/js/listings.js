@@ -928,7 +928,9 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                     : ""
                 }
 
-                <button type="button"
+                ${
+                  IS_ADMIN
+                    ? `<button type="button"
                   class="w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                   data-action="refresh-listing"
                   data-id="${l.id}"
@@ -936,7 +938,9 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                   role="menuitem">
                   <i class="fa-solid fa-arrows-rotate text-blue-500 text-sm"></i>
                   <span>Refresh listing</span>
-                </button>
+                </button>`
+                    : ""
+                }
 
                 <button type="button"
                   class="w-full px-4 py-2 text-left text-md text-slate-700 hover:bg-slate-50 flex items-center gap-2"
@@ -1354,6 +1358,7 @@ async function deleteListing(id) {
 }
 
 function openRefreshListingModal(id, currentRef = "") {
+  if (!IS_ADMIN) return;
   const modal = qs("#refreshListingModal");
   const idInput = qs("#refreshListingId");
   const refInput = qs("#refreshReferenceInput");
@@ -1386,6 +1391,7 @@ function closeRefreshListingModal() {
 }
 
 function wireRefreshModal() {
+  if (!IS_ADMIN) return;
   const modal = qs("#refreshListingModal");
   const form = qs("#refreshListingForm");
   const closeBtn = qs("#closeRefreshModalBtn");
@@ -1521,6 +1527,7 @@ document.addEventListener("click", (e) => {
       return;
     }
     if (action === "refresh-listing") {
+      if (!IS_ADMIN) return;
       const currentRef = actionBtn.getAttribute("data-reference") || "";
       openRefreshListingModal(id, currentRef);
       return;

@@ -1002,6 +1002,13 @@ if ($method === 'POST') {
             jsonResponse(['error' => 'Listing ID is required'], 400);
         }
 
+        // Restrict refresh action to administrators only
+        $callerId = getCallerUserId([$input['user_id'] ?? 0]);
+        $adminIds = defined('ADMIN_IDS') ? ADMIN_IDS : ($GLOBALS['ADMIN_IDS'] ?? []);
+        if ($callerId <= 0 || !in_array($callerId, $adminIds, true)) {
+            jsonResponse(['error' => 'Permission denied: Only administrators can refresh listings'], 403);
+        }
+
         $checkRes = bitrixRequest('crm.item.get', [
             'entityTypeId' => LISTINGS_ENTITY_ID,
             'id'           => $id,

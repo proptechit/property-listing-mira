@@ -16,10 +16,12 @@ if (!$id) {
             <p class="text-md text-slate-500 mt-1">View full information, media, and key attributes.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2 justify-end">
+            <?php if (!empty($isAdmin)): ?>
             <button id="refreshListingBtn" type="button"
                 class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-md font-semibold transition-colors shadow-sm inline-flex items-center gap-2">
                 <i class="fa-solid fa-arrows-rotate text-blue-500"></i> Refresh Listing
             </button>
+            <?php endif; ?>
             <button id="duplicateListingBtn" type="button"
                 class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-md font-semibold transition-colors shadow-sm inline-flex items-center gap-2">
                 <i class="fa-solid fa-clone text-emerald-500"></i> Duplicate Listing
@@ -45,7 +47,9 @@ if (!$id) {
     </div>
 </div>
 
+<?php if (!empty($isAdmin)): ?>
 <?php require __DIR__ . '/../partials/refresh-modal.php'; ?>
+<?php endif; ?>
 
 <script>
     const listingId = <?php echo json_encode($id); ?>;
