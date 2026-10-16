@@ -56,12 +56,31 @@ function fromBitrixFields(array $item, array $map, array $enums = []): array
             $reverseEnum = array_flip($enums[$frontendKey]);
 
             if (is_array($value)) {
-                $out[$frontendKey] = array_map(
-                    fn($v) => $reverseEnum[$v] ?? $v,
-                    $value
-                );
+                $out[$frontendKey] = array_values(array_filter(
+                    array_map(function ($v) use ($reverseEnum, $enums, $frontendKey) {
+                        if ($v === 0 || $v === '0' || $v === '' || $v === null || $v === false) {
+                            return null;
+                        }
+                        if (isset($reverseEnum[$v])) {
+                            return (string)$reverseEnum[$v];
+                        }
+                        if (isset($enums[$frontendKey][$v])) {
+                            return (string)$v;
+                        }
+                        return null;
+                    }, $value),
+                    fn($v) => $v !== null
+                ));
             } else {
-                $out[$frontendKey] = $reverseEnum[$value] ?? $value;
+                if ($value === 0 || $value === '0' || $value === '' || $value === null || $value === false) {
+                    $out[$frontendKey] = null;
+                } elseif (isset($reverseEnum[$value])) {
+                    $out[$frontendKey] = (string)$reverseEnum[$value];
+                } elseif (isset($enums[$frontendKey][$value])) {
+                    $out[$frontendKey] = (string)$value;
+                } else {
+                    $out[$frontendKey] = null;
+                }
             }
         } else {
             $out[$frontendKey] = $value;

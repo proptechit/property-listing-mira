@@ -230,6 +230,16 @@ function displayName(v) {
   return String(v);
 }
 
+function formatBedrooms(v) {
+  if (v === null || v === undefined || v === "" || v === "none" || v === 0) {
+    return "none";
+  }
+  if (v === "0" || String(v).trim().toLowerCase() === "studio") {
+    return "Studio";
+  }
+  return String(v);
+}
+
 function formatDate(dateString) {
   if (!dateString) return "-";
   let str = String(dateString).trim();
@@ -359,7 +369,9 @@ function matchesSearchAndFiltersLocal(listing, searchTerm, filters) {
     : "";
 
   const type = normStr(listing?.property_type_pf);
-  const bedrooms = toNum(listing?.bedrooms);
+  const bedrooms = (listing?.bedrooms === 0 || listing?.bedrooms === null || listing?.bedrooms === undefined || listing?.bedrooms === "")
+    ? null
+    : toNum(listing?.bedrooms);
   const bathrooms = toNum(listing?.bathrooms);
   const size = toNum(listing?.size);
   const price = toNum(listing?.price);
@@ -773,7 +785,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
             <div class="flex gap-2 text-slate-600">
               <span class="text-sm flex items-center gap-1">
                 <i class="fa-solid fa-bed text-slate-400"></i> 
-                ${escapeHtml((l.bedrooms == 0 && l.bedrooms !== null && l.bedrooms !== "") ? "Studio" : (l.bedrooms ?? "none"))}
+                ${escapeHtml(formatBedrooms(l.bedrooms))}
               </span>
 
               <span class="text-sm flex items-center gap-1">
@@ -1061,7 +1073,7 @@ async function loadListings(page = 1, searchTerm = "", filters = {}) {
                   }
                   <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold">
                     <i class="fa-solid fa-bed text-slate-400 mr-1"></i>
-                    ${escapeHtml((beds == 0 && beds !== null && beds !== "") ? "Studio" : String(beds ?? "none"))}
+                    ${escapeHtml(formatBedrooms(l.bedrooms))}
                   </span>
 
                   <span class="bg-slate-50 text-slate-600 px-3 py-1 rounded-full font-semibold">

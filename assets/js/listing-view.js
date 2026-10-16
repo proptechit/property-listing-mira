@@ -70,6 +70,16 @@ function buildDetailRow(label, value, icon = null) {
   `;
 }
 
+function formatBedrooms(v) {
+  if (v === null || v === undefined || v === "" || v === "none" || v === 0) {
+    return null;
+  }
+  if (v === "0" || String(v).trim().toLowerCase() === "studio") {
+    return "Studio";
+  }
+  return String(v);
+}
+
 function formatDate(dateString) {
   if (!dateString) return "-";
   let str = String(dateString).trim();
@@ -291,7 +301,7 @@ function renderListingDetails(container, listing) {
           </div>
           <div class="space-y-0">
             ${buildDetailRow("Type", prettyLabel(propertyType), "fa-house")}
-            ${buildDetailRow("Bedrooms", (listing?.bedrooms == 0 && listing?.bedrooms !== null && listing?.bedrooms !== "") ? "Studio" : listing?.bedrooms, "fa-bed")}
+            ${buildDetailRow("Bedrooms", formatBedrooms(listing?.bedrooms), "fa-bed")}
             ${buildDetailRow("Bathrooms", (listing?.bathrooms == 0 && listing?.bathrooms !== null && listing?.bathrooms !== "") ? "None" : listing?.bathrooms, "fa-bath")}
             ${buildDetailRow("Size", size, "fa-ruler-combined")}
             ${buildDetailRow("Location", location, "fa-location-dot")}

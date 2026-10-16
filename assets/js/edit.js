@@ -119,7 +119,18 @@ async function loadListingForEdit(listingId) {
 
     fieldsToFill.forEach((field) => {
       const input = document.querySelector(`[name="${field}"]`);
-      if (input && listing[field] !== undefined && listing[field] !== null) {
+      if (!input) return;
+      if (field === "bedrooms") {
+        if (listing.bedrooms === "0" || String(listing.bedrooms).toLowerCase() === "studio") {
+          input.value = "0";
+        } else if (listing.bedrooms === null || listing.bedrooms === undefined || listing.bedrooms === "" || listing.bedrooms === 0 || listing.bedrooms === "none") {
+          input.value = "";
+        } else {
+          input.value = String(listing.bedrooms);
+        }
+        return;
+      }
+      if (listing[field] !== undefined && listing[field] !== null) {
         input.value = listing[field];
       }
     });
